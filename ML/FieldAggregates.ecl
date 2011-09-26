@@ -1,5 +1,5 @@
 ﻿IMPORT * FROM $;
-export FieldAggregates(DATASET(Types.NumericField) d) := MODULE
+EXPORT FieldAggregates(DATASET(Types.NumericField) d) := MODULE
 
 SingleField := RECORD
   d.number;
@@ -7,7 +7,7 @@ SingleField := RECORD
 	Types.t_fieldreal var := VARIANCE(GROUP,d.Value);
 	END;
 	
-singles := table(d,SingleField,Number);	
+singles := TABLE(d,SingleField,Number,FEW);	
 
 s2 := RECORD
   singles;
@@ -18,29 +18,14 @@ EXPORT Simple := TABLE(singles,s2);
 
 RankableField := RECORD
   d;
-	UNSIGNED Pos;
+	UNSIGNED Pos := 0;
   END;
 
-RankableField add_rank(D le,UNSIGNED c) := TRANSFORM
-  SELF.Pos := c;
-	SELF := le;
-  END;
-	
-P := PROJECT(SORT(D,Number,-Value),add_rank(LEFT,COUNTER));
+T := TABLE(SORT(D,Number,Value),RankableField);
 
-RankableField find_starts(P le,P ri) := TRANSFORM
-  SELF.Pos := IF ( le.Number=ri.Number, 0, ri.pos );
-  SELF := ri;
-  END;
+Utils.mac_SequenceInField(T,Number,Pos,P)
 
-Splits := ITERATE(SORT(DISTRIBUTE(P,Number),Number,LOCAL),find_starts(LEFT,RIGHT),LOCAL)(Pos > 0);
-
-RankableField to_1(P le,Splits ri) := TRANSFORM
-	SELF.Pos := 1+le.Pos - ri.Pos;
-	SELF := le;
-  END;
-	
-EXPORT SimpleRanked := JOIN(P,Splits,LEFT.Number=RIGHT.Number,to_1(LEFT,RIGHT),LOOKUP);
+EXPORT SimpleRanked := P;
 
 MR := RECORD
   SimpleRanked.Number;
