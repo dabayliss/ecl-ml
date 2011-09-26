@@ -1,5 +1,5 @@
 ﻿IMPORT * FROM $;
-export FieldAggregates(DATASET(Types.NumericField) d) := MODULE
+EXPORT FieldAggregates(DATASET(Types.NumericField) d) := MODULE
 
 SingleField := RECORD
   d.number;
