@@ -22,9 +22,9 @@ PairAccum := RECORD
 	e_xy := AVE(GROUP,pairs.xy);
   END;
 	
-exys := TABLE(pairs,PairAccum,left_number,right_number,FEW); // Few will die for VERY large numbers of variables ...	
+exys := TABLE(pairs,PairAccum,left_number,right_number);	
 
-with_x := JOIN(exys,singles,left.left_number = right.number,LOOKUP);
+with_x := JOIN(exys,singles,left.left_number = right.number);
 
 CoRec := RECORD
   Types.t_fieldnumber left_number;
@@ -39,6 +39,6 @@ CoRec MakeCo(with_x le, singles ri) := TRANSFORM
   SELF := le;
   END;
 
-  EXPORT Simple := JOIN(with_x,singles,left.right_number=right.number,MakeCo(left,right),LOOKUP);
+  EXPORT Simple := JOIN(with_x,singles,left.right_number=right.number,MakeCo(left,right));
 	
   END;

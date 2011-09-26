@@ -1,46 +1,38 @@
 ﻿IMPORT * FROM $;
-export FieldAggregates(DATASET(Types.NumericField) d) := MODULE
+EXPORT FieldAggregates(DATASET(Types.NumericField) d) := MODULE
+
+SHARED iValueCount:=COUNT(TABLE(D,{id},id));
+SHARED dDistributed:=SORT(DISTRIBUTE(d,number),number,-value,LOCAL);
 
 SingleField := RECORD
   d.number;
+	Types.t_fieldreal minval:=MIN(GROUP,d.Value);
+	Types.t_fieldreal maxval:=MAX(GROUP,d.Value);
+	Types.t_fieldreal sumval:=SUM(GROUP,d.Value);
 	Types.t_fieldreal mean := AVE(GROUP,d.Value);
 	Types.t_fieldreal var := VARIANCE(GROUP,d.Value);
-	END;
+END;
 	
-singles := table(d,SingleField,Number);	
+singles := table(dDistributed,SingleField,Number,LOCAL);	
 
 s2 := RECORD
   singles;
 	Types.t_fieldreal sd := SQRT(singles.var);
-  END;
+END;
 
 EXPORT Simple := TABLE(singles,s2);
 
-RankableField := RECORD
-  d;
-	UNSIGNED Pos;
-  END;
+dWithPos:=TABLE(dDistributed,{dDistributed;UNSIGNED pos:=0;TYPES.t_FieldReal percentile:=0.0;});
 
-RankableField add_rank(D le,UNSIGNED c) := TRANSFORM
-  SELF.Pos := c;
-	SELF := le;
-  END;
-	
-P := PROJECT(SORT(D,Number,-Value),add_rank(LEFT,COUNTER));
-
-RankableField find_starts(P le,P ri) := TRANSFORM
-  SELF.Pos := IF ( le.Number=ri.Number, 0, ri.pos );
-  SELF := ri;
-  END;
-
-Splits := ITERATE(SORT(DISTRIBUTE(P,Number),Number,LOCAL),find_starts(LEFT,RIGHT),LOCAL)(Pos > 0);
-
-RankableField to_1(P le,Splits ri) := TRANSFORM
-	SELF.Pos := 1+le.Pos - ri.Pos;
-	SELF := le;
-  END;
-	
-EXPORT SimpleRanked := JOIN(P,Splits,LEFT.Number=RIGHT.Number,to_1(LEFT,RIGHT),LOOKUP);
+RECORDOF(dWithPos) tRank(dWithPos L,dWithPos R):=TRANSFORM
+  SELF.pos:=IF(L.number=R.number,L.pos+1,1);
+	SELF.percentile:=((Types.t_FieldReal)SELF.pos-0.5)*(100/iValueCount); // Percentile by rank (can be used instead of the following join if desired)
+	SELF:=R;
+END;
+dRanked:=ITERATE(dWithPos,tRank(LEFT,RIGHT),LOCAL);
+// Uncomment one of the two lines below to get the preferred percentile value.
+//EXPORT SimpleRanked:=ITERATE(dDistributed,tRank(LEFT,RIGHT),LOCAL);
+EXPORT SimpleRanked:=JOIN(dRanked,Simple,LEFT.number=RIGHT.number,TRANSFORM(RECORDOF(dRanked),SELF.percentile:=100*((LEFT.value-RIGHT.minval)/(RIGHT.maxval-RIGHT.minval));SELF:=LEFT;),LOOKUP);
 
 MR := RECORD
   SimpleRanked.Number;
