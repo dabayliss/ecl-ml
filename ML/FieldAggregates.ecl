@@ -7,7 +7,7 @@ SingleField := RECORD
 	Types.t_fieldreal var := VARIANCE(GROUP,d.Value);
 	END;
 	
-singles := table(d,SingleField,Number);	
+singles := TABLE(d,SingleField,Number,FEW);	
 
 s2 := RECORD
   singles;
@@ -28,15 +28,15 @@ RankableField add_rank(D le,UNSIGNED c) := TRANSFORM
 	
 P := PROJECT(SORT(D,Number,-Value),add_rank(LEFT,COUNTER));
 
-RankableField find_starts(P le,P ri) := TRANSFORM
-  SELF.Pos := IF ( le.Number=ri.Number, 0, ri.pos );
-  SELF := ri;
+RS := RECORD
+  LowPos := MIN(GROUP,P.Pos);
+  P.Number;
   END;
 
-Splits := ITERATE(SORT(DISTRIBUTE(P,Number),Number,LOCAL),find_starts(LEFT,RIGHT),LOCAL)(Pos > 0);
+Splits := TABLE(P,RS,Number,FEW);
 
 RankableField to_1(P le,Splits ri) := TRANSFORM
-	SELF.Pos := 1+le.Pos - ri.Pos;
+	SELF.Pos := 1+le.Pos - ri.LowPos;
 	SELF := le;
   END;
 	
