@@ -18,29 +18,14 @@ EXPORT Simple := TABLE(singles,s2);
 
 RankableField := RECORD
   d;
-	UNSIGNED Pos;
+	UNSIGNED Pos := 0;
   END;
 
-RankableField add_rank(D le,UNSIGNED c) := TRANSFORM
-  SELF.Pos := c;
-	SELF := le;
-  END;
-	
-P := PROJECT(SORT(D,Number,-Value),add_rank(LEFT,COUNTER));
+T := TABLE(SORT(D,Number,Value),RankableField);
 
-RS := RECORD
-  LowPos := MIN(GROUP,P.Pos);
-  P.Number;
-  END;
+Utils.mac_SequenceInField(T,Number,Pos,P)
 
-Splits := TABLE(P,RS,Number,FEW);
-
-RankableField to_1(P le,Splits ri) := TRANSFORM
-	SELF.Pos := 1+le.Pos - ri.LowPos;
-	SELF := le;
-  END;
-	
-EXPORT SimpleRanked := JOIN(P,Splits,LEFT.Number=RIGHT.Number,to_1(LEFT,RIGHT),LOOKUP);
+EXPORT SimpleRanked := P;
 
 MR := RECORD
   SimpleRanked.Number;
