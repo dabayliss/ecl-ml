@@ -3,6 +3,10 @@ EXPORT FieldAggregates(DATASET(Types.NumericField) d) := MODULE
 
 SingleField := RECORD
   d.number;
+	Types.t_fieldreal minval:=MIN(GROUP,d.Value);
+	Types.t_fieldreal maxval:=MAX(GROUP,d.Value);
+	Types.t_fieldreal sumval:=SUM(GROUP,d.Value);
+  Types.t_fieldreal countval:=COUNT(GROUP);
 	Types.t_fieldreal mean := AVE(GROUP,d.Value);
 	Types.t_fieldreal var := VARIANCE(GROUP,d.Value);
 	END;
@@ -25,7 +29,13 @@ T := TABLE(SORT(D,Number,Value),RankableField);
 
 Utils.mac_SequenceInField(T,Number,Pos,P)
 
-EXPORT SimpleRanked := P;
+dWithPercentile:=JOIN(P,Simple,LEFT.number=RIGHT.number,TRANSFORM({RECORDOF(p);Types.t_FieldReal percentile;},SELF.percentile:=100*((LEFT.value-RIGHT.minval)/(RIGHT.maxval-RIGHT.minval));SELF:=LEFT;),LOOKUP);
+
+EXPORT SimpleRanked := dWithPercentile;
+
+EXPORT fBucketize(UNSIGNED iBuckets):=FUNCTION
+  RETURN TABLE(SimpleRanked,{SimpleRanked;UNSIGNED bucket:=IF(percentile=0.0,1,percentile/(100/iBuckets));});
+END;
 
 MR := RECORD
   SimpleRanked.Number;
