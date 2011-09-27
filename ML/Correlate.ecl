@@ -39,7 +39,7 @@ CoRec MakeCo(with_x le, singles ri) := TRANSFORM
   SELF := le;
   END;
 
-  EXPORT Simple := JOIN(with_x,singles,left.right_number=right.number,MakeCo(left,right),LOOKUP);
+  EXPORT Simple := JOIN(with_x,singles,LEFT.right_number=RIGHT.number,MakeCo(LEFT,RIGHT),LOOKUP);
 
 OrderedPairRec := RECORD
 	Types.t_RecordID  rid;
