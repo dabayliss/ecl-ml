@@ -1,38 +1,31 @@
 ﻿IMPORT * FROM $;
 EXPORT FieldAggregates(DATASET(Types.NumericField) d) := MODULE
 
-SHARED iValueCount:=COUNT(TABLE(D,{id},id));
-SHARED dDistributed:=SORT(DISTRIBUTE(d,number),number,-value,LOCAL);
-
 SingleField := RECORD
   d.number;
-	Types.t_fieldreal minval:=MIN(GROUP,d.Value);
-	Types.t_fieldreal maxval:=MAX(GROUP,d.Value);
-	Types.t_fieldreal sumval:=SUM(GROUP,d.Value);
 	Types.t_fieldreal mean := AVE(GROUP,d.Value);
 	Types.t_fieldreal var := VARIANCE(GROUP,d.Value);
-END;
+	END;
 	
-singles := table(dDistributed,SingleField,Number,LOCAL);	
+singles := TABLE(d,SingleField,Number,FEW);	
 
 s2 := RECORD
   singles;
 	Types.t_fieldreal sd := SQRT(singles.var);
-END;
+  END;
 
 EXPORT Simple := TABLE(singles,s2);
 
-dWithPos:=TABLE(dDistributed,{dDistributed;UNSIGNED pos:=0;TYPES.t_FieldReal percentile:=0.0;});
+RankableField := RECORD
+  d;
+	UNSIGNED Pos := 0;
+  END;
 
-RECORDOF(dWithPos) tRank(dWithPos L,dWithPos R):=TRANSFORM
-  SELF.pos:=IF(L.number=R.number,L.pos+1,1);
-	SELF.percentile:=((Types.t_FieldReal)SELF.pos-0.5)*(100/iValueCount); // Percentile by rank (can be used instead of the following join if desired)
-	SELF:=R;
-END;
-dRanked:=ITERATE(dWithPos,tRank(LEFT,RIGHT),LOCAL);
-// Uncomment one of the two lines below to get the preferred percentile value.
-//EXPORT SimpleRanked:=ITERATE(dDistributed,tRank(LEFT,RIGHT),LOCAL);
-EXPORT SimpleRanked:=JOIN(dRanked,Simple,LEFT.number=RIGHT.number,TRANSFORM(RECORDOF(dRanked),SELF.percentile:=100*((LEFT.value-RIGHT.minval)/(RIGHT.maxval-RIGHT.minval));SELF:=LEFT;),LOOKUP);
+T := TABLE(SORT(D,Number,Value),RankableField);
+
+Utils.mac_SequenceInField(T,Number,Pos,P)
+
+EXPORT SimpleRanked := P;
 
 MR := RECORD
   SimpleRanked.Number;
