@@ -3,6 +3,7 @@
 EXPORT t_RecordID := UNSIGNED;
 EXPORT t_FieldNumber := UNSIGNED2;
 EXPORT t_FieldReal := REAL8;
+EXPORT t_FieldSign := INTEGER1;
 
 EXPORT NumericField := RECORD
   t_RecordID id;
