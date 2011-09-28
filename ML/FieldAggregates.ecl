@@ -29,13 +29,21 @@ T := TABLE(SORT(D,Number,Value),RankableField);
 
 Utils.mac_SequenceInField(T,Number,Pos,P)
 
-dWithPercentile:=JOIN(P,Simple,LEFT.number=RIGHT.number,TRANSFORM({RECORDOF(p);Types.t_FieldReal percentile;},SELF.percentile:=100*((LEFT.value-RIGHT.minval)/(RIGHT.maxval-RIGHT.minval));SELF:=LEFT;),LOOKUP);
+EXPORT SimpleRanked := P;
 
-EXPORT SimpleRanked := dWithPercentile;
-
-EXPORT fBucketize(UNSIGNED iBuckets):=FUNCTION
-  RETURN TABLE(SimpleRanked,{SimpleRanked;UNSIGNED bucket:=IF(percentile=0.0,1,percentile/(100/iBuckets));});
+{RECORDOF(SimpleRanked);Types.t_NTile ntile;} tNTile(SimpleRanked L,Simple R,Types.t_NTile n):=TRANSFORM
+  SELF.ntile:=IF(L.pos=R.countval,n,(Types.t_NTile)(n*(L.pos/R.countval))+1);
+  SELF:=L;
 END;
+EXPORT NTiles(Types.t_NTile n):=JOIN(SimpleRanked,Simple,LEFT.number=RIGHT.number,tNTile(LEFT,RIGHT,n),LOOKUP);
+EXPORT NTileRanges(Types.t_NTile n):=TABLE(NTiles(n),{number;ntile;Types.t_fieldreal Min:=MIN(GROUP,value);Types.t_fieldreal Max:=MAX(GROUP,value);UNSIGNED cnt:=COUNT(GROUP);},number,ntile);
+
+{RECORDOF(SimpleRanked);Types.t_Bucket bucket;} tAssign(SimpleRanked L,Simple R,Types.t_Bucket n):=TRANSFORM
+  SELF.bucket:=IF(L.value=R.maxval,n,(Types.t_Bucket)(n*((L.value-R.minval)/(R.maxval-R.minval)))+1);
+  SELF:=L;
+END;
+EXPORT Buckets(Types.t_Bucket n):=JOIN(SimpleRanked,Simple,LEFT.number=RIGHT.number,tAssign(LEFT,RIGHT,n),LOOKUP);
+EXPORT BucketRangess(Types.t_Bucket n):=TABLE(Buckets(n),{number;bucket;Types.t_fieldreal Min:=MIN(GROUP,value);Types.t_fieldreal Max:=MAX(GROUP,value);UNSIGNED cnt:=COUNT(GROUP);},number,bucket);
 
 MR := RECORD
   SimpleRanked.Number;
