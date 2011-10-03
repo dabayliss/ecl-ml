@@ -9,5 +9,5 @@ EXPORT Element := RECORD
 	t_Index y;
 	t_value value;
 END;
-	
+
 END;
