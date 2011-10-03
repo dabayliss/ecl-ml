@@ -31,13 +31,6 @@ Utils.mac_SequenceInField(T,Number,Pos,P)
 
 EXPORT SimpleRanked := P;
 
-{RECORDOF(SimpleRanked);Types.t_NTile ntile;} tNTile(SimpleRanked L,Simple R,Types.t_NTile n):=TRANSFORM
-  SELF.ntile:=IF(L.pos=R.countval,n,(Types.t_NTile)(n*(L.pos/R.countval))+1);
-  SELF:=L;
-END;
-EXPORT NTiles(Types.t_NTile n):=JOIN(SimpleRanked,Simple,LEFT.number=RIGHT.number,tNTile(LEFT,RIGHT,n),LOOKUP);
-EXPORT NTileRanges(Types.t_NTile n):=TABLE(NTiles(n),{number;ntile;Types.t_fieldreal Min:=MIN(GROUP,value);Types.t_fieldreal Max:=MAX(GROUP,value);UNSIGNED cnt:=COUNT(GROUP);},number,ntile);
-
 {RECORDOF(SimpleRanked);Types.t_Bucket bucket;} tAssign(SimpleRanked L,Simple R,Types.t_Bucket n):=TRANSFORM
   SELF.bucket:=IF(L.value=R.maxval,n,(Types.t_Bucket)(n*((L.value-R.minval)/(R.maxval-R.minval)))+1);
   SELF:=L;
@@ -64,5 +57,12 @@ AveRanked Into(D le,T ri) := 	TRANSFORM
   END;
 	
 EXPORT Ranked := JOIN(D,T,LEFT.Number=RIGHT.Number AND LEFT.Value = RIGHT.Value,Into(LEFT,RIGHT));	
+
+{RECORDOF(Ranked);Types.t_NTile ntile;} tNTile(Ranked L,Simple R,Types.t_NTile n):=TRANSFORM
+  SELF.ntile:=IF(L.pos=R.countval,n,(Types.t_NTile)(n*(L.pos/R.countval))+1);
+  SELF:=L;
+END;
+EXPORT NTiles(Types.t_NTile n):=JOIN(Ranked,Simple,LEFT.number=RIGHT.number,tNTile(LEFT,RIGHT,n),LOOKUP);
+EXPORT NTileRanges(Types.t_NTile n):=TABLE(NTiles(n),{number;ntile;Types.t_fieldreal Min:=MIN(GROUP,value);Types.t_fieldreal Max:=MAX(GROUP,value);UNSIGNED cnt:=COUNT(GROUP);},number,ntile);
 
   END;
