@@ -8,5 +8,5 @@ Types.Element Ad(l le,r ri) := TRANSFORM
     SELF.y := IF ( le.y = 0, ri.y, le.y );
 	  SELF.value := le.value + ri.value; // Fortuitously; 0 is the null value
   END;
-	RETURN JOIN(l,r,LEFT.x=RIGHT.x AND LEFT.y=RIGHT.y,Su(LEFT,RIGHT),FULL OUTER);
-  END;
+	RETURN JOIN(l,r,LEFT.x=RIGHT.x AND LEFT.y=RIGHT.y,Ad(LEFT,RIGHT),FULL OUTER);
+END;
