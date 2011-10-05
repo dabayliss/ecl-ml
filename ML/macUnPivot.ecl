@@ -1,4 +1,5 @@
 ﻿EXPORT macUnPivot(dIn,lOut,dOut):=MACRO
+  LOADXML('<xml/>');
   #DECLARE(iUnPivotLoop) #SET(iUnPivotLoop,0)
 	#DECLARE(assignments) #SET(assignments,'')
 	#DECLARE(rid)
