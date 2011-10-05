@@ -25,9 +25,9 @@ Utils.mac_SequenceInField(T,Number,Pos,P)
 
 EXPORT SimpleRanked := P;
 
-dMedianPos:=TABLE(SimpleRanked,{number;SET OF UNSIGNED pos:=IF(MAX(GROUP,pos)%2=0,[MAX(GROUP,pos)/2],[(MAX(GROUP,pos)-1)/2,(MAX(GROUP,pos)-1)/2+1]);},number);
-dMedianValues:=JOIN(SimpleRanked,dMedianPos,LEFT.number=RIGHT.number AND LEFT.pos IN RIGHT.pos,TRANSFORM({RECORDOF(SimpleRanked) AND NOT [id,pos];},SELF:=LEFT;));
-EXPORT Medians:=ROLLUP(dMedianValues,LEFT.number=RIGHT.number,TRANSFORM(RECORDOF(dMedianValues),SELF.value:=(LEFT.value+RIGHT.value)/2;SELF:=LEFT;));
+dMedianPos:=TABLE(SimpleRanked,{number;SET OF UNSIGNED pos:=IF(MAX(GROUP,pos)%2=0,[MAX(GROUP,pos)/2],[(MAX(GROUP,pos)-1)/2,(MAX(GROUP,pos)-1)/2+1]);},number,FEW);
+dMedianValues:=JOIN(SimpleRanked,dMedianPos,LEFT.number=RIGHT.number AND LEFT.pos IN RIGHT.pos,TRANSFORM({RECORDOF(SimpleRanked) AND NOT [id,pos];},SELF:=LEFT;),LOOKUP);
+EXPORT Medians:=TABLE(dMedianValues,{number;TYPEOF(dMedianValues.value) median:=IF(COUNT(GROUP)=1,MIN(GROUP,value),SUM(GROUP,value)/2);},number,FEW);
 
 {RECORDOF(SimpleRanked);Types.t_Bucket bucket;} tAssign(SimpleRanked L,Simple R,Types.t_Bucket n):=TRANSFORM
   SELF.bucket:=IF(L.value=R.maxval,n,(Types.t_Bucket)(n*((L.value-R.minval)/(R.maxval-R.minval)))+1);
@@ -43,9 +43,11 @@ MR := RECORD
   UNSIGNED valcount:=COUNT(GROUP);
 END;
 
-SHARED T := TABLE(SimpleRanked,MR,Number,Value);	
+SHARED T := TABLE(SimpleRanked,MR,Number,Value);
 
-EXPORT Modes:=TABLE(DEDUP(SORT(T,number,-valcount),number),{number;value;});
+dModeVals:=TABLE(T,{number;UNSIGNED modeval:=MAX(GROUP,valcount);},number,FEW);
+EXPORT Modes:=JOIN(T,dModeVals,LEFT.number=RIGHT.number AND LEFT.valcount=RIGHT.modeval,TRANSFORM({TYPEOF(T.number) number;TYPEOF(T.value) mode;},SELF.mode:=LEFT.value;SELF:=LEFT;),LOOKUP);
+
 EXPORT Cardinality:=TABLE(T,{number;UNSIGNED cardinality:=COUNT(GROUP);},number);
 
 AveRanked := 	RECORD
