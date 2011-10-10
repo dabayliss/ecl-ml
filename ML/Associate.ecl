@@ -14,7 +14,11 @@ EXPORT Associate(DATASET(Types.ItemElement) d,Types.t_Count M) := MODULE
 // Service functions and support pattern
 SHARED	NotFirst(STRING S) := IF(Str.FindCount(S,' ')=0,'',S[Str.Find(S,' ',1)+1..]);
 SHARED	NotLast(STRING S) := IF(Str.FindCount(S,' ')=0,'',S[1..Str.Find(S,' ',Str.FindCount(S,' '))-1]);
-SHARED	NotNN(STRING S,UNSIGNED2 NN) := S[1..Str.Find(S,' ',NN-1)]+S[Str.Find(S,' ',NN)+1..];
+SHARED	NotNN(STRING S,UNSIGNED2 NN) := MAP( NN = 1 => NotFirst(S),
+																						 NN = Str.WordCount(S) => NotLast(S),
+                                             S[1..Str.Find(S,' ',NN-1)]+S[Str.Find(S,' ',NN)+1..] );
+
+SHARED Records := COUNT(DEDUP(D,id,ALL));
 
 EXPORT  PatternElement := RECORD
 		Types.t_Count Support;
@@ -229,8 +233,37 @@ EXPORT EclatN(UNSIGNED2 N,UNSIGNED2 MinN=2) := FUNCTION
 
 	EC1_R := EC1 + Groups(EC1);
 	N_R := IF ( N = 1, EC1_R, LOOP(EC1_R,N-1,GenerationN(ROWS(LEFT))) );
-	//RETURN GenerationN(EC1_R);
 	RETURN PROJECT(N_R(id=0),TRANSFORM(PatternElement,SELF := LEFT));
 END;	
+
+// The rules can be applied to a set of patterns; these exist to answer the question -
+// given I have "x y z" what am I likely to get next
+EXPORT Rules(DATASET(PatternElement) p) := FUNCTION
+	RuleElement := RECORD(PatternElement)
+	  Types.t_Item Next;
+		REAL4        Conf := 0; // P(Next|Pattern)
+		REAL4        Sig := 0; // P(Next|Pattern)/P(Next)
+	END;
+	MinP := MIN(p,Str.WordCount(pat)); // The minimum size of pattern we are interested in
+	MaxP := MAX(p,Str.WordCount(pat)); // The maximum size of pattern we are interested in
+// For every pattern in P	break it out into rule records
+	RuleElement WithoutN(P Le,UNSIGNED C) := TRANSFORM
+	  SELF.pat := NotNN(le.pat,C);
+		SELF.next := (Types.t_Item)Str.GetNthWord(le.pat,C);
+		SELF.support := le.support;
+	END;
+	N := NORMALIZE(P(Str.WordCount(pat)>MinP),Str.WordCount(LEFT.pat),WithoutN(LEFT,COUNTER));
+	RuleElement NoteConf(N Le,P ri) := TRANSFORM
+	  SELF.Conf := 100 * Le.Support / ri.Support;
+		SELF := le;
+	END;
+	WithConf := JOIN(N,P(Str.WordCount(Pat)<MaxP),LEFT.Pat=RIGHT.Pat,NoteConf(LEFT,RIGHT));
+	RuleElement NoteSig(N Le,Apriori1 ri) := TRANSFORM
+	  SELF.sig := Le.Conf * Records / 100 / ri.Support;
+		SELF := le;
+	END;
+	WithSig := JOIN(WithConf,Apriori1,LEFT.Next=RIGHT.Value,NoteSig(LEFT,RIGHT));
+	RETURN WithSig;
+END;
 
 END;
