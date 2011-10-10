@@ -10,6 +10,17 @@ EXPORT Associate(DATASET(Types.ItemElement) d,Types.t_Count M) := MODULE
 // Given the performance critical nature - this module defines its own format; users should use a transform to
 // project into the format (this will usually be trivial)
 
+
+// Service functions and support pattern
+SHARED	NotFirst(STRING S) := IF(Str.FindCount(S,' ')=0,'',S[Str.Find(S,' ',1)+1..]);
+SHARED	NotLast(STRING S) := IF(Str.FindCount(S,' ')=0,'',S[1..Str.Find(S,' ',Str.FindCount(S,' '))-1]);
+SHARED	NotNN(STRING S,UNSIGNED2 NN) := S[1..Str.Find(S,' ',NN-1)]+S[Str.Find(S,' ',NN)+1..];
+
+EXPORT  PatternElement := RECORD
+		Types.t_Count Support;
+		STRING        Pat;
+	END;
+
 // For the short and swift tasks the Apriori method avoids much complexity - and thus produces speed!
 EXPORT Apriori1 := FUNCTION
 	R := RECORD
@@ -19,14 +30,18 @@ EXPORT Apriori1 := FUNCTION
 	RETURN TABLE(d,r,value,MERGE)(support>=M);
   END;
 
+  // For a pair to appear M times the elements inside have to appear that many times
+SHARED DPossibles := FUNCTION
+	dbl := JOIN(d,Apriori1,LEFT.value=RIGHT.value,TRANSFORM(LEFT));
+	dsl := JOIN(d,Apriori1,LEFT.value=RIGHT.value,TRANSFORM(LEFT),LOOKUP);
+	// If the candidate list is small enough then use a lookup join to avoid moving the bigger document dataset
+	RETURN IF ( COUNT(Apriori1) < Config.MaxLookup/SIZEOF(Apriori1), dsl, dbl );
+  END;
+
 // Note - the Apriori2 algorithm is not pure - it does not generate candidates and check - rather it generates all the
 // checks and reverse engineers the candidates!	
 EXPORT Apriori2 := FUNCTION
-  // For a pair to appear M times the elements inside have to appear that many times
-	// If the candidate list is small enough then use a lookup join to avoid moving the bigger document dataset
-	dbl := JOIN(d,Apriori1,LEFT.value=RIGHT.value,TRANSFORM(LEFT));
-	dsl := JOIN(d,Apriori1,LEFT.value=RIGHT.value,TRANSFORM(LEFT),LOOKUP);
-	dthin := IF ( COUNT(Apriori1) < Config.MaxLookup/SIZEOF(Apriori1), dsl, dbl );
+  dthin := DPossibles;
 	R := RECORD
 	  Types.t_Item value_1;
 		Types.t_Item value_2;
@@ -88,32 +103,22 @@ EXPORT Apriori3 := FUNCTION
 	RETURN TABLE(With3,Ragg,value_1,value_2,value_3,MERGE)(support>=M);
 	END;
 
-// Will find all sets up to and including those of size N
+// Will find all sets up to and including those of size N (N must be >= 2)
 // If MinN is set the the process will only return those of size >= MinN
-EXPORT AprioriN(UNSIGNED2 N,UNSIGNED2 MinN=0) := FUNCTION
-
-// Service functions and support pattern
-	NotFirst(STRING S) := S[Str.Find(S,' ',1)+1..];
-	NotLast(STRING S) := S[1..Str.Find(S,' ',Str.FindCount(S,' '))-1];
-	NotNN(STRING S,UNSIGNED2 NN) := S[1..Str.Find(S,' ',NN-1)]+S[Str.Find(S,' ',NN)+1..];
-
-  PatternRec := RECORD
-		Types.t_Count Support;
-		STRING        Pat;
-	END;
+EXPORT AprioriN(UNSIGNED2 N,UNSIGNED2 MinN=2) := FUNCTION
 
 // Use the hard-wired Apriori2 and steal the results	
-	PatternRec From2(Apriori2 le) := TRANSFORM
+	PatternElement From2(Apriori2 le) := TRANSFORM
 	  SELF.Pat := (STRING)le.value_1+' '+(STRING)le.value_2;
 	  SELF := le;
 	END;
 
 	FA2 := PROJECT(Apriori2,From2(LEFT));
-	
+
 	// This function generates the next set of candidates to try to find in the database
-	GenCands(DATASET(PatternRec) di) := FUNCTION
+	GenCands(DATASET(PatternElement) di) := FUNCTION
 			// First general all the possible ones - a new possible candidate will have the tail of one matching the head of the other
-			PatternRec JP(di le,di ri) := TRANSFORM
+			PatternElement JP(di le,di ri) := TRANSFORM
 			  SELF.Pat := Str.GetNthWord(le.pat,1)+' '+ri.pat;
 			  SELF := le;
 			END;
@@ -122,7 +127,7 @@ EXPORT AprioriN(UNSIGNED2 N,UNSIGNED2 MinN=0) := FUNCTION
 				 are also present in our test set 
 				 CheckMissing checks all the patterns with element l missing
 			*/
-			PatternRec CheckMissing(DATASET(PatternRec) i,UNSIGNED2 l) := FUNCTION
+			PatternElement CheckMissing(DATASET(PatternElement) i,UNSIGNED2 l) := FUNCTION
 			  RETURN JOIN(i,di,NotNN(LEFT.pat,1+l)=RIGHT.pat,TRANSFORM(LEFT));
 //			  RETURN JOIN(i,di,NotNN(LEFT.pat,1+l)=RIGHT.pat,TRANSFORM(LEFT));
 			END;
@@ -133,8 +138,8 @@ EXPORT AprioriN(UNSIGNED2 N,UNSIGNED2 MinN=0) := FUNCTION
 	END;
 
 	// Find out how much support there is for a given candidate set
-	ScoreCands(DATASET(PatternRec) Cands) := FUNCTION
-		PR2 := RECORD(PatternRec)
+	ScoreCands(DATASET(PatternElement) Cands) := FUNCTION
+		PR2 := RECORD(PatternElement)
 			Types.t_RecordId id;
 		END;
 
@@ -155,11 +160,11 @@ EXPORT AprioriN(UNSIGNED2 N,UNSIGNED2 MinN=0) := FUNCTION
 		  L.Pat;
 			Types.t_Count Support := COUNT(GROUP);
 		END;
-		RETURN PROJECT( TABLE(L,RS,Pat)(Support>=M), TRANSFORM(PatternRec, SELF := LEFT));
+		RETURN PROJECT( TABLE(L,RS,Pat)(Support>=M), TRANSFORM(PatternElement, SELF := LEFT));
 	END;
 	
 	// Assuming Candidates exist for levels 2 -> NN-1, generate candidates for level N
-	GenerateLevel(DATASET(PatternRec) Cands,UNSIGNED2 NN) := FUNCTION
+	GenerateLevel(DATASET(PatternElement) Cands,UNSIGNED2 NN) := FUNCTION
 	// Only need candidate groups at level NN-1
 		Needed := Cands(Str.WordCount(Pat)=NN-1);
 		PassThru := Cands(Str.WordCount(Pat)>=MinN); // No need to pass through the minnows
@@ -175,6 +180,57 @@ EXPORT AprioriN(UNSIGNED2 N,UNSIGNED2 MinN=0) := FUNCTION
 	
 	RETURN IF ( N = 2, FA2, Res );
 	
+END;
+
+// Will find all sets up to and including those of size N
+// If MinN is set the the process will only return those of size >= MinN
+EXPORT EclatN(UNSIGNED2 N,UNSIGNED2 MinN=2) := FUNCTION
+
+// Core Eclat data structure - a pattern attached to each data item for each ID
+	EPE := RECORD(PatternElement)
+		Types.t_Recordid id;
   END;
+// Generate Pattern Elements for entire dataset
+	EPE into(D le,Apriori1 ri) := TRANSFORM
+		SELF.Support := 1;
+		SELF.Pat := (STRING)le.value;
+		SELF.id := le.ID;
+  END;
+	dbl := JOIN(d,Apriori1,LEFT.value=RIGHT.value,into(LEFT,RIGHT));
+	dsl := JOIN(d,Apriori1,LEFT.value=RIGHT.value,into(LEFT,RIGHT),LOOKUP);
+	// If the candidate list is small enough then use a lookup join to avoid moving the bigger document dataset
+	EC1 := IF ( COUNT(Apriori1) < Config.MaxLookup/SIZEOF(Apriori1), dsl, dbl );
+	// Note - the follow would be rather more efficient IF we could guarantee the candidate list fit in memory
+	// As then we could keep the data distributed and use ,LOOKUP for the filtering
+	// For the first implementation we stay clean
 	
+	// Of the existing data - what patterns are valid (above the threshold)
+	// The 0 elements denote the aggregates - makes passing around a loop a little easier
+	Groups(DATASET(EPE) di) := PROJECT(TABLE(di,{Pat,Types.t_Count Support := COUNT(GROUP)},Pat,MERGE)(Support>=M),TRANSFORM(EPE,SELF.id := 0,SELF:=LEFT));
+	// Whittle down our core dataset to the patterns which are still value
+	Filter(DATASET(EPE) di,DATASET(PatternElement) pe) := JOIN(di,pe,LEFT.pat=RIGHT.pat,TRANSFORM(LEFT));
+	// Generate the patterns of N+1 elements from those with N elements
+	NewPatterns(DATASET(EPE) di) := FUNCTION
+		EPE NewPat(di le, di ri) := TRANSFORM
+		  SELF.Support := 1;
+			SELF.id := le.id;
+			SELF.Pat := Str.GetNthWord(le.Pat,1)+' '+ ri.pat;
+		END;
+		RETURN JOIN(di,di,LEFT.id=RIGHT.id AND NotFirst(LEFT.Pat)=NotLast(RIGHT.Pat) AND (UNSIGNED)Str.GetNthWord(LEFT.Pat,1) > (UNSIGNED)Str.GetNthWord(RIGHT.Pat,1),NewPat(LEFT,RIGHT));
+	END;
+	GenerationN(DATASET(EPE) di) := FUNCTION
+	  Eclat_Data := di(id<>0);
+		PatternsFound := di(id=0,Str.WordCount(Pat)>=MinN);
+		NGC := NewPatterns(di(id<>0));
+		NextPatterns := Groups(NGC);
+		StrimmedData := Filter(NGC,NextPatterns);
+		RETURN StrimmedData+NextPatterns+PatternsFound;
+	END;
+
+	EC1_R := EC1 + Groups(EC1);
+	N_R := IF ( N = 1, EC1_R, LOOP(EC1_R,N-1,GenerationN(ROWS(LEFT))) );
+	//RETURN GenerationN(EC1_R);
+	RETURN PROJECT(N_R(id=0),TRANSFORM(PatternElement,SELF := LEFT));
+END;	
+
 END;
