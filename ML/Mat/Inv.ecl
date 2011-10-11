@@ -1,5 +1,5 @@
 ﻿IMPORT * FROM $;
-
+ 
 EXPORT Inv(DATASET(Types.Element) matrix) := FUNCTION
 	dim := Has(matrix).Dimension;
 	lum := LU.Decompose(matrix);
