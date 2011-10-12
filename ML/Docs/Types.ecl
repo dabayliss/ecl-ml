@@ -37,7 +37,15 @@ EXPORT LexiconElement := RECORD
   
 EXPORT DocumentMatrix:=RECORD
   t_DocID    id;
-  t_WordId   word_id;
+  t_WordID   word_id;
   t_Value    value;
+  END;
+  
+EXPORT MatrixPairs:=RECORD
+  t_DocID  doc_id;
+  t_DocID  cen_id;
+  t_WordID word_id;
+  t_Value  doc_value;
+  t_Value  cen_value;
   END;
 END;
