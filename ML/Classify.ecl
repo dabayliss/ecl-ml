@@ -151,5 +151,30 @@ EXPORT NaiveBayes(DATASET(Types.DiscreteField) d,DATASET(BayesResult) mo) := FUN
 	Ro := ROLLUP(ST,LEFT.id=RIGHT.id AND LEFT.class_number=RIGHT.class_number,rem(LEFT,RIGHT),LOCAL);
 	RETURN Ro;
   END;
-
+	
+EXPORT TestNaiveBayes(DATASET(Types.DiscreteField) d,DATASET(Types.DiscreteField) cl,DATASET(BayesResult) mo) := MODULE
+  N := NaiveBayes(d,mo);
+	DiffRec := RECORD
+		Types.t_FieldNumber classifier; // The classifier in question (value of 'number' on outcome data)
+		Types.t_Discrete c_actual;      // The value of c provided
+		Types.t_Discrete c_modeled;			// The value produced by the classifier
+		Types.t_Discrete score;         // Score allocated by classifier
+		Types.t_Discrete score_delta;   // Difference to next best
+		BOOLEAN          sole_result;   // Did the classifier only have one option
+	END;
+	DiffRec  notediff(N le,cl ri) := TRANSFORM
+	  SELF.c_actual := ri.value;
+		SELF.c_modeled := le.c;
+		SELF.score := 1+ROUND(le.p);
+		SELF.score_delta := IF ( le.closestp>0, 1+ROUND(le.closestp-le.p),0 );
+		SELF.sole_result := le.closestp=0;
+		SELF.classifier := ri.number;
+	END;
+	SHARED J := JOIN(N,cl,LEFT.id=RIGHT.id AND LEFT.class_number=RIGHT.number,notediff(LEFT,RIGHT));
+	// Shows which classes were modeled as which classes
+	EXPORT Raw := TABLE(J,{classifier,c_actual,c_modeled,score,score_delta,sole_result,Cnt := COUNT(GROUP)},classifier,c_actual,c_modeled,score,score_delta,sole_result,MERGE);
+	EXPORT CrossAssignments := TABLE(J,{classifier,c_actual,c_modeled,Cnt := COUNT(GROUP)},classifier,c_actual,c_modeled,FEW);
+	EXPORT PrecisionByClass := TABLE(J,{classifier,c_actual, Precision := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,c_actual,FEW);
+	EXPORT HeadLine := TABLE(J,{classifier, Precision := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,FEW);
+END;
 END;
