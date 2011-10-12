@@ -29,12 +29,16 @@ EXPORT b_sub(DATASET(Types.Element) U, DATASET(Types.Element) b) := FUNCTION
 	      ukk := U(x=k, y=k);				
 				yk_1 := Mul(U(x=k), ds(x>k));
 				yk_2 := Sub(ds(x=k), yk_1(x=k));
+				/*
 				Types.Element replace(Types.Element le,Types.Element ri) := TRANSFORM
 						BOOLEAN isMatched := ri.x>0;
 						SELF.Value := IF(isMatched, ri.value/ukk[1].value, le.value);
 						SELF := IF(isMatched, ri, le);
 				END;
 				yk := JOIN(ds,yk_2,LEFT.y=RIGHT.y AND LEFT.x = RIGHT.x,replace(LEFT,RIGHT),FULL OUTER);        
+        */
+				yk_3 := Scale(yk_2, 1/ukk[1].value);
+				yk := Substitute(ds, yk_3);
 		RETURN yk;
   END;
 
@@ -48,12 +52,15 @@ EXPORT f_sub(DATASET(Types.Element) L, DATASET(Types.Element) b) := FUNCTION
 				k := c+1;
 				yk_1 := Mul(L(x=k), ds(x<k));
 				yk_2 := Sub(ds(x=k), yk_1(x=k));
+				/*
 				Types.Element replace(Types.Element le,Types.Element ri) := TRANSFORM
 						BOOLEAN isMatched := ri.x>0;
 						SELF.Value := IF(isMatched, ri.value, le.value);
 						SELF := IF(isMatched, ri, le);
 				END;
 				yk := JOIN(ds,yk_2,LEFT.y=RIGHT.y AND LEFT.x = RIGHT.x,replace(LEFT,RIGHT),FULL OUTER);        
+        */
+				yk := Substitute(ds,yk_2);
 		RETURN yk;
   END;
 
@@ -69,12 +76,15 @@ EXPORT DATASET(Types.Element) Decompose(DATASET(Types.Element) matrix) := FUNCTI
 				lk := ds(y=k, x>k);
 				lk1 := Scale(lk, 1/akk[1].value);
 				leave1 := ds(y<=k OR x<=k);		
+				/*
 				Types.Element replace(Types.Element le,Types.Element ri) := TRANSFORM
 						BOOLEAN isMatched := ri.x>0;
 						SELF.Value := IF(isMatched, ri.value, le.value);
 						SELF := le;
 				END;
 				leave := JOIN(leave1, lk1, LEFT.x= RIGHT.x AND LEFT.y=RIGHT.y, replace(LEFT, RIGHT), FULL OUTER);
+        */
+				leave := Substitute(leave1,lk1);
 				to_change := ds(x>k,y>k);
 
 				a_k := JOIN(leave(y=k, x>k), leave(x=k, y>k), LEFT.y = RIGHT.x, 
