@@ -135,8 +135,21 @@ EXPORT NaiveBayes(DATASET(Types.DiscreteField) d,DATASET(BayesResult) mo) := FUN
 	  SELF := le;
 	END;
 	CNoted := JOIN(MissingNoted,mo(number=0),LEFT.c=RIGHT.c,NoteC(LEFT,RIGHT),LOOKUP);
-
-  RETURN CNoted;
+	S := DEDUP(SORT(CNoted,Id,class_number,P,c,LOCAL),Id,class_number,LOCAL,KEEP(2));
+	BayesClassification := RECORD
+	  S.c;
+		S.class_number;
+		S.id;
+		REAL8 P := S.P;
+		REAL8 ClosestP := 0;
+	END;
+	ST := TABLE(S,BayesClassification);
+  BayesClassification rem(ST le, ST ri) := TRANSFORM
+	  SELF.ClosestP := ri.P;
+	  SELF := le;
+  END;
+	Ro := ROLLUP(ST,LEFT.id=RIGHT.id AND LEFT.class_number=RIGHT.class_number,rem(LEFT,RIGHT),LOCAL);
+	RETURN Ro;
   END;
 
 END;
