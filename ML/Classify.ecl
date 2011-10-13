@@ -177,4 +177,75 @@ EXPORT TestNaiveBayes(DATASET(Types.DiscreteField) d,DATASET(Types.DiscreteField
 	EXPORT PrecisionByClass := TABLE(J,{classifier,c_actual, Precision := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,c_actual,FEW);
 	EXPORT HeadLine := TABLE(J,{classifier, Precision := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,FEW);
 END;
+
+/*
+  The inputs to the BuildPerceptron are:
+  a) A dataset of discretized independant variables
+  b) A dataset of class results (these must match in ID the discretized independant variables).
+  Note the perceptron presently assumes the class values are ordinal eg 4>3>2>1>0
+  The classic 'boolean' case should be handled with -1 and 1
+*/
+EXPORT BuildPerceptron(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteField) cl) := FUNCTION
+	MaxFieldNumber := MAX(dd,number);
+	FirstClassNo := MaxFieldNumber+1;
+	clb := Utils.RebaseDiscrete(cl,FirstClassNo);
+	LastClassNo := MAX(clb,number);
+	all_fields := dd+clb;
+	// Fields are ordered so that everything for a given input record is on one node
+	// And so that records are encountered 'lowest first' and with the class variables coming later
+	ready := SORT( DISTRIBUTE( all_fields, HASH(id) ), id, Number, LOCAL );
+  // A weight record for our perceptron
+	WR := RECORD
+	  REAL8 W := 0;
+		Types.t_FieldNumber number; // The field this weight applies to - note field 0 will be the bias
+		Types.t_Discrete class_number;
+	END;
+	VR := RECORD
+	  Types.t_FieldNumber number;
+		Types.t_Discrete    value;
+	END;
+	// This function exists to initialize the weights for the perceptron
+	InitWeights := FUNCTION
+		Classes := TABLE(clb,{number},number,FEW);
+	  WR again(Classes le,UNSIGNED C) := TRANSFORM
+		  SELF.number := C;
+		  SELF.class_number := le.number;
+		END;
+		RETURN NORMALIZE(Classes,MaxFieldNumber+1,again(LEFT,COUNTER-1));
+	END;
+
+  AccumRec := RECORD
+		DATASET(WR) Weights;
+		DATASET(VR) ThisRecord;
+		string rem := '';
+	END;
+	// The learn step for a perceptrom
+	Learn(DATASET(WR) le,DATASET(VR) ri,Types.t_FieldNumber fn,Types.t_Discrete va) := FUNCTION
+	  WR add(WR le,VR ri) := TRANSFORM
+		  SELF.w := le.w+1;
+			SELF := le;
+		END;
+		RETURN JOIN(le,ri,LEFT.number=right.number,add(LEFT,RIGHT),LEFT OUTER);
+		//RETURN PROJECT(le,TRANSFORM(WR,SELF.w := LEFT.w+1,SELF := LEFT));
+	END;
+	// This takes a record one by one and processes it
+	// That may mean simply appending it to 'ThisRecord' - or it might mean performing a learning step
+	AccumRec TakeRecord(ready le,AccumRec ri) := TRANSFORM
+	  BOOLEAN lrn := le.number >= FirstClassNo;
+		BOOLEAN init := ~EXISTS(ri.Weights);
+		SELF.Weights := MAP ( init => InitWeights, 
+		                      //~lrn => ri.Weights,
+													//PROJECT(ri.Weights,TRANSFORM(WR,SELF.w := 1, SELF := LEFT)) );
+													Learn(ri.Weights,ri.ThisRecord,le.number,le.value) );
+		// This is either an independant variable - in which case we append it
+		// Or it is the last dependant variable - in which case we can throw the record away
+		// Or it is one of the dependant variables - so keep the record for now
+		SELF.ThisRecord := MAP ( ~lrn => ri.ThisRecord+ROW({le.number,le.value},VR),
+		                         le.number = LastClassNo => DATASET([],VR),
+														 ri.ThisRecord);
+		self.rem := ri.rem+'{'+IF(init,'init:','')+le.number+','+MAX(SELF.Weights,w)+'}';
+	END;
+	A := AGGREGATE(ready,AccumRec,TakeRecord(LEFT,RIGHT),LOCAL);
+	RETURN A;
+END;
 END;

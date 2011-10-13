@@ -11,7 +11,7 @@ SingleField := RECORD
 	Types.t_fieldreal var     :=VARIANCE(GROUP,d.Value);
 	Types.t_fieldreal sd      :=SQRT(VARIANCE(GROUP,d.Value));
 END;
-	
+
 EXPORT Simple:=TABLE(d,SingleField,Number,FEW);
 
 RankableField := RECORD
