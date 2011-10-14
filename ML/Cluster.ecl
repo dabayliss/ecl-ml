@@ -106,4 +106,13 @@ EXPORT Cluster := MODULE
 
     RETURN dJoined+JOIN(dMatrix02,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(Matrix,SELF:=LEFT;),LEFT ONLY,LOOKUP);
   END;
+
+  //---------------------------------------------------------------------------
+  // Function to perform a user-specified number of iteration of the
+  // CalculateMeans function.
+  //---------------------------------------------------------------------------
+  EXPORT Matrix IterateKMeans(DATASET(Matrix) dMatrix01,DATASET(Matrix) dMatrix02,UNSIGNED i,DF.fDistancePrototype fFunction=DF.fEuclidean):=FUNCTION
+    dNewPositions:=LOOP(dMatrix02,i,CalculateMeans(dMatrix01,ROWS(LEFT),fFunction));
+    RETURN dNewPositions;
+  END;
 END;
