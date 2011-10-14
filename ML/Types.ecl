@@ -1,4 +1,4 @@
-IMPORT ML.mat as Mat;
+﻿IMPORT ML.mat as Mat;
 EXPORT Types := MODULE
 
 EXPORT t_RecordID := UNSIGNED;
@@ -27,11 +27,11 @@ EXPORT ItemElement := RECORD
   END;
 	
 EXPORT ToMatrix(DATASET(NumericField) d):=FUNCTION
-  RETURN PROJECT(d,TRANSFORM(Mat.Types.Element,SELF.x:=(TYPEOF(Mat.Types.Element.x))LEFT.id;SELF.y:=(TYPEOF(Mat.Types.Element.y))LEFT.number;SELF.value:=(TYPEOF(Mat.Types.Element.value))LEFT.value;));
+  RETURN PROJECT(d,TRANSFORM(Mat.Types.Element,SELF.y:=(TYPEOF(Mat.Types.Element.y))LEFT.id;SELF.x:=(TYPEOF(Mat.Types.Element.x))LEFT.number;SELF.value:=(TYPEOF(Mat.Types.Element.value))LEFT.value;));
 END;
 
 EXPORT FromMatrix(DATASET(Mat.Types.Element) d):=FUNCTION
-  RETURN PROJECT(d,TRANSFORM(NumericField,SELF.id:=(TYPEOF(NumericField.id))LEFT.x;SELF.number:=(TYPEOF(NumericField.number))LEFT.y;SELF.value:=(TYPEOF(NumericField.value))LEFT.value;));
+  RETURN PROJECT(d,TRANSFORM(NumericField,SELF.id:=(TYPEOF(NumericField.id))LEFT.y;SELF.number:=(TYPEOF(NumericField.number))LEFT.x;SELF.value:=(TYPEOF(NumericField.value))LEFT.value;));
 END;
 
 END;
