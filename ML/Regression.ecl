@@ -14,8 +14,8 @@ EXPORT Regression := MODULE
 // Beta = (Inv(X'*X)*X')*Y
 EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODULE
   mX := Types.ToMatrix(X);
-	mY := Types.ToMatrix(Y);
 	mXt := Mat.Trans(mX);
+	mY := Types.ToMatrix(Y);
   EXPORT Beta := Types.FromMatrix( Mat.Mul (Mat.Mul(Mat.Inv( Mat.Mul(mXt, mX) ), mXt), mY) );
 END;
 END;
