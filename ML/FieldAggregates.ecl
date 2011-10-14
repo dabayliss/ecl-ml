@@ -29,12 +29,13 @@ dMedianPos:=TABLE(SimpleRanked,{number;SET OF UNSIGNED pos:=IF(MAX(GROUP,pos)%2=
 dMedianValues:=JOIN(SimpleRanked,dMedianPos,LEFT.number=RIGHT.number AND LEFT.pos IN RIGHT.pos,TRANSFORM({RECORDOF(SimpleRanked) AND NOT [id,pos];},SELF:=LEFT;),LOOKUP);
 EXPORT Medians:=TABLE(dMedianValues,{number;TYPEOF(dMedianValues.value) median:=IF(COUNT(GROUP)=1,MIN(GROUP,value),SUM(GROUP,value)/2);},number,FEW);
 
-{RECORDOF(SimpleRanked);Types.t_Bucket bucket;} tAssign(SimpleRanked L,Simple R,Types.t_Bucket n):=TRANSFORM
-  SELF.bucket:=IF(L.value=R.maxval,n,(Types.t_Bucket)(n*((L.value-R.minval)/(R.maxval-R.minval)))+1);
+{RECORDOF(SimpleRanked);Types.t_Discrete bucket;} tAssign(SimpleRanked L,Simple R,Types.t_Discrete n):=TRANSFORM
+  SELF.bucket:=IF(L.value=R.maxval,n,(Types.t_Discrete)(n*((L.value-R.minval)/(R.maxval-R.minval)))+1);
   SELF:=L;
 END;
-EXPORT Buckets(Types.t_Bucket n):=JOIN(SimpleRanked,Simple,LEFT.number=RIGHT.number,tAssign(LEFT,RIGHT,n),LOOKUP);
-EXPORT BucketRanges(Types.t_Bucket n):=TABLE(Buckets(n),{number;bucket;Types.t_fieldreal Min:=MIN(GROUP,value);Types.t_fieldreal Max:=MAX(GROUP,value);UNSIGNED cnt:=COUNT(GROUP);},number,bucket);
+
+EXPORT Buckets(Types.t_Discrete n):=JOIN(SimpleRanked,Simple,LEFT.number=RIGHT.number,tAssign(LEFT,RIGHT,n),LOOKUP);
+EXPORT BucketRanges(Types.t_Discrete n):=TABLE(Buckets(n),{number;bucket;Types.t_fieldreal Min:=MIN(GROUP,value);Types.t_fieldreal Max:=MAX(GROUP,value);UNSIGNED cnt:=COUNT(GROUP);},number,bucket);
 
 MR := RECORD
   SimpleRanked.Number;
@@ -62,11 +63,11 @@ AveRanked Into(D le,T ri) := 	TRANSFORM
 	
 EXPORT Ranked := JOIN(D,T,LEFT.Number=RIGHT.Number AND LEFT.Value = RIGHT.Value,Into(LEFT,RIGHT));	
 
-{RECORDOF(Ranked);Types.t_NTile ntile;} tNTile(Ranked L,Simple R,Types.t_NTile n):=TRANSFORM
-  SELF.ntile:=IF(L.pos=R.countval,n,(Types.t_NTile)(n*(L.pos/R.countval))+1);
+{RECORDOF(Ranked);Types.t_Discrete ntile;} tNTile(Ranked L,Simple R,Types.t_Discrete n):=TRANSFORM
+  SELF.ntile:=IF(L.pos=R.countval,n,(Types.t_Discrete)(n*(L.pos/R.countval))+1);
   SELF:=L;
 END;
-EXPORT NTiles(Types.t_NTile n):=JOIN(Ranked,Simple,LEFT.number=RIGHT.number,tNTile(LEFT,RIGHT,n),LOOKUP);
-EXPORT NTileRanges(Types.t_NTile n):=TABLE(NTiles(n),{number;ntile;Types.t_fieldreal Min:=MIN(GROUP,value);Types.t_fieldreal Max:=MAX(GROUP,value);UNSIGNED cnt:=COUNT(GROUP);},number,ntile);
+EXPORT NTiles(Types.t_Discrete n):=JOIN(Ranked,Simple,LEFT.number=RIGHT.number,tNTile(LEFT,RIGHT,n),LOOKUP);
+EXPORT NTileRanges(Types.t_Discrete n):=TABLE(NTiles(n),{number;ntile;Types.t_fieldreal Min:=MIN(GROUP,value);Types.t_fieldreal Max:=MAX(GROUP,value);UNSIGNED cnt:=COUNT(GROUP);},number,ntile);
 
   END;
