@@ -1,4 +1,4 @@
-﻿EXPORT macPivot(dIn,dOut):=MACRO
+﻿EXPORT ToField(dIn,dOut):=MACRO
   LOADXML('<xml/>');
   #DECLARE(idfield) #SET(idfield,'')
   #DECLARE(fieldlist) #SET(fieldlist,'COUNTER')
