@@ -1,118 +1,106 @@
-﻿IMPORT * FROM $;
+﻿//-----------------------------------------------------------------------------
+// Module used to cluster perform clustering on data in the NumericField
+// format.  Includes functions for calculating distance using many different
+// algorithms, determining centroid allegiance based on those distances, and
+// performing K-Means calculations.
+//-----------------------------------------------------------------------------
+IMPORT * FROM $;
 EXPORT Cluster := MODULE
-
-  EXPORT Matrix:=Types.NumericField;
-
-  EXPORT MatrixPairs:=RECORD
-    TYPEOF(Matrix.id)     id01;
-    TYPEOF(Matrix.id)     id02;
-    TYPEOF(Matrix.number) axis;
-    TYPEOF(Matrix.value)  value01;
-    TYPEOF(Matrix.value)  value02;
-  END;
-  
-  EXPORT Distances:=RECORD
-    TYPEOF(Matrix.id)     id01;
-    TYPEOF(Matrix.number) id02;
-    TYPEOF(Matrix.value)  distance;
-  END;
-
   //---------------------------------------------------------------------------
-  // Function to pair all the points in a primary matrix to all of the point
-  // in a secondary matrix (presumably a centroid matrix). 
+  // Function to pair all the points between two NumericField data sets. 
   //---------------------------------------------------------------------------
-  EXPORT MatrixPairs fGetMatrixPairs(DATASET(Matrix) dMatrix01,DATASET(Matrix) dMatrix02):=FUNCTION
-    d01Dist:=DISTRIBUTE(dMatrix01,id);
-    d02Dist:=DISTRIBUTE(dMatrix02,id);
+  EXPORT Types.CentroidPair Pairs(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02):=FUNCTION
+    d01Dist:=DISTRIBUTE(d01,id);
+    d02Dist:=DISTRIBUTE(d02,id);
 
-    // Get Unique IDs from both matrices and perform a full join so we have one
-    // row for every possible combination of document id and centroid id.
-    d01IDs:=TABLE(d01Dist,{TYPEOF(Matrix.id) id01:=id;},id,LOCAL);
-    d02IDs:=TABLE(d02Dist,{TYPEOF(Matrix.id) id02:=id;},id,LOCAL);
-    dPairs:=JOIN(d01IDs,d02IDs,LEFT.id01!=-RIGHT.id02,ALL,LOOKUP);
+    // Get Unique IDs from both sets and perform a full join so we have one
+    // row for every possible combination of two ids.
+    d01IDs:=TABLE(d01Dist,{id;},id,LOCAL);
+    d02IDs:=TABLE(d02Dist,{TYPEOF(Types.t_RecordID) centroid:=id;},id,LOCAL);
+    dPairs:=JOIN(d01IDs,d02IDs,LEFT.id!=-RIGHT.centroid,ALL,LOOKUP);
 
-    // Join the dPairs table to each matrix separately.  This will re-format
-    // them to the common MatrixPair format while also replicating the values
-    // as many times as there are IDs in the other matrix.
-    dWith01:=JOIN(DISTRIBUTE(dPairs,id01),d01Dist,LEFT.id01=RIGHT.id,TRANSFORM(MatrixPairs,SELF.axis:=RIGHT.number;SELF.value01:=RIGHT.value;SELF:=LEFT;SELF:=RIGHT;SELF:=[];),LOCAL);
-    dWith02:=DISTRIBUTE(JOIN(DISTRIBUTE(dPairs,id02),d02Dist,LEFT.id02=RIGHT.id,TRANSFORM(MatrixPairs,SELF.axis:=RIGHT.number;SELF.value02:=RIGHT.value;SELF:=LEFT;SELF:=RIGHT;SELF:=[];),LOCAL),id01);
+    // Join the dPairs table to each data set separately.  This will re-format
+    // them to the common Pairs format while also replicating the values
+    // as many times as there are IDs in the other set.
+    dWith01:=JOIN(DISTRIBUTE(dPairs,id),d01Dist,LEFT.id=RIGHT.id,TRANSFORM(Types.CentroidPair,SELF.value01:=RIGHT.value;SELF:=LEFT;SELF:=RIGHT;SELF:=[];),LOCAL);
+    dWith02:=DISTRIBUTE(JOIN(DISTRIBUTE(dPairs,centroid),d02Dist,LEFT.centroid=RIGHT.id,TRANSFORM(Types.CentroidPair,SELF.value02:=RIGHT.value;SELF:=LEFT;SELF:=RIGHT;SELF:=[];),LOCAL),id);
 
     // Combine the two joins above, and then roll where the id pair and
-    // word_id are the same, collapsing same-axis values.
-    dCombined:=SORT(dWith01+dWith02,id01,id02,axis,LOCAL);
-    dRolled:=ROLLUP(dCombined,TRANSFORM(RECORDOF(dCombined),SELF.value01:=LEFT.value01+RIGHT.value01;SELF.value02:=LEFT.value02+RIGHT.value02;SELF:=LEFT;),id01,id02,axis,LOCAL);
+    // field number are the same, collapsing same-field values.
+    dCombined:=SORT(dWith01+dWith02,id,centroid,number,LOCAL);
+    dRolled:=ROLLUP(dCombined,TRANSFORM(RECORDOF(dCombined),SELF.value01:=LEFT.value01+RIGHT.value01;SELF.value02:=LEFT.value02+RIGHT.value02;SELF:=LEFT;),id,centroid,number,LOCAL);
 
     RETURN dRolled;
   END;
 
-//-------------------------------------------------------------------------
-  // Distance functions used to determine the distance between two matrix
-  // points in a MatrixPairs dataset
+  //-------------------------------------------------------------------------
+  // Sub-moudle of pre-coded distance functions that can be used to calcluate
+  // the distance for every pair of IDs in a table in the Pair layout.
   //-------------------------------------------------------------------------
   EXPORT DF := MODULE
-    EXPORT Distances fDistancePrototype(DATASET(MatrixPairs) dPairs):=DATASET([],Distances);
+    EXPORT Types.CentroidDistance DistancePrototype(DATASET(Types.CentroidPair) dPairs):=DATASET([],Types.CentroidDistance);
 
-    EXPORT Distances fEuclidean(DATASET(MatrixPairs) dPairs):=FUNCTION
-      dPrep:=DISTRIBUTE(TABLE(dPairs,{id01;id02;TYPEOF(Distances.distance) diff_squared:=POWER(value01-value02,2);}),id01);
-      dResults:=TABLE(dPrep,{id01;id02;TYPEOF(Distances.distance) distance:=SQRT(SUM(GROUP,diff_squared));},id01,id02,LOCAL);
-      RETURN PROJECT(dResults,Distances);
+    EXPORT Types.CentroidDistance Euclidean(DATASET(Types.CentroidPair) dPairs):=FUNCTION
+      dPrep:=DISTRIBUTE(TABLE(dPairs,{id;centroid;TYPEOF(Types.CentroidDistance.value) diff_squared:=POWER(value01-value02,2);}),id);
+      dResults:=TABLE(dPrep,{id;centroid;TYPEOF(Types.CentroidDistance.value) value:=SQRT(SUM(GROUP,diff_squared));},id,centroid,LOCAL);
+      RETURN PROJECT(dResults,Types.CentroidDistance);
     END;
 
-    EXPORT Distances fEuclideanSquared(DATASET(MatrixPairs) dPairs):=FUNCTION
-      dPrep:=DISTRIBUTE(TABLE(dPairs,{id01;id02;TYPEOF(Distances.distance) diff_squared:=POWER(value01-value02,2);}),id01);
-      dResults:=TABLE(dPrep,{id01;id02;TYPEOF(Distances.distance) distance:=SUM(GROUP,diff_squared);},id01,id02,LOCAL);
-      RETURN PROJECT(dResults,Distances);
+    EXPORT Types.CentroidDistance EuclideanSquared(DATASET(Types.CentroidPair) dPairs):=FUNCTION
+      dPrep:=DISTRIBUTE(TABLE(dPairs,{id;centroid;TYPEOF(Types.CentroidDistance.value) diff_squared:=POWER(value01-value02,2);}),id);
+      dResults:=TABLE(dPrep,{id;centroid;TYPEOF(Types.CentroidDistance.value) value:=SUM(GROUP,diff_squared);},id,centroid,LOCAL);
+      RETURN PROJECT(dResults,Types.CentroidDistance);
     END;
 
-    EXPORT Distances fManhattan(DATASET(MatrixPairs) dPairs):=FUNCTION
-      dPrep:=DISTRIBUTE(TABLE(dPairs,{id01;id02;TYPEOF(Distances.distance) abs_diff:=ABS(value01-value02);}),id01);
-      dResults:=TABLE(dPrep,{id01;id02;TYPEOF(Distances.distance) distance:=SUM(GROUP,abs_diff);},id01,id02,LOCAL);
-      RETURN PROJECT(dResults,Distances);
+    EXPORT Types.CentroidDistance Manhattan(DATASET(Types.CentroidPair) dPairs):=FUNCTION
+      dPrep:=DISTRIBUTE(TABLE(dPairs,{id;centroid;TYPEOF(Types.CentroidDistance.value) abs_diff:=ABS(value01-value02);}),id);
+      dResults:=TABLE(dPrep,{id;centroid;TYPEOF(Types.CentroidDistance.value) value:=SUM(GROUP,abs_diff);},id,centroid,LOCAL);
+      RETURN PROJECT(dResults,Types.CentroidDistance);
     END;
 
-    EXPORT Distances fCosine(DATASET(MatrixPairs) dPairs):=FUNCTION
-      dPrep:=DISTRIBUTE(TABLE(dPairs,{id01;id02;TYPEOF(Distances.distance) product:=value01*value02;TYPEOF(Distances.distance) square01:=POWER(value01,2);TYPEOF(Distances.distance) square02:=POWER(value02,2);}),id01);
-      dResults:=TABLE(dPrep,{id01;id02;TYPEOF(Distances.distance) distance:=1-(SUM(GROUP,product)/(SQRT(SUM(GROUP,square01))*SQRT(SUM(GROUP,square02))));},id01,id02,LOCAL);
-      RETURN PROJECT(dResults,Distances);
+    EXPORT Types.CentroidDistance Cosine(DATASET(Types.CentroidPair) dPairs):=FUNCTION
+      dPrep:=DISTRIBUTE(TABLE(dPairs,{id;centroid;TYPEOF(Types.CentroidDistance.value) product:=value01*value02;TYPEOF(Types.CentroidDistance.value) square01:=POWER(value01,2);TYPEOF(Types.CentroidDistance.value) square02:=POWER(value02,2);}),id);
+      dResults:=TABLE(dPrep,{id;centroid;TYPEOF(Types.CentroidDistance.value) value:=1-(SUM(GROUP,product)/(SQRT(SUM(GROUP,square01))*SQRT(SUM(GROUP,square02))));},id,centroid,LOCAL);
+      RETURN PROJECT(dResults,Types.CentroidDistance);
     END;
 
-    EXPORT Distances fTanimoto(DATASET(MatrixPairs) dPairs):=FUNCTION
-      dPrep:=DISTRIBUTE(TABLE(dPairs,{id01;id02;TYPEOF(Distances.distance) product:=value01*value02;TYPEOF(Distances.distance) square01:=POWER(value01,2);TYPEOF(Distances.distance) square02:=POWER(value02,2);}),id01);
-      dResults:=TABLE(dPrep,{id01;id02;TYPEOF(Distances.distance) distance:=1-(SUM(GROUP,product)/(SQRT(SUM(GROUP,square01))*SQRT(SUM(GROUP,square02))-SUM(GROUP,product)));},id01,id02,LOCAL);
-      RETURN PROJECT(dResults,Distances);
+    EXPORT Types.CentroidDistance Tanimoto(DATASET(Types.CentroidPair) dPairs):=FUNCTION
+      dPrep:=DISTRIBUTE(TABLE(dPairs,{id;centroid;TYPEOF(Types.CentroidDistance.value) product:=value01*value02;TYPEOF(Types.CentroidDistance.value) square01:=POWER(value01,2);TYPEOF(Types.CentroidDistance.value) square02:=POWER(value02,2);}),id);
+      dResults:=TABLE(dPrep,{id;centroid;TYPEOF(Types.CentroidDistance.value) value:=1-(SUM(GROUP,product)/(SQRT(SUM(GROUP,square01))*SQRT(SUM(GROUP,square02))-SUM(GROUP,product)));},id,centroid,LOCAL);
+      RETURN PROJECT(dResults,Types.CentroidDistance);
     END;
   END;
   
   //---------------------------------------------------------------------------
-  // fClosest takes a set of distances and returns a collapsed set containing
-  // one row for each document ID contating the centroid to which it is closest
+  // Closest takes a set of distances and returns a collapsed set containing
+  // only the row for each id with the closest centroid
   //---------------------------------------------------------------------------
-  EXPORT Distances fClosest(DATASET(Distances) dDistances):=DEDUP(SORT(DISTRIBUTE(dDistances,id01),id01,distance,LOCAL),id01,LOCAL);
+  EXPORT Types.CentroidDistance Closest(DATASET(Types.CentroidDistance) dDistances):=DEDUP(SORT(DISTRIBUTE(dDistances,id),id,value,LOCAL),id,LOCAL);
 
   //---------------------------------------------------------------------------
-  // fCalculateMeans takes a document matrix and a centroid matrix and re-
-  // calculates the coordinates of the centroids using whichever distance
-  // function the user desires.
+  // KMeans takes a data set and a centroid set, both in NumericField format,
+  // and recalculates the coordinates for the centroids as the average of the
+  // positions of any points from the data set to which the centroid is closest
   //---------------------------------------------------------------------------
-  EXPORT Matrix CalculateMeans(DATASET(Matrix) dMatrix01,DATASET(Matrix) dMatrix02,DF.fDistancePrototype fFunction=DF.fEuclidean):=FUNCTION
-    dPairs:=fGetMatrixPairs(dMatrix01,dMatrix02);
-    dDistances:=fFunction(dPairs);
-    dClosest:=fClosest(dDistances);
+  EXPORT Types.NumericField KMeans(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DF.DistancePrototype fDist=DF.Euclidean):=FUNCTION
+    dPairs:=Pairs(d01,d02);
+    dDistances:=fDist(dPairs);
+    dClosest:=Closest(dDistances);
 
-    dClusterCounts:=TABLE(dClosest,{id02;TYPEOF(Distances.distance) c:=(TYPEOF(Distances.distance))COUNT(GROUP);},id02);
-    dClustered:=SORT(JOIN(DISTRIBUTE(dMatrix01,id),DISTRIBUTE(dClosest,id01),LEFT.id=RIGHT.id01,TRANSFORM(Matrix,SELF.id:=RIGHT.id02;SELF:=LEFT;SELF:=RIGHT;),LOCAL),RECORD,LOCAL);
-    dRolled:=ROLLUP(dClustered,TRANSFORM(Matrix,SELF.value:=LEFT.value+RIGHT.value;SELF:=LEFT;),id,number,LOCAL);
-    dJoined:=JOIN(dRolled,dClusterCounts,LEFT.id=RIGHT.id02,TRANSFORM(Matrix,SELF.value:=LEFT.value/RIGHT.c;SELF:=LEFT;),LOOKUP);
+    dClusterCounts:=TABLE(dClosest,{centroid;TYPEOF(Types.CentroidDistance.value) c:=(TYPEOF(Types.CentroidDistance.value))COUNT(GROUP);},centroid);
+    dClustered:=SORT(JOIN(DISTRIBUTE(d01,id),DISTRIBUTE(dClosest,id),LEFT.id=RIGHT.id,TRANSFORM(Types.NumericField,SELF.id:=RIGHT.centroid;SELF:=LEFT;SELF:=RIGHT;),LOCAL),RECORD,LOCAL);
+    dRolled:=ROLLUP(dClustered,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value+RIGHT.value;SELF:=LEFT;),id,number,LOCAL);
+    dJoined:=JOIN(dRolled,dClusterCounts,LEFT.id=RIGHT.centroid,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value/RIGHT.c;SELF:=LEFT;),LOOKUP);
 
-    RETURN dJoined+JOIN(dMatrix02,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(Matrix,SELF:=LEFT;),LEFT ONLY,LOOKUP);
+    RETURN dJoined+JOIN(d02,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(Types.NumericField,SELF:=LEFT;),LEFT ONLY,LOOKUP);
   END;
 
   //---------------------------------------------------------------------------
-  // Function to perform a user-specified number of iteration of the
-  // CalculateMeans function.
+  // Function to perform a user-specified number of iterations of the
+  // KMeans function.
   //---------------------------------------------------------------------------
-  EXPORT Matrix IterateKMeans(DATASET(Matrix) dMatrix01,DATASET(Matrix) dMatrix02,UNSIGNED i,DF.fDistancePrototype fFunction=DF.fEuclidean):=FUNCTION
-    dNewPositions:=LOOP(dMatrix02,i,CalculateMeans(dMatrix01,ROWS(LEFT),fFunction));
+  EXPORT Types.NumericField KMeansN(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,UNSIGNED i,DF.DistancePrototype fDist=DF.Euclidean):=FUNCTION
+    dNewPositions:=LOOP(d02,i,KMeans(d01,ROWS(LEFT),fDist));
     RETURN dNewPositions;
   END;
 END;
