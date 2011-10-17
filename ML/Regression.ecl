@@ -17,6 +17,11 @@ EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODUL
 	mX := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
 	mXt := Mat.Trans(mX);
 	mY := Types.ToMatrix(Y);
-  EXPORT Beta := Types.FromMatrix( Mat.Mul (Mat.Mul(Mat.Inv( Mat.Mul(mXt, mX) ), mXt), mY) );
+	Betas := Mat.Mul (Mat.Mul(Mat.Inv( Mat.Mul(mXt, mX) ), mXt), mY);
+	// We want to return the data so that the ID field reflects the 'column number' of the variable we were targeting
+	rBetas := Types.FromMatrix( Mat.Trans(Betas) );
+	// We also need to move the 'constant' term into column 0
+	sBetas := PROJECT(rBetas,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number-1,SELF := LEFT));
+  EXPORT Beta := sBetas;
 END;
 END;
