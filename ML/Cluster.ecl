@@ -8,6 +8,7 @@ IMPORT * FROM $;
 EXPORT Cluster := MODULE
   //---------------------------------------------------------------------------
   // Function to pair all the points between two NumericField data sets. 
+	// Assumes right hand side (d02) is fairly small (fits into memory)
   //---------------------------------------------------------------------------
   EXPORT Types.ClusterPair Pairs(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02):=FUNCTION
     d01Dist:=DISTRIBUTE(d01,id);
@@ -103,4 +104,66 @@ EXPORT Cluster := MODULE
     dNewPositions:=LOOP(d02,i,KMeans(d01,ROWS(LEFT),fDist));
     RETURN dNewPositions;
   END;
+
+// When combining clusters how to compute the distances of the new clusters to each other
+// Min-dist - minimum of the components
+// Max-dist - maximum of the components
+// ave-dist - average of the components
+  EXPORT c_Method := ENUM( min_dist,max_dist,ave_dist );
+
+  // Agglomerative (or Hierarchical clustering) - attempts to weld the clusters together bottom up
+	// N is the number of steps to take
+  EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DF.DistancePrototype fDist=DF.Euclidean, c_Method cm=c_Method.min_dist):=FUNCTION
+// Collect the full matrix of pair-pair distances
+    Distances:=fDist(Pairs(d,d))(id<>clusterid);
+		dinit0 := DEDUP( d, ID, ALL );
+		// To go around the loop this has to be a combined 'distance metric' / 'clusters so far' format
+		ClusterRec := RECORD
+		  Types.t_RecordID ClusterId := dinit0.id;
+			Types.t_RecordID Id := 0;
+			Types.t_FieldReal value := 0;
+			STRING Members := (STRING)dinit0.id;
+		END;
+		dinit1 := TABLE(dinit0,ClusterRec);
+		DistAsClus := PROJECT( Distances, TRANSFORM(ClusterRec, SELF.Members:='', SELF := LEFT) );
+		Dinit := dinit1+DistAsClus;
+		Step(DATASET(ClusterRec) cd00) := FUNCTION
+		  cd := cd00(Members='');
+			cl := cd00(Members<>'');
+		  // Find the best value for each id
+			minx := TABLE(cd,{id,val := MIN(GROUP,value)},id);
+			// Find the best value for each cluster
+			miny := TABLE(cd,{clusterid,val := MIN(GROUP,value)},clusterid);
+			// Find those entries that are best - only pick clusterid<id (so entries only found once) 
+			xposs := JOIN(cd(clusterid<id),minx,LEFT.id=RIGHT.id AND LEFT.value=RIGHT.val,TRANSFORM(LEFT));
+			// Make sure the other side is just as happy
+			tojoin := JOIN(xposs,miny,LEFT.clusterid=RIGHT.clusterid AND LEFT.value=RIGHT.val);
+			// Now we need to mutilate the distance table to reflect the new reality
+			// We do this first by 'duping' the elements
+			cd0 := JOIN(cd,tojoin,LEFT.id=RIGHT.id,TRANSFORM(ClusterRec,SELF.id:=IF(RIGHT.id<>0,RIGHT.clusterid,LEFT.id),SELF:=LEFT),LOOKUP,LEFT OUTER)(id<>clusterid);
+			cd1 := JOIN(cd0,tojoin,LEFT.clusterid=RIGHT.id,TRANSFORM(ClusterRec,SELF.clusterid:=IF(RIGHT.id<>0,RIGHT.clusterid,LEFT.clusterid),SELF:=LEFT),LOOKUP,LEFT OUTER)(id<>clusterid);
+			r1 := RECORD
+			  cd1.id;
+				cd1.clusterid;
+				REAL8 MinV := MIN(GROUP,cd1.value);
+				REAL8 MaxV := MAX(GROUP,cd1.value);
+				REAL8 AveV := AVE(GROUP,cd1.value);
+			END;
+			cd2 := TABLE(cd1,r1,id,clusterid);
+			cd3 := PROJECT(cd2,TRANSFORM(ClusterRec,SELF.Members:='',SELF.value := CASE( cm,c_Method.min_dist => LEFT.MinV, c_Method.max_dist => LEFT.MaxV, LEFT.AveV ), SELF := LEFT ));
+			// Now perform the actual clustering
+			J := JOIN(cl,tojoin,LEFT.Clusterid=RIGHT.id,TRANSFORM(ClusterRec,SELF.id := RIGHT.ClusterId,SELF := LEFT),LEFT OUTER);
+			J_Collapsing := J(id<>0);
+			J_NotC := J(id=0);
+			J_Untouch := JOIN(J_NotC,tojoin,LEFT.ClusterId=RIGHT.ClusterID,TRANSFORM(LEFT),LEFT ONLY);
+			ClusterRec JoinCluster(J_Collapsing le,cl ri) := TRANSFORM
+			  SELF.clusterid := MIN(le.clusterid,ri.clusterid);
+				SELF.Members := '{'+ri.Members+'}{'+le.Members+'}';
+			END;
+			J2 := JOIN(J_Collapsing(id<>0),cl,LEFT.id=RIGHT.Clusterid,JoinCluster(LEFT,RIGHT));
+			RETURN IF(~EXISTS(CD),CL,J_Untouch+J2+cd3);
+		END;
+		RETURN TABLE(LOOP(dinit,N,Step(ROWS(LEFT)))(Members<>''),{ClusterId,Members});
+	END;
+	
 END;
