@@ -11,6 +11,11 @@ EXPORT Element := RECORD
 	t_value value;
 END;
 
+EXPORT VecElement := RECORD
+  t_Index i; // a vector does not necessarily lay upon any given dimension
+	t_value value;
+  END;
+
 EXPORT MUElement := RECORD(Element)
 	t_mu_no no; // The number of the matrix within the universe
 END;
