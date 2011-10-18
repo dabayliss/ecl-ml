@@ -5,6 +5,7 @@
 // performing K-Means calculations.
 //-----------------------------------------------------------------------------
 IMPORT * FROM $;
+IMPORT Std.Str AS Str;
 EXPORT Cluster := MODULE
   //---------------------------------------------------------------------------
   // Function to pair all the points between two NumericField data sets. 
@@ -113,7 +114,7 @@ EXPORT Cluster := MODULE
 
   // Agglomerative (or Hierarchical clustering) - attempts to weld the clusters together bottom up
 	// N is the number of steps to take
-  EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DF.DistancePrototype fDist=DF.Euclidean, c_Method cm=c_Method.min_dist):=FUNCTION
+  EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DF.DistancePrototype fDist=DF.Euclidean, c_Method cm=c_Method.min_dist):= MODULE
 // Collect the full matrix of pair-pair distances
     Distances:=fDist(Pairs(d,d))(id<>clusterid);
 		dinit0 := DEDUP( d, ID, ALL );
@@ -163,7 +164,17 @@ EXPORT Cluster := MODULE
 			J2 := JOIN(J_Collapsing(id<>0),cl,LEFT.id=RIGHT.Clusterid,JoinCluster(LEFT,RIGHT));
 			RETURN IF(~EXISTS(CD),CL,J_Untouch+J2+cd3);
 		END;
-		RETURN TABLE(LOOP(dinit,N,Step(ROWS(LEFT)))(Members<>''),{ClusterId,Members});
-	END;
+	SHARED res := LOOP(dinit,N,Step(ROWS(LEFT)));
+	EXPORT Dendrogram := TABLE(res(Members<>''),{ClusterId,Members});
+	EXPORT Distances := TABLE(res(Members=''),{ClusterId,Id,Value});
+		NoBrace(STRING S) := Str.CleanSpaces(Str.SubstituteIncluded(S,'{}',' '));
+    De := TABLE(Dendrogram,{ClusterId,Ids := NoBrace(Members)});
+		Types.ClusterDistance note(De le,UNSIGNED c) := TRANSFORM
+		  SELF.ClusterId := le.ClusterId;
+			SELF.Id := (UNSIGNED)Str.GetNthWord(le.Ids,c);
+			SELF.value := 0; // Dendrogram does not return any cluster centroid distance measure
+		END;
+	EXPORT Clusters := NORMALIZE(De,Str.WordCount(LEFT.Ids),note(LEFT,COUNTER));
+END;
 	
 END;
