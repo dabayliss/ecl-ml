@@ -35,6 +35,21 @@ EXPORT Cluster := MODULE
     RETURN dRolled;
   END;
 
+	// This is an alternative approach to generating pairs - it allows for d02 to be bigger than a single machine memory
+	// Of course the result is COUNT(d01)xCOUNT(d02) - so the files had better not be too big!
+	EXPORT PairsB(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02) := FUNCTION
+		df1 := Utils.Fat(d01);
+		df2 := Utils.Fat(d02); // We now have dense records (zero's filled in)
+		Types.ClusterPair Take2(df1 le,df2 ri) := TRANSFORM
+		  SELF.clusterid := le.id;
+			SELF.id := ri.id;
+			SELF.number := le.number;
+			SELF.value01 := le.value;
+			SELF.value02 := ri.value;
+		END;
+		J := JOIN(df1,df2,LEFT.number=RIGHT.number,Take2(LEFT,RIGHT),HASH); // numbers will be evenly distribute by definition
+		RETURN J;
+	END;
   //-------------------------------------------------------------------------
   // Sub-moudle of pre-coded distance functions that can be used to calcluate
   // the distance for every pair of IDs in a table in the Pair layout.
@@ -116,7 +131,7 @@ EXPORT Cluster := MODULE
 	// N is the number of steps to take
 
   EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DF.DistancePrototype fDist=DF.Euclidean, c_Method cm=c_Method.min_dist):= MODULE
-    Distances:=fDist(Pairs(d,d))(id<>clusterid);
+    Distances:=fDist(PairsB(d,d))(id<>clusterid);
 		dinit0 := DEDUP( d, ID, ALL );
 		// To go around the loop this has to be a combined 'distance metric' / 'clusters so far' format
 		ClusterRec := RECORD// Collect the full matrix of pair-pair distances
