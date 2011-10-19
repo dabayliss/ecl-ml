@@ -35,21 +35,6 @@ EXPORT Cluster := MODULE
     RETURN dRolled;
   END;
 
-	// This is an alternative approach to generating pairs - it allows for d02 to be bigger than a single machine memory
-	// Of course the result is COUNT(d01)xCOUNT(d02) - so the files had better not be too big!
-	EXPORT PairsB(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02) := FUNCTION
-		df1 := Utils.Fat(d01);
-		df2 := Utils.Fat(d02); // We now have dense records (zero's filled in)
-		Types.ClusterPair Take2(df1 le,df2 ri) := TRANSFORM
-		  SELF.clusterid := le.id;
-			SELF.id := ri.id;
-			SELF.number := le.number;
-			SELF.value01 := le.value;
-			SELF.value02 := ri.value;
-		END;
-		J := JOIN(df1,df2,LEFT.number=RIGHT.number,Take2(LEFT,RIGHT),HASH); // numbers will be evenly distribute by definition
-		RETURN J;
-	END;
   //-------------------------------------------------------------------------
   // Sub-moudle of pre-coded distance functions that can be used to calcluate
   // the distance for every pair of IDs in a table in the Pair layout.
@@ -87,6 +72,56 @@ EXPORT Cluster := MODULE
       RETURN PROJECT(dResults,Types.ClusterDistance);
     END;
   END;
+
+	// This is an alternative approach to generating a distance matrix - it allows for d02 to be bigger than a single machine memory
+	// Of course the result is COUNT(d01)xCOUNT(d02) - so the files had better not be too big!
+
+  EXPORT DFB := MODULE
+	  // Each nested module is a 'control' interface for pairsB
+    EXPORT Default := MODULE,VIRTUAL
+		  EXPORT UNSIGNED1 NeedZeros := 2; // 0 = no, kill existing, 1 = maybe, keep any that are there, 2 = yes - make them
+			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := x;
+			EXPORT Types.t_FieldReal IV2(Types.t_FieldReal x,Types.t_FieldReal y) := y;
+			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d) := 0.0;
+	  END;
+    EXPORT EuclideanSquared := MODULE(Default),VIRTUAL
+			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := (x-y)*(x-y);
+			EXPORT IV2(Types.t_FieldReal x,Types.t_FieldReal y) := 0;
+			EXPORT Comb(DATASET(Types.ClusterPair) d) := SUM(D,Value01);
+    END;
+    EXPORT Euclidean := MODULE(EuclideanSquared)
+			EXPORT Comb(DATASET(Types.ClusterPair) d) := SQRT( SUM(D,Value01) );
+    END;
+    EXPORT Manhattan := MODULE(Default),VIRTUAL
+			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := ABS(x-y);
+			EXPORT IV2(Types.t_FieldReal x,Types.t_FieldReal y) := 0;
+			EXPORT Comb(DATASET(Types.ClusterPair) d) := SUM(D,Value01);
+    END;
+		EXPORT Maximum := MODULE(Manhattan)
+			EXPORT Comb(DATASET(Types.ClusterPair) d) := MAX(D,Value01);
+		END;
+    EXPORT Cosine := MODULE(Default),VIRTUAL
+			EXPORT Comb(DATASET(Types.ClusterPair) d) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02)));
+    END;
+    EXPORT Tanimoto := MODULE(Default),VIRTUAL
+			EXPORT Comb(DATASET(Types.ClusterPair) d) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02))-SUM(D,Value01*Value02));
+    END;
+	END;
+
+	EXPORT Distances(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DFB.Default Control = DFB.Euclidean) := FUNCTION
+		df1 := CASE( Control.NeedZeros, 0 => d01(value<>0), 1=> d01, Utils.Fat(d01) );
+		df2 := CASE( Control.NeedZeros, 0 => d02(value<>0), 1=> d02, Utils.Fat(d02) );
+		Types.ClusterPair Take2(df1 le,df2 ri) := TRANSFORM
+		  SELF.clusterid := le.id;
+			SELF.id := ri.id;
+			SELF.number := le.number;
+			SELF.value01 := Control.IV1(le.value,ri.value);
+			SELF.value02 := Control.IV2(le.value,ri.value);
+		END;
+		J := JOIN(df1,df2,LEFT.number=RIGHT.number,Take2(LEFT,RIGHT),HASH); // numbers will be evenly distribute by definition
+		JG := GROUP(J,clusterid,id,ALL);
+		RETURN ROLLUP(JG,GROUP,TRANSFORM(Types.ClusterDistance,SELF.value := Control.Comb(ROWS(LEFT)), SELF := LEFT));
+	END;
   
   //---------------------------------------------------------------------------
   // Closest takes a set of distances and returns a collapsed set containing
@@ -131,7 +166,7 @@ EXPORT Cluster := MODULE
 	// N is the number of steps to take
 
   EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DF.DistancePrototype fDist=DF.Euclidean, c_Method cm=c_Method.min_dist):= MODULE
-    Distances:=fDist(PairsB(d,d))(id<>clusterid);
+    Distance:=Distances(d,d)(id<>clusterid);
 		dinit0 := DEDUP( d, ID, ALL );
 		// To go around the loop this has to be a combined 'distance metric' / 'clusters so far' format
 		ClusterRec := RECORD// Collect the full matrix of pair-pair distances
@@ -147,7 +182,7 @@ EXPORT Cluster := MODULE
 			RETURN AGGREGATE(s,R,TRANSFORM(R,SELF.St := IF( RIGHT.St = '', LEFT.Members, RIGHT.St+' '+LEFT.Members)))[1].St;
 		END;
 		dinit1 := TABLE(dinit0,ClusterRec);
-		DistAsClus := PROJECT( Distances, TRANSFORM(ClusterRec, SELF.Members:='', SELF := LEFT) );
+		DistAsClus := PROJECT( Distance, TRANSFORM(ClusterRec, SELF.Members:='', SELF := LEFT) );
 		Dinit := dinit1+DistAsClus;
 		Step(DATASET(ClusterRec) cd00) := FUNCTION
 		  cd := cd00(Members='');
