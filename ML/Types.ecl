@@ -26,17 +26,17 @@ EXPORT ItemElement := RECORD
 	t_RecordId id;
   END;
 	
-EXPORT CentroidPair:=RECORD
+EXPORT ClusterPair:=RECORD
   t_RecordID    id;
-  t_RecordID    centroid;
+  t_RecordID    clusterid;
   t_FieldNumber number;
   t_FieldReal   value01;
   t_FieldReal   value02;
   END;
   
-EXPORT CentroidDistance:=RECORD
+EXPORT ClusterDistance:=RECORD
   t_RecordID    id;
-  t_RecordID    centroid;
+  t_RecordID    clusterid;
   t_FieldReal   value;
   END;
 
