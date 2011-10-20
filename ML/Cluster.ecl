@@ -72,6 +72,81 @@ EXPORT Cluster := MODULE
       RETURN PROJECT(dResults,Types.ClusterDistance);
     END;
   END;
+
+	// This is an alternative approach to generating a distance matrix - it allows for d02 to be bigger than a single machine memory
+	// Of course the result is COUNT(d01)xCOUNT(d02) - so the files had better not be too big!
+
+  EXPORT DFB := MODULE
+	  // Each nested module is a 'control' interface for pairsB
+    EXPORT Default := MODULE,VIRTUAL
+		  EXPORT UNSIGNED1 NeedZeros := 2; // 0 = no, kill existing, 1 = maybe, keep any that are there, 2 = yes - make them
+			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := 0; // An 'exotic' value which will be passed in at Comb time
+			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := 0; // An 'exotic' value which will be passed in at Comb time
+			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := TRUE; // If false - join value will not be computed
+			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := x;
+			EXPORT Types.t_FieldReal IV2(Types.t_FieldReal x,Types.t_FieldReal y) := y;
+			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0.0;
+	  END;
+    EXPORT EuclideanSquared := MODULE(Default),VIRTUAL
+			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := (x-y)*(x-y);
+			EXPORT IV2(Types.t_FieldReal x,Types.t_FieldReal y) := 0;
+			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01);
+    END;
+    EXPORT Euclidean := MODULE(EuclideanSquared)
+			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SQRT( SUM(D,Value01) );
+    END;
+    EXPORT Manhattan := MODULE(Default),VIRTUAL
+			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := ABS(x-y);
+			EXPORT IV2(Types.t_FieldReal x,Types.t_FieldReal y) := 0;
+			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01);
+    END;
+		EXPORT Maximum := MODULE(Manhattan)
+			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := MAX(D,Value01);
+		END;
+    EXPORT Cosine := MODULE(Default),VIRTUAL
+			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02)));
+    END;
+    EXPORT Tanimoto := MODULE(Default),VIRTUAL
+			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02))-SUM(D,Value01*Value02));
+    END;
+		// Now for some quick and dirty functions
+		// This attempts to approximate the missing values - it will have far few intermediates if the matrices were sparse
+		EXPORT MissingAppx := MODULE(Default),VIRTUAL
+		  EXPORT UNSIGNED1 NeedZeros := 0;
+			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := AVE(d,value); // Average value
+			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := MAX(d,number);
+			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := ABS(x-y)<ex1; // Only produce record if closer
+			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := ABS(x-y);
+			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(d,value01) + (ev2-COUNT(d))*ev2;
+		END;
+
+		// Co-occurences - only counts number of fields with exact matches
+		// For this metric missing values are 'infinity'
+		EXPORT CoOccur := MODULE(Default),VIRTUAL
+		  EXPORT UNSIGNED1 NeedZeros := 0;
+			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := MAX(d,number);
+			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := x=y;
+			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := 1;
+			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := ev1 - COUNT(d);
+		END;
+	END;
+
+	EXPORT Distances(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DFB.Default Control = DFB.Euclidean) := FUNCTION
+		df1 := CASE( Control.NeedZeros, 0 => d01(value<>0), 1=> d01, Utils.Fat(d01) );
+		df2 := CASE( Control.NeedZeros, 0 => d02(value<>0), 1=> d02, Utils.Fat(d02) );
+		ex1 := Control.EV1(d01); // Some distance functions may use these to 'approximate' things
+		ex2 := Control.EV2(d01);
+		Types.ClusterPair Take2(df1 le,df2 ri) := TRANSFORM
+		  SELF.clusterid := le.id;
+			SELF.id := ri.id;
+			SELF.number := le.number;
+			SELF.value01 := Control.IV1(le.value,ri.value);
+			SELF.value02 := Control.IV2(le.value,ri.value);
+		END;
+		J := JOIN(df1,df2,LEFT.number=RIGHT.number AND LEFT.id<>RIGHT.id AND Control.JoinFilter(LEFT.value,RIGHT.value,ex1),Take2(LEFT,RIGHT),HASH); // numbers will be evenly distribute by definition
+		JG := GROUP(J,clusterid,id,ALL);
+		RETURN ROLLUP(JG,GROUP,TRANSFORM(Types.ClusterDistance,SELF.value := Control.Comb(ROWS(LEFT),ex1,ex2), SELF := LEFT));
+	END;
   
   //---------------------------------------------------------------------------
   // Closest takes a set of distances and returns a collapsed set containing
@@ -114,19 +189,25 @@ EXPORT Cluster := MODULE
 
   // Agglomerative (or Hierarchical clustering) - attempts to weld the clusters together bottom up
 	// N is the number of steps to take
-  EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DF.DistancePrototype fDist=DF.Euclidean, c_Method cm=c_Method.min_dist):= MODULE
-// Collect the full matrix of pair-pair distances
-    Distances:=fDist(Pairs(d,d))(id<>clusterid);
+
+  EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DFB.Default Dist=DFB.Euclidean, c_Method cm=c_Method.min_dist):= MODULE
+    Distance:=Distances(d,d,Dist)(id<>clusterid);
 		dinit0 := DEDUP( d, ID, ALL );
 		// To go around the loop this has to be a combined 'distance metric' / 'clusters so far' format
-		ClusterRec := RECORD
+		ClusterRec := RECORD// Collect the full matrix of pair-pair distances
 		  Types.t_RecordID ClusterId := dinit0.id;
 			Types.t_RecordID Id := 0;
 			Types.t_FieldReal value := 0;
 			STRING Members := (STRING)dinit0.id;
 		END;
+		ConcatAll(DATASET(ClusterRec) s) := FUNCTION
+			R := RECORD
+			  STRING St;
+			END;
+			RETURN AGGREGATE(s,R,TRANSFORM(R,SELF.St := IF( RIGHT.St = '', LEFT.Members, RIGHT.St+' '+LEFT.Members)))[1].St;
+		END;
 		dinit1 := TABLE(dinit0,ClusterRec);
-		DistAsClus := PROJECT( Distances, TRANSFORM(ClusterRec, SELF.Members:='', SELF := LEFT) );
+		DistAsClus := PROJECT( Distance, TRANSFORM(ClusterRec, SELF.Members:='', SELF := LEFT) );
 		Dinit := dinit1+DistAsClus;
 		Step(DATASET(ClusterRec) cd00) := FUNCTION
 		  cd := cd00(Members='');
@@ -138,7 +219,10 @@ EXPORT Cluster := MODULE
 			// Find those entries that are best - only pick clusterid<id (so entries only found once) 
 			xposs := JOIN(cd(clusterid<id),minx,LEFT.id=RIGHT.id AND LEFT.value=RIGHT.val,TRANSFORM(LEFT));
 			// Make sure the other side is just as happy
-			tojoin := JOIN(xposs,miny,LEFT.clusterid=RIGHT.clusterid AND LEFT.value=RIGHT.val);
+			tojoin0 := JOIN(xposs,miny,LEFT.clusterid=RIGHT.clusterid AND LEFT.value=RIGHT.val,TRANSFORM(LEFT));
+			// Now we have to avoid the transitive closure, no point in A->B if B->C
+			// One option is to assert A->C; another is to break the A->B link
+			tojoin := JOIN(tojoin0,tojoin0,LEFT.clusterid=RIGHT.id,TRANSFORM(LEFT),LEFT ONLY);
 			// Now we need to mutilate the distance table to reflect the new reality
 			// We do this first by 'duping' the elements
 			cd0 := JOIN(cd,tojoin,LEFT.id=RIGHT.id,TRANSFORM(ClusterRec,SELF.id:=IF(RIGHT.id<>0,RIGHT.clusterid,LEFT.id),SELF:=LEFT),LOOKUP,LEFT OUTER)(id<>clusterid);
@@ -153,16 +237,17 @@ EXPORT Cluster := MODULE
 			cd2 := TABLE(cd1,r1,id,clusterid);
 			cd3 := PROJECT(cd2,TRANSFORM(ClusterRec,SELF.Members:='',SELF.value := CASE( cm,c_Method.min_dist => LEFT.MinV, c_Method.max_dist => LEFT.MaxV, LEFT.AveV ), SELF := LEFT ));
 			// Now perform the actual clustering
-			J := JOIN(cl,tojoin,LEFT.Clusterid=RIGHT.id,TRANSFORM(ClusterRec,SELF.id := RIGHT.ClusterId,SELF := LEFT),LEFT OUTER);
-			J_Collapsing := J(id<>0);
-			J_NotC := J(id=0);
-			J_Untouch := JOIN(J_NotC,tojoin,LEFT.ClusterId=RIGHT.ClusterID,TRANSFORM(LEFT),LEFT ONLY);
-			ClusterRec JoinCluster(J_Collapsing le,cl ri) := TRANSFORM
-			  SELF.clusterid := MIN(le.clusterid,ri.clusterid);
-				SELF.Members := '{'+ri.Members+'}{'+le.Members+'}';
+			// First we flag those that will be growing clusters with a 1
+			J1 := JOIN(cl,tojoin,LEFT.Clusterid=RIGHT.Clusterid,TRANSFORM(ClusterRec,SELF.id := IF ( RIGHT.ClusterID<>0, 1, 0 ),SELF := LEFT),LEFT OUTER,KEEP(1));
+			// Those that will be collapsing get the cluster number in their ID slot
+			J2 := JOIN(J1(id=0),tojoin,LEFT.Clusterid=RIGHT.id,TRANSFORM(ClusterRec,SELF.id := RIGHT.ClusterId,SELF := LEFT),LEFT OUTER);
+			// Those remaining inert will get a 0
+			ClusterRec JoinCluster(J1 le,DATASET(ClusterRec) ri) := TRANSFORM
+			  SELF.clusterid := le.clusterid;
+				SELF.Members := '{'+le.Members+'}{'+ConcatAll(ri)+'}';
 			END;
-			J2 := JOIN(J_Collapsing(id<>0),cl,LEFT.id=RIGHT.Clusterid,JoinCluster(LEFT,RIGHT));
-			RETURN IF(~EXISTS(CD),CL,J_Untouch+J2+cd3);
+			J3 := DENORMALIZE(J1(id=1),J2(id<>0),LEFT.ClusterId=RIGHT.id,GROUP,JoinCluster(LEFT,ROWS(RIGHT)));
+			RETURN IF(~EXISTS(CD),CL,J3+J2(id=0)+cd3);
 		END;
 	SHARED res := LOOP(dinit,N,Step(ROWS(LEFT)));
 	EXPORT Dendrogram := TABLE(res(Members<>''),{ClusterId,Members});
