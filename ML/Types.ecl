@@ -30,8 +30,9 @@ EXPORT ClusterPair:=RECORD
   t_RecordID    id;
   t_RecordID    clusterid;
   t_FieldNumber number;
-  t_FieldReal   value01;
-  t_FieldReal   value02;
+  t_FieldReal   value01 := 0;
+  t_FieldReal   value02 := 0;
+  t_FieldReal   value03 := 0;
   END;
   
 EXPORT ClusterDistance:=RECORD

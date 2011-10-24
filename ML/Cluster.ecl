@@ -83,41 +83,65 @@ EXPORT Cluster := MODULE
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := 0; // An 'exotic' value which will be passed in at Comb time
 			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := 0; // An 'exotic' value which will be passed in at Comb time
 			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := x<>0 OR y<>0; // If false - join value will not be computed
-			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := x;
-			EXPORT Types.t_FieldReal IV2(Types.t_FieldReal x,Types.t_FieldReal y) := y;
-			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0.0;
+			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := x;
+			EXPORT IV2(Types.t_FieldReal x,Types.t_FieldReal y) := y;
+			EXPORT Types.t_FieldReal Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0; // The value1 - eventual result
+			EXPORT Types.t_FieldReal Comb2(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0; // Scratchpad
+			EXPORT Types.t_FieldReal Comb3(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0; // Scratchpad
+// These can be though of as a 'turbo' interface
+// They will usually be used to prevent the need for NeedZeros
+		  EXPORT BOOLEAN SummaryJoins := FALSE; // True implies the summaries created by ID1/ID2 will be joined back post-combination
+			EXPORT SummaryID1(DATASET(Types.NumericField) d) := d; // Used to create some form of summary by ID for dataset 1
+			EXPORT SummaryID2(DATASET(Types.NumericField) d) := SummaryID1(d); // Used to create some form of summary by ID for dataset 2
+			EXPORT Types.t_FieldReal Join11(Types.ClusterPair im,Types.NumericField ri) := 0; // join 1 result 1
+			EXPORT Types.t_FieldReal Join12(Types.ClusterPair im,Types.NumericField ri) := 0;
+			EXPORT Types.t_FieldReal Join13(Types.ClusterPair im,Types.NumericField ri) := 0;
+			EXPORT Types.t_FieldReal Join21(Types.ClusterPair im,Types.NumericField ri) := 0;  // join 2 result 1
 	  END;
+    EXPORT QEuclideanSquared := MODULE(Default),VIRTUAL
+		  EXPORT UNSIGNED1 NeedZeros := 0;
+		  EXPORT BOOLEAN SummaryJoins := TRUE; 
+			EXPORT SummaryID1(DATASET(Types.NumericField) d) := PROJECT(TABLE( d, { id, val := SUM(GROUP,value*value); }, id ),TRANSFORM(Types.NumericField,SELF.value:=LEFT.val,SELF.number:=0,SELF.id:=LEFT.id));
+			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,(Value01-Value02)*(Value01-Value02));
+			EXPORT Comb2(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01*Value01);
+			EXPORT Comb3(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value02*Value02); // sum of all the contributing rhs
+			EXPORT Join11(Types.ClusterPair im,Types.NumericField ri) := im.value01 + ( ri.value-im.value02 ); // add in all of the lhs^2 that did not match
+			EXPORT Join13(Types.ClusterPair im,Types.NumericField ri) := im.value03; // keep the rhs^2
+			EXPORT Join21(Types.ClusterPair im,Types.NumericField ri) := im.value01 + ( ri.value-im.value03 ); // add in all of the rhs^2 that did not match
+    END;
+    EXPORT QEuclidean := MODULE(QEuclideanSquared)
+			EXPORT Join21(Types.ClusterPair im,Types.NumericField ri) := SQRT(im.value01 + ( ri.value-im.value03 )); // add in all of the rhs^2 that did not match
+    END;
     EXPORT EuclideanSquared := MODULE(Default),VIRTUAL
 			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := (x-y)*(x-y);
-			EXPORT IV2(Types.t_FieldReal x,Types.t_FieldReal y) := 0;
-			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01);
+			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01); 
     END;
     EXPORT Euclidean := MODULE(EuclideanSquared)
-			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SQRT( SUM(D,Value01) );
+			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SQRT( SUM(D,Value01) );
     END;
     EXPORT Manhattan := MODULE(Default),VIRTUAL
 			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := ABS(x-y);
 			EXPORT IV2(Types.t_FieldReal x,Types.t_FieldReal y) := 0;
-			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01);
+			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01);
     END;
 		EXPORT Maximum := MODULE(Manhattan)
-			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := MAX(D,Value01);
+			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := MAX(D,Value01);
 		END;
     EXPORT Cosine := MODULE(Default),VIRTUAL
-			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02)));
+			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02)));
     END;
     EXPORT Tanimoto := MODULE(Default),VIRTUAL
-			EXPORT Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02))-SUM(D,Value01*Value02));
+			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02))-SUM(D,Value01*Value02));
     END;
 		// Now for some quick and dirty functions
 		// This attempts to approximate the missing values - it will have far few intermediates if the matrices were sparse
 		EXPORT MissingAppx := MODULE(Default),VIRTUAL
 		  EXPORT UNSIGNED1 NeedZeros := 0;
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := AVE(d,value); // Average value
-			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := MAX(d,number);
+			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := MAX(TABLE(d,{UNSIGNED C := COUNT(GROUP)},id),C);
 			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := (x<>0 OR y<>0) AND ABS(x-y)<ex1; // Only produce record if closer
 			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := ABS(x-y);
-			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(d,value01) + (ev2-COUNT(d))*ev2;
+			EXPORT Types.t_FieldReal Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(d,value01) + (ev2-COUNT(d))*ev1;
 		END;
 
 		// Co-occurences - only counts number of fields with exact matches
@@ -127,13 +151,15 @@ EXPORT Cluster := MODULE
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := MAX(d,number);
 			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := x<>0 AND x=y;
 			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := 1;
-			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := ev1 - COUNT(d);
+			EXPORT Types.t_FieldReal Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := ev1 - COUNT(d);
 		END;
 	END;
 
 	EXPORT Distances(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DFB.Default Control = DFB.Euclidean) := FUNCTION
 		df1 := CASE( Control.NeedZeros, 0 => d01(value<>0), 1=> d01, Utils.Fat(d01) );
 		df2 := CASE( Control.NeedZeros, 0 => d02(value<>0), 1=> d02, Utils.Fat(d02) );
+		si1 := Control.SummaryID1(df1); // Summaries of each document by ID
+		si2 := Control.SummaryID2(df2); // May be used by any summary joins features
 		ex1 := Control.EV1(d01); // Some distance functions may use these to 'approximate' things
 		ex2 := Control.EV2(d01);
 		Types.ClusterPair Take2(df1 le,df2 ri) := TRANSFORM
@@ -145,7 +171,16 @@ EXPORT Cluster := MODULE
 		END;
 		J := JOIN(df1,df2,LEFT.number=RIGHT.number AND LEFT.id<>RIGHT.id AND Control.JoinFilter(LEFT.value,RIGHT.value,ex1),Take2(LEFT,RIGHT),HASH); // numbers will be evenly distribute by definition
 		JG := GROUP(J,clusterid,id,ALL);
-		RETURN ROLLUP(JG,GROUP,TRANSFORM(Types.ClusterDistance,SELF.value := Control.Comb(ROWS(LEFT),ex1,ex2), SELF := LEFT));
+		Types.ClusterPair roll(Types.ClusterPair le, DATASET(Types.ClusterPair) gd) := TRANSFORM
+		  SELF.Value01 := Control.Comb1(gd,ex1,ex2);
+		  SELF.Value02 := Control.Comb2(gd,ex1,ex2); // These are really scratchpad
+		  SELF.Value03 := Control.Comb3(gd,ex1,ex2);
+		  SELF := le;
+		END;
+		rld := ROLLUP(JG,GROUP,roll(LEFT,ROWS(LEFT)));
+		J1 := JOIN(rld,si1,LEFT.id=RIGHT.id,TRANSFORM(Types.ClusterPair,SELF.value01 := Control.Join11(LEFT,RIGHT),SELF.value02 := Control.Join12(LEFT,RIGHT),SELF.value03 := Control.Join13(LEFT,RIGHT), SELF := LEFT),LOOKUP);
+		J2 := JOIN(J1,si2,LEFT.clusterid=RIGHT.id,TRANSFORM(Types.ClusterPair,SELF.value01 := Control.Join21(LEFT,RIGHT), SELF := LEFT),LOOKUP);
+		RETURN PROJECT(IF ( Control.SummaryJoins, J2, rld ), TRANSFORM(Types.ClusterDistance,SELF.Value := LEFT.Value01, SELF := LEFT));
 	END;
   
   //---------------------------------------------------------------------------
