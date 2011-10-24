@@ -4,9 +4,9 @@ EXPORT Utils := MODULE
 
 // In constrast to the matrix function thin
 // Will take a potentially sparse file d and fill in the blanks with value v
-EXPORT Fat(DATASET(Types.NumericField) d,Types.t_FieldReal v=0) := FUNCTION
-  dn := DISTRIBUTE(d,HASH(id)); // all the values for a given ID now on one node
-  seeds := TABLE(d,{id,m := MAX(GROUP,number)},id,LOCAL); // get the list of ids on each node (and get 'max' number for free
+EXPORT Fat(DATASET(Types.NumericField) d0,Types.t_FieldReal v=0) := FUNCTION
+  dn := DISTRIBUTE(d0,HASH(id)); // all the values for a given ID now on one node
+  seeds := TABLE(dn,{id,m := MAX(GROUP,number)},id,LOCAL); // get the list of ids on each node (and get 'max' number for free
 	mn := MAX(seeds,m); // The number of fields to fill in
 	Types.NumericField bv(seeds le,UNSIGNED C) := TRANSFORM
 	  SELF.value := v;
@@ -16,7 +16,7 @@ EXPORT Fat(DATASET(Types.NumericField) d,Types.t_FieldReal v=0) := FUNCTION
 	// turn n into a fully 'blank' matrix - distributed along with the 'real' data
 	n := NORMALIZE(seeds,mn,bv(LEFT,COUNTER),LOCAL); 
 	// subtract from 'n' those values that already exist
-	n1 := JOIN(n,d,LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,TRANSFORM(LEFT),LEFT ONLY);
+	n1 := JOIN(n,dn,LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,TRANSFORM(LEFT),LEFT ONLY,LOCAL);
 	RETURN n1+dn;
 END;
 	

@@ -82,7 +82,7 @@ EXPORT Cluster := MODULE
 		  EXPORT UNSIGNED1 NeedZeros := 2; // 0 = no, kill existing, 1 = maybe, keep any that are there, 2 = yes - make them
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := 0; // An 'exotic' value which will be passed in at Comb time
 			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := 0; // An 'exotic' value which will be passed in at Comb time
-			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := TRUE; // If false - join value will not be computed
+			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := x<>0 OR y<>0; // If false - join value will not be computed
 			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := x;
 			EXPORT Types.t_FieldReal IV2(Types.t_FieldReal x,Types.t_FieldReal y) := y;
 			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0.0;
@@ -115,7 +115,7 @@ EXPORT Cluster := MODULE
 		  EXPORT UNSIGNED1 NeedZeros := 0;
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := AVE(d,value); // Average value
 			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := MAX(d,number);
-			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := ABS(x-y)<ex1; // Only produce record if closer
+			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := (x<>0 OR y<>0) AND ABS(x-y)<ex1; // Only produce record if closer
 			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := ABS(x-y);
 			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(d,value01) + (ev2-COUNT(d))*ev2;
 		END;
@@ -125,7 +125,7 @@ EXPORT Cluster := MODULE
 		EXPORT CoOccur := MODULE(Default),VIRTUAL
 		  EXPORT UNSIGNED1 NeedZeros := 0;
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := MAX(d,number);
-			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := x=y;
+			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := x<>0 AND x=y;
 			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := 1;
 			EXPORT Types.t_FieldReal Comb(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := ev1 - COUNT(d);
 		END;
