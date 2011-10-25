@@ -76,10 +76,19 @@ EXPORT Cluster := MODULE
 	// This is an alternative approach to generating a distance matrix - it allows for d02 to be bigger than a single machine memory
 	// Of course the result is COUNT(d01)xCOUNT(d02) - so the files had better not be too big!
 
+	SHARED c_model := ENUM ( Dense = 1, SJoins = 2, Background = 4 );
   EXPORT DFB := MODULE
 	  // Each nested module is a 'control' interface for pairsB
+		// Dense model - sparse vectors will be made dense - very simple handling of nulls - usually slow
+		// Summary Joins - dimensions that are both non-null score directly; each combined score gets passed by the data from a join the summarizes either side
+		// Background - a 'background' N^2 matrix is constructed from the summary joins - which is then merged with the dimension matched data
+		// -- note Background REQUIRES that d02 fit in memory
+		// 0 ==> score constructed only from co-populated dimensions and any EV1/2 stats computed
+		// NAMING: A leading Q implies a 'quick' version of the result that probably shaves a corner or two
+		//         A leading W implies a 'wide' version and is probably simple, unrestricted and painful
+		//         No leading letter implies our 'best shot' at the 'correct' result
     EXPORT Default := MODULE,VIRTUAL
-		  EXPORT UNSIGNED1 NeedZeros := 2; // 0 = no, kill existing, 1 = maybe, keep any that are there, 2 = yes - make them
+		  EXPORT UNSIGNED1 PModel := c_model.dense; // The process model for this distance metric
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := 0; // An 'exotic' value which will be passed in at Comb time
 			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := 0; // An 'exotic' value which will be passed in at Comb time
 			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := x<>0 OR y<>0; // If false - join value will not be computed
@@ -88,19 +97,24 @@ EXPORT Cluster := MODULE
 			EXPORT Types.t_FieldReal Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0; // The value1 - eventual result
 			EXPORT Types.t_FieldReal Comb2(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0; // Scratchpad
 			EXPORT Types.t_FieldReal Comb3(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := 0; // Scratchpad
-// These can be though of as a 'turbo' interface
-// They will usually be used to prevent the need for NeedZeros
-		  EXPORT BOOLEAN SummaryJoins := FALSE; // True implies the summaries created by ID1/ID2 will be joined back post-combination
+// These can be though of as a 'turbo' or summary-join interface
+// They will usually be used to prevent the need for dense computation
 			EXPORT SummaryID1(DATASET(Types.NumericField) d) := d; // Used to create some form of summary by ID for dataset 1
 			EXPORT SummaryID2(DATASET(Types.NumericField) d) := SummaryID1(d); // Used to create some form of summary by ID for dataset 2
 			EXPORT Types.t_FieldReal Join11(Types.ClusterPair im,Types.NumericField ri) := 0; // join 1 result 1
 			EXPORT Types.t_FieldReal Join12(Types.ClusterPair im,Types.NumericField ri) := 0;
 			EXPORT Types.t_FieldReal Join13(Types.ClusterPair im,Types.NumericField ri) := 0;
 			EXPORT Types.t_FieldReal Join21(Types.ClusterPair im,Types.NumericField ri) := 0;  // join 2 result 1
+// This is the 'background' interface			
+      EXPORT Types.t_FieldReal Background(Types.NumericField va1,Types.NumericField va2) := 0;// Compute background value from SI1/SI2 value
+      EXPORT Types.t_FieldReal BackFront(Types.ClusterDistance Back,Types.ClusterPair Fro) := IF ( Fro.id>0, Fro.value01, Back.value );// Compute value given a background and a clusterpair <by default take front if possible>
 	  END;
+
+// These models compute a 'proper' Euclidean result but only for those vectors that have at least one dimension along
+// which they both have a non-zero value. For very sparse vectors this will produce a result MUCH smaller than
+// N^2 (and is correspondingly faster)		
     EXPORT QEuclideanSquared := MODULE(Default),VIRTUAL
-		  EXPORT UNSIGNED1 NeedZeros := 0;
-		  EXPORT BOOLEAN SummaryJoins := TRUE; 
+		  EXPORT UNSIGNED1 PModel := c_model.SJoins;
 			EXPORT SummaryID1(DATASET(Types.NumericField) d) := PROJECT(TABLE( d, { id, val := SUM(GROUP,value*value); }, id ),TRANSFORM(Types.NumericField,SELF.value:=LEFT.val,SELF.number:=0,SELF.id:=LEFT.id));
 			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,(Value01-Value02)*(Value01-Value02));
 			EXPORT Comb2(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01*Value01);
@@ -112,11 +126,24 @@ EXPORT Cluster := MODULE
     EXPORT QEuclidean := MODULE(QEuclideanSquared)
 			EXPORT Join21(Types.ClusterPair im,Types.NumericField ri) := SQRT(im.value01 + ( ri.value-im.value03 )); // add in all of the rhs^2 that did not match
     END;
-    EXPORT EuclideanSquared := MODULE(Default),VIRTUAL
+
+// These models compute a proper Euclidean result (the full N^2) - they do require that D02 be able to fit in memory
+// However given this is N^2 - if N does not fit in memory - you are probably dead anyway
+    EXPORT EuclideanSquared := MODULE(QEuclideanSquared),VIRTUAL // QEuclidean with a background added
+		  EXPORT UNSIGNED1 PModel := c_model.Background; // We avoid the SJoins through cleverness in BackFront
+      EXPORT Types.t_FieldReal Background(Types.NumericField va1,Types.NumericField va2) := va1.value+va2.value;
+      EXPORT Types.t_FieldReal BackFront(Types.ClusterDistance Back,Types.ClusterPair Fro) := IF ( Fro.id>0, Back.value+Fro.value01-Fro.value02-Fro.value03, Back.value );
+    END;
+    EXPORT Euclidean := MODULE(EuclideanSquared)
+      EXPORT Types.t_FieldReal BackFront(Types.ClusterDistance Back,Types.ClusterPair Fro) := SQRT(IF ( Fro.id>0, Back.value+Fro.value01-Fro.value02-Fro.value03, Back.value ));
+    END;
+// These compute full Euclidean	the 'simple' way and have no obvious restrictions
+// Expect to wait a while
+    EXPORT WEuclideanSquared := MODULE(Default),VIRTUAL
 			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := (x-y)*(x-y);
 			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01); 
     END;
-    EXPORT Euclidean := MODULE(EuclideanSquared)
+    EXPORT WEuclidean := MODULE(WEuclideanSquared)
 			EXPORT Comb1(DATASET(Types.ClusterPair) d,REAL8 ev1,REAL8 ev2) := SQRT( SUM(D,Value01) );
     END;
     EXPORT Manhattan := MODULE(Default),VIRTUAL
@@ -136,7 +163,7 @@ EXPORT Cluster := MODULE
 		// Now for some quick and dirty functions
 		// This attempts to approximate the missing values - it will have far few intermediates if the matrices were sparse
 		EXPORT MissingAppx := MODULE(Default),VIRTUAL
-		  EXPORT UNSIGNED1 NeedZeros := 0;
+		  EXPORT UNSIGNED1 Pmodel := 0;
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := AVE(d,value); // Average value
 			EXPORT REAL8 EV2(DATASET(Types.NumericField) d) := MAX(TABLE(d,{UNSIGNED C := COUNT(GROUP)},id),C);
 			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := (x<>0 OR y<>0) AND ABS(x-y)<ex1; // Only produce record if closer
@@ -147,7 +174,7 @@ EXPORT Cluster := MODULE
 		// Co-occurences - only counts number of fields with exact matches
 		// For this metric missing values are 'infinity'
 		EXPORT CoOccur := MODULE(Default),VIRTUAL
-		  EXPORT UNSIGNED1 NeedZeros := 0;
+		  EXPORT UNSIGNED1 Pmodel := 0;
 			EXPORT REAL8 EV1(DATASET(Types.NumericField) d) := MAX(d,number);
 			EXPORT BOOLEAN JoinFilter(Types.t_FieldReal x,Types.t_FieldReal y,REAL8 ex1) := x<>0 AND x=y;
 			EXPORT Types.t_FieldReal IV1(Types.t_FieldReal x,Types.t_FieldReal y) := 1;
@@ -155,13 +182,20 @@ EXPORT Cluster := MODULE
 		END;
 	END;
 
+// This is the 'distance computation engine'. It extremely configurable - see the 'Control' parameter
 	EXPORT Distances(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DFB.Default Control = DFB.Euclidean) := FUNCTION
-		df1 := CASE( Control.NeedZeros, 0 => d01(value<>0), 1=> d01, Utils.Fat(d01) );
-		df2 := CASE( Control.NeedZeros, 0 => d02(value<>0), 1=> d02, Utils.Fat(d02) );
+		// If we are in dense model then fatten up the records; otherwise zeroes not needed
+		df1 := IF( Control.Pmodel & c_model.dense > 0, Utils.Fat(d01), d01(value<>0) );
+		df2 := IF( Control.Pmodel & c_model.dense > 0, Utils.Fat(d02), d02(value<>0) );
+		// Construct the summary records used by SJoins and Background processing models
 		si1 := Control.SummaryID1(df1); // Summaries of each document by ID
 		si2 := Control.SummaryID2(df2); // May be used by any summary joins features
-		ex1 := Control.EV1(d01); // Some distance functions may use these to 'approximate' things
+		// Construct the 'background' matrix from the summary matrix
+		bck := JOIN(si1,si2,LEFT.id<>RIGHT.id,TRANSFORM(Types.ClusterDistance,SELF.ID := LEFT.id, SELF.ClusterId := RIGHT.Id, SELF.value := Control.BackGround(LEFT,RIGHT)),ALL);
+		// Create up to two 'aggregate' numbers that the models may use
+		ex1 := Control.EV1(d01); 
 		ex2 := Control.EV2(d01);
+		// This is the principle N^2 join (although some join filters can improve on that)
 		Types.ClusterPair Take2(df1 le,df2 ri) := TRANSFORM
 		  SELF.clusterid := le.id;
 			SELF.id := ri.id;
@@ -170,6 +204,7 @@ EXPORT Cluster := MODULE
 			SELF.value02 := Control.IV2(le.value,ri.value);
 		END;
 		J := JOIN(df1,df2,LEFT.number=RIGHT.number AND LEFT.id<>RIGHT.id AND Control.JoinFilter(LEFT.value,RIGHT.value,ex1),Take2(LEFT,RIGHT),HASH); // numbers will be evenly distribute by definition
+		// Take all of the values computed for each matching ID and combine them
 		JG := GROUP(J,clusterid,id,ALL);
 		Types.ClusterPair roll(Types.ClusterPair le, DATASET(Types.ClusterPair) gd) := TRANSFORM
 		  SELF.Value01 := Control.Comb1(gd,ex1,ex2);
@@ -178,9 +213,20 @@ EXPORT Cluster := MODULE
 		  SELF := le;
 		END;
 		rld := ROLLUP(JG,GROUP,roll(LEFT,ROWS(LEFT)));
+		// In the SJoins processing model the si1/si2 data is now "passed to" the result - 01 first
 		J1 := JOIN(rld,si1,LEFT.id=RIGHT.id,TRANSFORM(Types.ClusterPair,SELF.value01 := Control.Join11(LEFT,RIGHT),SELF.value02 := Control.Join12(LEFT,RIGHT),SELF.value03 := Control.Join13(LEFT,RIGHT), SELF := LEFT),LOOKUP);
 		J2 := JOIN(J1,si2,LEFT.clusterid=RIGHT.id,TRANSFORM(Types.ClusterPair,SELF.value01 := Control.Join21(LEFT,RIGHT), SELF := LEFT),LOOKUP);
-		RETURN PROJECT(IF ( Control.SummaryJoins, J2, rld ), TRANSFORM(Types.ClusterDistance,SELF.Value := LEFT.Value01, SELF := LEFT));
+		// Select either the 'normal' or 'post joined' version of the scores
+		Pro := IF ( Control.PModel & c_model.SJoins > 0, J2, rld );
+		ProAsDist := PROJECT(Pro,TRANSFORM(Types.ClusterDistance,SELF.Value := LEFT.Value01, SELF := LEFT));
+		// Now blend the scores that were computed with the background model
+		Types.ClusterDistance blend(bck le,pro ri) := TRANSFORM
+		  SELF.value := Control.BackFront(le,ri);
+		  SELF := le;
+		END;
+		BF := JOIN(bck,pro,LEFT.ClusterID=RIGHT.ClusterID AND LEFT.id=RIGHT.id,blend(LEFT,RIGHT),LEFT OUTER);
+		// Either select the background blended version - or slim the scores down to a cluster distance
+		RETURN IF ( Control.PModel & c_model.Background > 0, BF, ProAsDist );
 	END;
   
   //---------------------------------------------------------------------------
