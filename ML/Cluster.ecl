@@ -271,7 +271,7 @@ EXPORT Cluster := MODULE
   // Agglomerative (or Hierarchical clustering) - attempts to weld the clusters together bottom up
 	// N is the number of steps to take
 
-  EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DFB.Default Dist=DFB.Euclidean, c_Method cm=c_Method.min_dist):= MODULE
+  EXPORT AggloN(DATASET(Types.NumericField) d,UNSIGNED4 N,DFB.Default Dist=DFB.QEuclidean, c_Method cm=c_Method.min_dist):= MODULE
     Distance:=Distances(d,d,Dist)(id<>clusterid);
 		dinit0 := DEDUP( d, ID, ALL );
 		// To go around the loop this has to be a combined 'distance metric' / 'clusters so far' format
@@ -285,7 +285,7 @@ EXPORT Cluster := MODULE
 			R := RECORD
 			  STRING St;
 			END;
-			RETURN AGGREGATE(s,R,TRANSFORM(R,SELF.St := IF( RIGHT.St = '', LEFT.Members, RIGHT.St+' '+LEFT.Members)))[1].St;
+			RETURN AGGREGATE(s,R,TRANSFORM(R,SELF.St := IF( RIGHT.St = '', LEFT.Members, RIGHT.St+' '+LEFT.Members)),TRANSFORM(R,SELF.St := IF( RIGHT1.St = '', RIGHT2.St, RIGHT1.St+' '+RIGHT2.St)))[1].St;
 		END;
 		dinit1 := TABLE(dinit0,ClusterRec);
 		DistAsClus := PROJECT( Distance, TRANSFORM(ClusterRec, SELF.Members:='', SELF := LEFT) );
