@@ -26,21 +26,6 @@ EXPORT ItemElement := RECORD
 	t_RecordId id;
   END;
 	
-EXPORT ClusterPair:=RECORD
-  t_RecordID    id;
-  t_RecordID    clusterid;
-  t_FieldNumber number;
-  t_FieldReal   value01 := 0;
-  t_FieldReal   value02 := 0;
-  t_FieldReal   value03 := 0;
-  END;
-  
-EXPORT ClusterDistance:=RECORD
-  t_RecordID    id;
-  t_RecordID    clusterid;
-  t_FieldReal   value;
-  END;
-
 EXPORT ToMatrix(DATASET(NumericField) d):=FUNCTION
   RETURN PROJECT(d,TRANSFORM(Mat.Types.Element,SELF.x:=(TYPEOF(Mat.Types.Element.x))LEFT.id;SELF.y:=(TYPEOF(Mat.Types.Element.y))LEFT.number;SELF.value:=(TYPEOF(Mat.Types.Element.value))LEFT.value;));
 END;
