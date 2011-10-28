@@ -31,7 +31,7 @@ EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODUL
 	Y_est1 := PROJECT(Y_est, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number+1; SELF := LEFT));
 	Y1 := PROJECT(Y, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number; SELF := LEFT));
 
-	corr_ds := Correlate(Y1+Y_est1).Simple;
+	SHARED corr_ds := Correlate(Y1+Y_est1).Simple;
 
 	CoRec := RECORD
 		Types.t_fieldnumber number;
@@ -46,5 +46,48 @@ EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODUL
 	// Statistic that gives information about the goodness of fit of a model
 	// It estimates the fraction of the variance in Y that is explained by X
   EXPORT RSquared := PROJECT(corr_ds(left_number&1=0,left_number+1=right_number), getResult(LEFT));	
+	
+	K := COUNT(FieldAggregates(X).Cardinality); // # of independent (explanatory) variables
+	Singles := FieldAggregates(Y).Simple;
+	tmpRec := RECORD
+		RECORDOF(Singles);
+		Types.t_fieldreal	RSquared;
+	END;
+	
+	Singles1 := JOIN(Singles, RSquared, LEFT.number=RIGHT.number, 
+					TRANSFORM(tmpRec,  SELF.RSquared := RIGHT.RSquared, SELF := LEFT));
+	
+	AnovaRec := RECORD
+		Types.t_fieldnumber 	number;
+		Types.t_RecordID			Model_DF; // Degrees of Freedom
+		Types.t_fieldreal			Model_SS; // Sum of Squares
+		Types.t_fieldreal			Model_MS; // Mean Square
+		Types.t_fieldreal			Model_F;  // F-value
+		Types.t_RecordID			Error_DF; // Degrees of Freedom
+		Types.t_fieldreal			Error_SS; 
+		Types.t_fieldreal			Error_MS;	
+		Types.t_RecordID	  	Total_DF; // Degrees of Freedom
+		Types.t_fieldreal			Total_SS;	// Sum of Squares
+	END;
+
+	AnovaRec getResult(tmpRec le) :=TRANSFORM 
+		SST := le.var*le.countval;
+		SSM := SST*le.RSquared;
+		
+		SELF.number := le.number; 
+		SELF.Total_SS := SST;
+		SELF.Model_SS := SSM; 
+		SELF.Error_SS := SST - SSM;
+		SELF.Model_DF := k;
+		SELF.Error_DF := le.countval-k-1;
+		SELF.Total_DF := le.countval-1;
+		SELF.Model_MS := SSM/k; 
+		SELF.Error_MS := (SST - SSM)/(le.countval-k-1); 
+	  SELF.Model_F := (SSM/k)/((SST - SSM)/(le.countval-k-1));
+	END;
+
+	// http://www.stat.yale.edu/Courses/1997-98/101/anovareg.htm
+	// Tested using the "Healthy Breakfast" dataset
+  EXPORT Anova := PROJECT(Singles1, getResult(LEFT));	
 END;
 END;
