@@ -1,4 +1,4 @@
-﻿// A collection of routines dedicated to helping turn a stream of text into a set of working word elements
+// A collection of routines dedicated to helping turn a stream of text into a set of working word elements
 // Broken up into lots of steps; true ingest is messy - people will often need some hand-code
 // But we will take them as far as we can
 IMPORT Types FROM $;
