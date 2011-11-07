@@ -144,8 +144,8 @@ EXPORT Cluster := MODULE
 		ex2 := Control.EV2(d01);
 		// This is the principle N^2 join (although some join filters can improve on that)
 		ClusterPair Take2(df1 le,df2 ri) := TRANSFORM
-		  SELF.clusterid := le.id;
-			SELF.id := ri.id;
+		  SELF.clusterid := ri.id;
+			SELF.id := le.id;
 			SELF.number := le.number;
 			SELF.value01 := Control.IV1(le.value,ri.value);
 			SELF.value02 := Control.IV2(le.value,ri.value);
