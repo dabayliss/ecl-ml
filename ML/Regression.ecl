@@ -10,22 +10,41 @@ IMPORT ML.mat as Mat;
 */
 EXPORT Regression := MODULE
 
+
 // OrdinaryLeastSquares, aka LinearLeastSquares, the simplest and most common estimator 
 // Beta = (Inv(X'*X)*X')*Y
 EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODULE
   mX_0 := Types.ToMatrix(X);
 	SHARED mX := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
 	SHARED mXt := Mat.Trans(mX);
-	mY := Types.ToMatrix(Y);
-	SHARED Betas := Mat.Mul (Mat.Mul(Mat.Inv( Mat.Mul(mXt, mX) ), mXt), mY);
-	// We want to return the data so that the ID field reflects the 'column number' of the variable we were targeting
-	rBetas := Types.FromMatrix( Mat.Trans(Betas) );
-	// We also need to move the 'constant' term into column 0
-	sBetas := PROJECT(rBetas,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number-1,SELF := LEFT));
-  EXPORT Beta := sBetas;
+	SHARED mY := Types.ToMatrix(Y);
+	// Matrix Decomposition Method
+  EXPORT MDM := MODULE
+	   EXPORT Default := MODULE,VIRTUAL
+			EXPORT DATASET(Mat.Types.Element) Betas := DATASET([{1,1,0.0}],Mat.Types.Element);
+		 END;
+		 EXPORT LU := MODULE(Default)
+			EXPORT DATASET(Mat.Types.Element) Betas := Mat.Mul (Mat.Mul(Mat.Inv( Mat.Mul(mXt, mX) ), mXt), mY);
+		 END;
+		 EXPORT Cholesky := MODULE(Default)
+		 	mL := Mat.Decomp.Cholesky(Mat.Mul(mXt, mX));
+			fsub := Mat.Decomp.f_sub(mL,Mat.Mul(mXt, mY));
+			EXPORT DATASET(Mat.Types.Element) Betas := Mat.Decomp.b_sub(Mat.Trans(mL), fsub);
+		 END;
+	
+	END;
+
+	EXPORT Beta(MDM.Default Control = MDM.Cholesky) := FUNCTION
+		Betas := Control.Betas;
+		// We want to return the data so that the ID field reflects the 'column number' of the variable we were targeting
+		rBetas := Types.FromMatrix( Mat.Trans(Betas) );
+		// We also need to move the 'constant' term into column 0
+		sBetas := PROJECT(rBetas,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number-1,SELF := LEFT));
+		RETURN sBetas;	
+	END;
 	
 	// use calculated estimator to predict Y values
-	Y_estM := Mat.Trans(Mat.Mul(Mat.Trans(Betas) , mXt));	
+	Y_estM := Mat.Trans(Mat.Mul(Mat.Trans(MDM.Cholesky.Betas) , mXt));	
 	Y_est := Types.FromMatrix(Y_estM);
 	// Y.number = number*2; Y_est.number = number*2+1;
 	Y_est1 := PROJECT(Y_est, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number+1; SELF := LEFT));
