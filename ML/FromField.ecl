@@ -1,4 +1,4 @@
-﻿EXPORT FromField(dIn,lOut,dOut):=MACRO
+EXPORT FromField(dIn,lOut,dOut):=MACRO
   LOADXML('<xml/>');
   #DECLARE(iUnPivotLoop) #SET(iUnPivotLoop,0)
   #DECLARE(assignments) #SET(assignments,'')

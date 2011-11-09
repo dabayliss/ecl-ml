@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Module used to cluster perform clustering on data in the NumericField
 // format.  Includes functions for calculating distance using many different
 // algorithms, determining centroid allegiance based on those distances, and

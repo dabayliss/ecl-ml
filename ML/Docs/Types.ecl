@@ -1,4 +1,4 @@
-﻿EXPORT Types := MODULE
+EXPORT Types := MODULE
 
 EXPORT t_DocID := UNSIGNED; // Make unsigned4 if < 9B documents
 EXPORT t_Line := STRING;
