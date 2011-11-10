@@ -183,11 +183,12 @@ END;
   The inputs to the BuildPerceptron are:
   a) A dataset of discretized independant variables
   b) A dataset of class results (these must match in ID the discretized independant variables).
-  c) Alpha is the learning rate - higher numbers may learn quicker - but may not converge
-  d) Bias - the core scoring function is Sum WiXi+Bias > 0, 1, 0
+  c) Passes; number of passes over the data to make during the learning process
+  d) Alpha is the learning rate - higher numbers may learn quicker - but may not converge
   Note the perceptron presently assumes the class values are ordinal eg 4>3>2>1>0
 */
-EXPORT BuildPerceptron(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteField) cl,UNSIGNED2 Passes,REAL8 Alpha = 0.1,REAL8 Thresh=0.5) := FUNCTION
+EXPORT BuildPerceptron(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteField) cl,UNSIGNED Passes,REAL8 Alpha = 0.1) := FUNCTION
+	Thresh := 0.5; // The threshold to apply for the cut-off function
 	MaxFieldNumber := MAX(dd,number);
 	FirstClassNo := MaxFieldNumber+1;
 	clb := Utils.RebaseDiscrete(cl,FirstClassNo);
@@ -247,12 +248,12 @@ EXPORT BuildPerceptron(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteFie
 		J := JOIN(letn,ri,LEFT.number=right.number,add(LEFT,RIGHT),LEFT OUTER);
 		RETURN let_e+J+lep;
 	END;
+  // Zero out the error values
+  WR Clean(DATASET(WR) w) := FUNCTION
+		RETURN w(number<>class_number)+PROJECT(w(number=class_number),TRANSFORM(WR,SELF.w := 0, SELF := LEFT));
+	END;
 	// This function does one pass of the data learning into the weights
 	WR Pass(DATASET(WR) we) := FUNCTION
-	  // Zero out the error values
-	  WR Clean(DATASET(WR) w) := FUNCTION
-			RETURN w(number<>class_number)+PROJECT(w(number=class_number),TRANSFORM(WR,SELF.w := 0, SELF := LEFT));
-		END;
 		// This takes a record one by one and processes it
 		// That may mean simply appending it to 'ThisRecord' - or it might mean performing a learning step
 		AccumRec TakeRecord(ready le,AccumRec ri) := TRANSFORM
@@ -269,7 +270,23 @@ EXPORT BuildPerceptron(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteFie
 															 ri.ThisRecord);
 			SELF.Processed := ri.Processed + IF( le.number = LastClassNo, 1, 0 );
 		END;
-		A := AGGREGATE(ready,AccumRec,TakeRecord(LEFT,RIGHT),LOCAL)[1];
+		// Effectively merges two perceptrons (generally 'learnt' on different nodes)
+			// For the errors - simply add them
+			// For the weights themselves perform a weighted mean (weighting by the number of records used to train)
+		Blend(DATASET(WR) l,UNSIGNED lscale, DATASET(WR) r,UNSIGNED rscale) := FUNCTION
+		  lscaled := PROJECT(l(number<>class_number),TRANSFORM(WR,SELF.w := LEFT.w*lscale, SELF := LEFT));
+		  rscaled := PROJECT(r(number<>class_number),TRANSFORM(WR,SELF.w := LEFT.w*rscale, SELF := LEFT));
+			unscaled := (l+r)(number=class_number);
+			t := TABLE(lscaled+rscaled+unscaled,{number,class_number,w1 := SUM(GROUP,w)},number,class_number,FEW);
+			RETURN PROJECT(t,TRANSFORM(WR,SELF.w := IF(LEFT.number=LEFT.class_number,LEFT.w1,LEFT.w1/(lscale+rscale)),SELF := LEFT));
+		END;		
+		AccumRec MergeP(AccumRec ri1,AccumRec ri2) := TRANSFORM
+		  SELF.ThisRecord := []; // Merging only valid across perceptrons learnt on complete records
+		  SELF.Processed := ri1.Processed+ri2.Processed;
+		  SELF.Weights := Blend(ri1.Weights,ri1.Processed,ri2.Weights,ri2.Processed);
+		END;
+
+		A := AGGREGATE(ready,AccumRec,TakeRecord(LEFT,RIGHT),MergeP(RIGHT1,RIGHT2))[1];
 		// Now return the weights (and turn the error number into a ratio)
 		RETURN A.Weights(class_number<>number)+PROJECT(A.Weights(class_number=number),TRANSFORM(WR,SELF.w := LEFT.w / A.Processed,SELF := LEFT));
 	END;
