@@ -186,6 +186,9 @@ END;
   c) Passes; number of passes over the data to make during the learning process
   d) Alpha is the learning rate - higher numbers may learn quicker - but may not converge
   Note the perceptron presently assumes the class values are ordinal eg 4>3>2>1>0
+
+	Output: A table of weights for each independant variable for each class. 
+	Those weights with number=class_number give the error rate on the last pass of the data
 */
 EXPORT BuildPerceptron(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteField) cl,UNSIGNED Passes,REAL8 Alpha = 0.1) := FUNCTION
 	Thresh := 0.5; // The threshold to apply for the cut-off function
