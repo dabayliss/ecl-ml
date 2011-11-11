@@ -51,5 +51,13 @@ TYPEOF(infile) %to_1%(%P% le,%Splits% ri) := TRANSFORM
 outfile := JOIN(%P%,%Splits%,LEFT.InField=RIGHT.InField,%to_1%(LEFT,RIGHT),LOOKUP);
 
 ENDMACRO;
+
+// Shift the column-numbers of a file of discretefields so that the left-most column is now new_lowval
+// Can move colums left or right (or not at all)
+EXPORT RebaseDiscrete(DATASET(Types.DiscreteField) cl,Types.t_FieldNumber new_lowval) := FUNCTION
+  CurrentBase := MIN(cl,number);
+	INTEGER Delta := new_lowval-CurrentBase;
+	RETURN PROJECT(cl,TRANSFORM(Types.DiscreteField,SELF.number := LEFT.number+Delta,SELF := LEFT));
+  END;
 	
 END;
