@@ -83,7 +83,7 @@ EXPORT Poisson(t_FieldReal lamda,t_Count NRanges = 100) := MODULE(Default)
 // Generate N records (with record ID 1..N)
 // Fill in the field 'fld'
 // The value will be a random variable from the distribution 'dist'
-EXPORT GenData(t_RecordID N,t_FieldNumber fld,Default dist) := FUNCTION
+EXPORT GenData(t_RecordID N,Default dist,t_FieldNumber fld = 1) := FUNCTION
 // The presumption here is that N is very high (at least when performance hurts) - therefore significant pre-computation
 // can be tolerated to ensure that the actual construction of the random variable is as quick as possible
 // The method is as follows - use the Cumulative Probability Vector to construct an extended vector that gives:
