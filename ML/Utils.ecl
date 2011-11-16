@@ -2,6 +2,15 @@
 IMPORT * FROM $;
 EXPORT Utils := MODULE
 
+EXPORT Pi := 3.1415926535897932384626433;
+
+EXPORT REAL8 Fac(UNSIGNED2 i) := BEGINC++
+  double accum = 1.0;
+	for ( int j = 2; j <= i; j++ )
+		accum *= (double)j;
+	return accum;
+  ENDC++;
+
 // In constrast to the matrix function thin
 // Will take a potentially sparse file d and fill in the blanks with value v
 EXPORT Fat(DATASET(Types.NumericField) d0,Types.t_FieldReal v=0) := FUNCTION
