@@ -45,6 +45,16 @@ EXPORT Default := MODULE,VIRTUAL
 								RH <= MIN(cv,RangeLow) => 0.0,
 								InterC(cv(RH>RangeLow,RH<=RangeHigh)[1]) );
 	END;
+	// Default NTile works from the Cumulative Vector
+	EXPORT t_FieldReal NTile(t_FieldReal Pc) :=FUNCTION // Value of the Pc percentile
+	  cp := Pc / 100.0; // Convert from percentile to cumulative probability
+	  cv := CumulativeV();
+		// If the range high value is at an intermediate point of a range then interpolate the result
+		InterP(Layout v) := IF ( cp=v.P, v.RangeHigh, v.RangeHigh+(cp-v.p)/Density((v.RangeHigh+v.RangeLow)/2) );
+	  RETURN MAP( cp >= MAX(cv,P) => MAX(cv,RangeHigh),
+								cp <= 0.0 => MIN(cv,RangeLow),
+								InterP(cv(P>=cp)[1]) );
+	END;
 	EXPORT Discrete := FALSE;
   END;
 
@@ -110,6 +120,7 @@ EXPORT Normal2(t_FieldReal mean,t_FieldReal sd,t_Count NRanges = 10000) := MODUL
 
 // Student T distribution
 // This distribution is entirely symmetric about the mean - so we will model the >= 0 portion
+// Warning - v=1 tops out around the 99.5th percentile, 2+ is fine
 EXPORT StudentT(t_Discrete v,t_Count NRanges = 10000) := MODULE(Default)
 	SHARED Multiplier := IF ( v & 1 = 0, Utils.DoubleFac(v-1)/(2*SQRT(v)*Utils.DoubleFac(v-2))
 	                                   , Utils.DoubleFac(v-1)/(Utils.Pi*SQRT(v)*Utils.DoubleFac(v-2)));
