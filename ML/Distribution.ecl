@@ -108,6 +108,36 @@ EXPORT Normal2(t_FieldReal mean,t_FieldReal sd,t_Count NRanges = 10000) := MODUL
 													 SELF := LEFT));
   END;
 
+// Student T distribution
+// This distribution is entirely symmetric about the mean - so we will model the >= 0 portion
+EXPORT StudentT(t_Discrete v,t_Count NRanges = 10000) := MODULE(Default)
+	SHARED Multiplier := IF ( v & 1 = 0, Utils.DoubleFac(v-1)/(2*SQRT(v)*Utils.DoubleFac(v-2))
+	                                   , Utils.DoubleFac(v-1)/(Utils.Pi*SQRT(v)*Utils.DoubleFac(v-2)));
+  // Compute the value of t for which a given density is obtained										
+	SHARED LowDensity := 0.00001; // Go down as far as a density of 1x10-5
+  EXPORT InvDensity(t_FieldReal delta) := SQRT(v*(EXP(LN(delta/Multiplier)*-2.0/(v+1))-1));
+	// We are defining a high value as the value at which the density is 'too low to care'
+	SHARED high := InvDensity(LowDensity);
+  SHARED Low := 0;
+	EXPORT RangeWidth := (high-low)/NRanges;
+  EXPORT t_FieldReal Density(t_FieldReal RH) := Multiplier * POWER( 1+RH*RH/v,-0.5*(v+1) );
+  EXPORT DensityV() := PROJECT(DVec(NRanges,low,RangeWidth),
+	                       TRANSFORM(Layout,
+													 SELF.P := Density((LEFT.RangeLow+LEFT.RangeHigh)/2),
+													 SELF := LEFT));	
+  EXPORT CumulativeV() := FUNCTION
+		d := DensityV();
+		// The general integration really doesn't work for v=1 and v=2 - fortunately there are 'nice' closed forms for the CDF for those values of v
+		Layout Accum(Layout le,Layout ri) := TRANSFORM
+		  SELF.p := MAP( v = 1 => 0.5+ATAN(ri.RangeHigh)/Utils.Pi, // Special case CDF for v = 1
+			               v = 2 => (1+ri.RangeHigh/SQRT(2+POWER(ri.RangeHigh,2)))/2, // Special case of CDF for v=2
+										 IF(le.p=0,0.5,le.p)+ri.p*RangeWidth );
+		  SELF := ri;
+		END;
+		RETURN ITERATE(d,Accum(LEFT,RIGHT)); // Global iterates are horrible - but this should be tiny
+  END;
+END;
+
 // A poisson distribution has a mean and variance characterized by lamda
 // Lamda need not be an integer although it is used to produce probabilities for a count of discrete events
 // It speaks to the question - given I fall over on average 1.6 times a day; what are the chances of me falling over twice today?

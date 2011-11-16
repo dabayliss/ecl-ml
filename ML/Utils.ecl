@@ -11,6 +11,19 @@ EXPORT REAL8 Fac(UNSIGNED2 i) := BEGINC++
 	return accum;
   ENDC++;
 
+// The 'double' factorial is defined for ODD n and is the product of all the odd numbers up to and including that number
+// We are extending the meaning to even numbers to mean the product of the even numbers up to and including that number
+// Thus DoubleFac(8) = 8*6*4*2
+// We also defend against i < 2 (returning 1.0)
+EXPORT REAL8 DoubleFac(INTEGER2 i) := BEGINC++
+  if ( i < 2 )
+		return 1.0;
+  double accum = (double)i;
+	for ( int j = i-2; j > 1; j -= 2 )
+		accum *= (double)j;
+	return accum;
+  ENDC++;
+
 // In constrast to the matrix function thin
 // Will take a potentially sparse file d and fill in the blanks with value v
 EXPORT Fat(DATASET(Types.NumericField) d0,Types.t_FieldReal v=0) := FUNCTION
