@@ -61,9 +61,7 @@ EXPORT Uniform(t_FieldReal low,t_FieldReal high,t_Count NRanges = 10000) := MODU
 												   SELF.P := Density( (LEFT.RangeLow+LEFT.RangeHigh)/2 ),
 													 SELF := LEFT)); // Take density from mid-point
   EXPORT CumulativeV() := PROJECT(DVec(NRanges,low,RangeWidth),
-														TRANSFORM(Layout,
-															SELF.P := Cumulative(LEFT.RangeHigh),
-			    										SELF := LEFT));	
+														TRANSFORM(Layout,SELF.P := Cumulative(LEFT.RangeHigh),SELF := LEFT));	
   END;
 
 // A normal distribution with mean 'mean' and standard deviation 'sd'
@@ -90,9 +88,7 @@ EXPORT Normal(t_FieldReal mean,t_FieldReal sd,t_Count NRanges = 10000) := MODULE
 												   SELF.P := Density((LEFT.RangeLow+LEFT.RangeHigh)/2),
 													 SELF := LEFT));
   EXPORT CumulativeV() := PROJECT(DVec(NRanges,low,RangeWidth),
-														TRANSFORM(Layout,
-														  SELF.P := Cumulative(LEFT.RangeHigh),
-													    SELF := LEFT));	
+														TRANSFORM(Layout,SELF.P := Cumulative(LEFT.RangeHigh),SELF := LEFT));	
 
   END;
 
@@ -119,12 +115,8 @@ EXPORT Normal2(t_FieldReal mean,t_FieldReal sd,t_Count NRanges = 10000) := MODUL
 EXPORT Poisson(t_FieldReal lamda,t_Count NRanges = 100) := MODULE(Default)
   // This has to take a real for 'derivation' reasons - but range-high must be an 'integer' from 0->NRanges-1 to be meaningful
   EXPORT t_FieldReal Density(t_FieldReal RH) := EXP(-lamda)*POWER(lamda,RH)/Utils.Fac(RH);
-  EXPORT DensityV() := PROJECT(Vec.From(NRanges),
-												 TRANSFORM(Layout,
-												   SELF.RangeNumber:=LEFT.i,
-													 SELF.RangeLow:=LEFT.i-2;
-													 SELF.RangeHigh:=LEFT.i-1,
-													 SELF.P := Density(LEFT.i-1)));
+  EXPORT DensityV() := PROJECT(DVec(NRanges,-1,1),
+												 TRANSFORM(Layout,SELF.P := Density(LEFT.RangeNumber-1), SELF := LEFT));
 	// Uses the 'default' integration module to construct the cumulative values
 	EXPORT Discrete := TRUE;
   END;
