@@ -164,6 +164,17 @@ EXPORT Exponential(t_FieldReal lamda,t_Count NRanges = 10000) := MODULE(Default)
 												 TRANSFORM(Layout,SELF.P := Cumulative(LEFT.RangeHigh), SELF := LEFT));
   END;
 
+// Forms the distribution of getting k successes out of NRanges-1 trials
+// where the chances of any one trial being a success is p
+EXPORT Binomial(t_FieldReal p,t_Count NRanges = 100) := MODULE(Default)
+  // This has to take a real for 'derivation' reasons - but range-high must be an 'integer' from 0->NRanges-1 to be meaningful
+  EXPORT t_FieldReal Density(t_FieldReal RH) := 
+	  IF( RH > NRanges-1 OR RH < 0,0, Utils.NCK(Nranges-1,RH)*POWER(p,RH)*POWER(1-p,(NRanges-1)-RH));
+  EXPORT DensityV() := PROJECT(DVec(NRanges,-1,1),
+												 TRANSFORM(Layout,SELF.P := Density(LEFT.RangeHigh), SELF := LEFT));
+	// Uses the 'default' integration module to construct the cumulative values
+	EXPORT Discrete := TRUE;
+  END;
 
 // A poisson distribution has a mean and variance characterized by lamda
 // Lamda need not be an integer although it is used to produce probabilities for a count of discrete events
