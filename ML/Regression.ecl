@@ -11,6 +11,7 @@ IMPORT ML.mat as Mat;
 EXPORT Regression := MODULE
 
 
+
 // OrdinaryLeastSquares, aka LinearLeastSquares, the simplest and most common estimator 
 // Beta = (Inv(X'*X)*X')*Y
 EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODULE
@@ -109,4 +110,19 @@ EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODUL
 	// Tested using the "Healthy Breakfast" dataset
   EXPORT Anova := PROJECT(Singles1, getResult(LEFT));	
 END;
+
+EXPORT Poly(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y, UNSIGNED1 maxN=6) := MODULE
+	
+	SHARED	newX := Generate.ToPoly(X,maxN); 
+	
+	B := OLS(newX, Y).Beta();
+	prittyB := PROJECT(B, TRANSFORM({Types.t_RecordID id;STRING10 name;Types.t_FieldReal value;}, 
+							SELF.name := CHOOSE((Generate.tp_Method) LEFT.number, 'LogX','X', 'XLogX',
+														'XX', 'XXLogX', 'XXX', 'X0'); SELF:=LEFT));	 
+	EXPORT Beta := prittyB;
+
+	EXPORT RSquared	:= OLS(newX, Y).RSquared;
+	
+END;
+
 END;
