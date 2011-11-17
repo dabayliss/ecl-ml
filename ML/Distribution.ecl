@@ -176,6 +176,20 @@ EXPORT Binomial(t_FieldReal p,t_Count NRanges = 100) := MODULE(Default)
 	EXPORT Discrete := TRUE;
   END;
 
+// Forms the distribution of the number of successes likely to have occured with success probability p
+// before 'failures' number of failures have occured.
+// To keep the ranges integral - NRanges is defined as an upper-bound on the number of events that will be attempted
+EXPORT NegBinomial(t_FieldReal p,t_Count Failures, t_Count NRanges = 1000) := MODULE(Default)
+  EXPORT t_FieldReal Density(t_FieldReal RH) := 
+	  IF( RH > NRanges-1 OR RH < 0,0, Utils.NCK(RH+Failures-1,RH)*POWER(p,RH)*POWER(1-p,Failures));
+  EXPORT DensityV() := PROJECT(DVec(NRanges,-1,1),
+												 TRANSFORM(Layout,SELF.P := Density(LEFT.RangeHigh), SELF := LEFT));
+	// Uses the 'default' integration module to construct the cumulative values
+	EXPORT Discrete := TRUE;
+  END;
+
+
+
 // A poisson distribution has a mean and variance characterized by lamda
 // Lamda need not be an integer although it is used to produce probabilities for a count of discrete events
 // It speaks to the question - given I fall over on average 1.6 times a day; what are the chances of me falling over twice today?
