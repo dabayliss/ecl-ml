@@ -55,6 +55,7 @@ EXPORT Default := MODULE,VIRTUAL
 								cp <= 0.0 => MIN(cv,RangeLow),
 								InterP(cv(P>=cp)[1]) );
 	END;
+  EXPORT InvDensity(t_FieldReal delta) := 0; //Only sensible for monotonic distributions
 	EXPORT Discrete := FALSE;
   END;
 
@@ -148,6 +149,21 @@ EXPORT StudentT(t_Discrete v,t_Count NRanges = 10000) := MODULE(Default)
 		RETURN ITERATE(d,Accum(LEFT,RIGHT)); // Global iterates are horrible - but this should be tiny
   END;
 END;
+
+// The exponential (sometimes called negative exponential) distribution
+// Nice easy math - all distributions should be made this way ....
+EXPORT Exponential(t_FieldReal lamda,t_Count NRanges = 10000) := MODULE(Default)
+  EXPORT t_FieldReal Density(t_FieldReal RH) := IF ( RH < 0, 0, lamda * EXP(-lamda*RH));
+  EXPORT t_FieldReal Cumulative(t_FieldReal RH) := IF ( RH < 0, 0, 1-EXP(-lamda*RH));
+  EXPORT NTile(t_FieldReal pc) := LN(1-(pc/100))/-lamda;
+	SHARED High := NTile(99.999);
+	EXPORT RangeWidth := high/NRanges;
+  EXPORT DensityV() := PROJECT(DVec(NRanges,0,RangeWidth),
+												 TRANSFORM(Layout,SELF.P := Density((LEFT.RangeHigh+LEFT.RangeLow)/2), SELF := LEFT));
+  EXPORT CumulativeV() := PROJECT(DVec(NRanges,0,RangeWidth),
+												 TRANSFORM(Layout,SELF.P := Cumulative(LEFT.RangeHigh), SELF := LEFT));
+  END;
+
 
 // A poisson distribution has a mean and variance characterized by lamda
 // Lamda need not be an integer although it is used to produce probabilities for a count of discrete events
