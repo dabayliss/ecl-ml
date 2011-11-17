@@ -131,9 +131,16 @@ EXPORT Cluster := MODULE
 
 // This is the 'distance computation engine'. It extremely configurable - see the 'Control' parameter
 	EXPORT Distances(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DF.Default Control = DF.Euclidean) := FUNCTION
+    // If this is not a self-join, ensure the IDs for the two distinct datasets
+    // are mutually exclusive.
+    iMaxID01:=MAX(d01,id);
+    iMinID02:=MIN(d02,id);
+    BOOLEAN bAdjustIDs:=d01<>d02 AND iMaxID01>iMinID02;
+    d02Adjusted:=IF(bAdjustIDs,PROJECT(d02,TRANSFORM(RECORDOF(d02),SELF.id:=LEFT.id+iMaxID01;SELF:=LEFT;)),d02);
+    
 		// If we are in dense model then fatten up the records; otherwise zeroes not needed
 		df1 := IF( Control.Pmodel & c_model.dense > 0, Utils.Fat(d01), d01(value<>0) );
-		df2 := IF( Control.Pmodel & c_model.dense > 0, Utils.Fat(d02), d02(value<>0) );
+		df2 := IF( Control.Pmodel & c_model.dense > 0, Utils.Fat(d02Adjusted), d02Adjusted(value<>0) );
 		// Construct the summary records used by SJoins and Background processing models
 		si1 := Control.SummaryID1(df1); // Summaries of each document by ID
 		si2 := Control.SummaryID2(df2); // May be used by any summary joins features
@@ -173,7 +180,11 @@ EXPORT Cluster := MODULE
 		END;
 		BF := JOIN(bck,pro,LEFT.y=RIGHT.ClusterID AND LEFT.x=RIGHT.id,blend(LEFT,RIGHT),LEFT OUTER);
 		// Either select the background blended version - or slim the scores down to a cluster distance
-		RETURN IF ( Control.PModel & c_model.Background > 0, BF, ProAsDist );
+    Result:=IF(Control.PModel & c_model.Background>0,BF,ProAsDist);
+    
+    // If the d02 IDs were adjusted to avoid intersection, revert them back
+    // to their original numbers before returning the results.
+		RETURN IF(bAdjustIDs,PROJECT(Result,TRANSFORM(RECORDOF(Result),SELF.y:=LEFT.y-iMaxID01;SELF:=LEFT;)),Result);
 	END;
   
   //---------------------------------------------------------------------------
@@ -193,7 +204,7 @@ EXPORT Cluster := MODULE
 		// Number of points for each cluster
     dClusterCounts:=TABLE(dClosest,{y; c:= COUNT(GROUP);},y,FEW);
 		// Copy the cluster ID onto the data
-    dClustered:=SORT(JOIN(DISTRIBUTE(d01,id),DISTRIBUTE(dClosest,x),LEFT.id=RIGHT.x,TRANSFORM(Types.NumericField,SELF.id:=RIGHT.y;SELF:=LEFT;),LOCAL),RECORD,LOCAL);
+    dClustered:=SORT(DISTRIBUTE(JOIN(d01,dClosest,LEFT.id=RIGHT.x,TRANSFORM(Types.NumericField,SELF.id:=RIGHT.y;SELF:=LEFT;),HASH),id),RECORD,LOCAL);
 		// Create the centroid as the sum of its parts
     dRolled:=ROLLUP(dClustered,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value+RIGHT.value;SELF:=LEFT;),id,number,LOCAL);
 		// Turn the sum of its parts into the average of its parts
