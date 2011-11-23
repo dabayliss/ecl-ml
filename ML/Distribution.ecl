@@ -55,6 +55,7 @@ EXPORT Default := MODULE,VIRTUAL
 								cp <= 0.0 => MIN(cv,RangeLow),
 								InterP(cv(P>=cp)[1]) );
 	END;
+  EXPORT InvDensity(t_FieldReal delta) := 0; //Only sensible for monotonic distributions
 	EXPORT Discrete := FALSE;
   END;
 
@@ -148,6 +149,46 @@ EXPORT StudentT(t_Discrete v,t_Count NRanges = 10000) := MODULE(Default)
 		RETURN ITERATE(d,Accum(LEFT,RIGHT)); // Global iterates are horrible - but this should be tiny
   END;
 END;
+
+// The exponential (sometimes called negative exponential) distribution
+// Nice easy math - all distributions should be made this way ....
+EXPORT Exponential(t_FieldReal lamda,t_Count NRanges = 10000) := MODULE(Default)
+  EXPORT t_FieldReal Density(t_FieldReal RH) := IF ( RH < 0, 0, lamda * EXP(-lamda*RH));
+  EXPORT t_FieldReal Cumulative(t_FieldReal RH) := IF ( RH < 0, 0, 1-EXP(-lamda*RH));
+  EXPORT NTile(t_FieldReal pc) := LN(1-(pc/100))/-lamda;
+	SHARED High := NTile(99.999);
+	EXPORT RangeWidth := high/NRanges;
+  EXPORT DensityV() := PROJECT(DVec(NRanges,0,RangeWidth),
+												 TRANSFORM(Layout,SELF.P := Density((LEFT.RangeHigh+LEFT.RangeLow)/2), SELF := LEFT));
+  EXPORT CumulativeV() := PROJECT(DVec(NRanges,0,RangeWidth),
+												 TRANSFORM(Layout,SELF.P := Cumulative(LEFT.RangeHigh), SELF := LEFT));
+  END;
+
+// Forms the distribution of getting k successes out of NRanges-1 trials
+// where the chances of any one trial being a success is p
+EXPORT Binomial(t_FieldReal p,t_Count NRanges = 100) := MODULE(Default)
+  // This has to take a real for 'derivation' reasons - but range-high must be an 'integer' from 0->NRanges-1 to be meaningful
+  EXPORT t_FieldReal Density(t_FieldReal RH) := 
+	  IF( RH > NRanges-1 OR RH < 0,0, Utils.NCK(Nranges-1,RH)*POWER(p,RH)*POWER(1-p,(NRanges-1)-RH));
+  EXPORT DensityV() := PROJECT(DVec(NRanges,-1,1),
+												 TRANSFORM(Layout,SELF.P := Density(LEFT.RangeHigh), SELF := LEFT));
+	// Uses the 'default' integration module to construct the cumulative values
+	EXPORT Discrete := TRUE;
+  END;
+
+// Forms the distribution of the number of successes likely to have occured with success probability p
+// before 'failures' number of failures have occured.
+// To keep the ranges integral - NRanges is defined as an upper-bound on the number of events that will be attempted
+EXPORT NegBinomial(t_FieldReal p,t_Count Failures, t_Count NRanges = 1000) := MODULE(Default)
+  EXPORT t_FieldReal Density(t_FieldReal RH) := 
+	  IF( RH > NRanges-1 OR RH < 0,0, Utils.NCK(RH+Failures-1,RH)*POWER(p,RH)*POWER(1-p,Failures));
+  EXPORT DensityV() := PROJECT(DVec(NRanges,-1,1),
+												 TRANSFORM(Layout,SELF.P := Density(LEFT.RangeHigh), SELF := LEFT));
+	// Uses the 'default' integration module to construct the cumulative values
+	EXPORT Discrete := TRUE;
+  END;
+
+
 
 // A poisson distribution has a mean and variance characterized by lamda
 // Lamda need not be an integer although it is used to produce probabilities for a count of discrete events
