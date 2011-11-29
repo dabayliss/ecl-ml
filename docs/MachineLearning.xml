@@ -101,6 +101,12 @@
 
     <itemizedlist>
       <listitem>
+        <para>Tree</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
         <para>Univariate Statistics</para>
       </listitem>
     </itemizedlist>
@@ -197,7 +203,7 @@
             <row>
               <entry>Apriori1</entry>
 
-              <entry>On 140M words </entry>
+              <entry>On 140M words</entry>
 
               <entry>47 seconds</entry>
 
@@ -217,7 +223,7 @@
             <row>
               <entry>Apiori2</entry>
 
-              <entry>On 140M words, producing 2.6K pairs </entry>
+              <entry>On 140M words, producing 2.6K pairs</entry>
 
               <entry>325 seconds</entry>
 
@@ -229,7 +235,7 @@
               <entry>Apiori2</entry>
 
               <entry>On 193M words (using .1-&gt;1% buckets) – producing 4.4M
-              pairs </entry>
+              pairs</entry>
 
               <entry>21 minutes</entry>
 
@@ -239,7 +245,7 @@
             <row>
               <entry>Apiori2</entry>
 
-              <entry>On 19M words (10% sample) – producing 4.1M pairs </entry>
+              <entry>On 19M words (10% sample) – producing 4.1M pairs</entry>
 
               <entry>2 minutes</entry>
 
@@ -249,7 +255,7 @@
             <row>
               <entry>Apiori3</entry>
 
-              <entry>On 140M words (terms in 5-10% buckets) </entry>
+              <entry>On 140M words (terms in 5-10% buckets)</entry>
 
               <entry>Exploded</entry>
 
@@ -260,8 +266,8 @@
               <entry>Apiori3</entry>
 
               <entry>1.9M words (1% sample of .1-1 buckets) – (172K possible 3
-              groups) – 3.6B intermediate results – 22337 eventual results
-              </entry>
+              groups) – 3.6B intermediate results – 22337 eventual
+              results</entry>
 
               <entry>73 minutes</entry>
 
@@ -271,7 +277,7 @@
             <row>
               <entry>Apiori3</entry>
 
-              <entry>On 1.9M words with new ,LOOKUP optimization </entry>
+              <entry>On 1.9M words with new ,LOOKUP optimization</entry>
 
               <entry>42 minutes</entry>
 
@@ -366,7 +372,7 @@
               <row>
                 <entry>KmeansN</entry>
 
-                <entry>Perform N KMeans iterations.</entry>
+                <entry>Perform KMeansN iterations.</entry>
               </row>
 
               <row>
@@ -389,7 +395,20 @@
                 <entry>Creates a module to perform agglomerative
                 (hierarchical) clustering. The results returned include the
                 cluster assignments, remaining distances between clusters and
-                even the dendrogram (tree)</entry>
+                even the dendrogram (tree).</entry>
+              </row>
+
+              <row>
+                <entry>Mentioned in email but may not be
+                implemented...</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Discriminate funnction</entry>
+
+                <entry></entry>
               </row>
             </tbody>
           </tgroup>
@@ -547,9 +566,49 @@
 
                 <entry>Kendal’s Tau for every pair of fields.</entry>
               </row>
+
+              <row>
+                <entry>Mentioned in email but may not be implemented?</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Residual analysis</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Lack of fit tests</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Tests for influentiall observations</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Checks for outliers</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Checks for multicollinearity</entry>
+              </row>
             </tbody>
           </tgroup>
         </informaltable></para>
+
+      <para>The correlation tables expose multicollinearity issues and enable
+      you to look at predicted versus original to expose heteroscedasticity
+      issues.</para>
     </sect1>
 
     <sect1 id="Roxie-Data-Backup">
@@ -558,12 +617,16 @@
       <para>This module provides a suite of routines which allow a datastream
       with continuous real elements to be turned into a stream with discrete
       (integer) elements. The Discretize module currently supports three
-      methods of discretization, ByRounding, ByBucketing and ByTiling. </para>
+      methods of discretization, ByRounding, ByBucketing and ByTiling. These
+      method can be used by hand for reasons of simplicity and control.</para>
 
-      <para>In addition to calling these discretization routines by hand, it
-      is possible to construct a meta-data fragment using the Do definition,
-      which will then perform the discretization. (This is to allow different
-      discretization strategies to be programmatically generated). </para>
+      <para>In addition, it is possible to turn them into an instruction
+      stream for an 'engine' to execute. Using them in this way allows the
+      discretization strategy to be in meta-data. Use the Do definition to
+      construct the meta-data fragment, which will then perform the
+      discretization. This enables the automatic generation of strategies and
+      even iterates over the modeling process with different discretization
+      strategies which can be programmatically generated.</para>
 
       <para><informaltable>
           <tgroup cols="2">
@@ -581,19 +644,21 @@
               <row>
                 <entry>ByRounding</entry>
 
-                <entry></entry>
+                <entry>Using scale and delta.</entry>
               </row>
 
               <row>
                 <entry>ByBucketing</entry>
 
-                <entry></entry>
+                <entry>Split the range evenly and distribute the values
+                potentially unevenly.</entry>
               </row>
 
               <row>
                 <entry>ByTiling</entry>
 
-                <entry></entry>
+                <entry>Split the values evenly and have an uneven range.
+                </entry>
               </row>
 
               <row>
@@ -602,11 +667,84 @@
                 <entry>Constructs a meta-data fragment which will then perform
                 the discretization.</entry>
               </row>
+
+              <row>
+                <entry>Mentioned in email but may not be implemented</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Naive Bayes</entry>
+
+                <entry>Works on data that has been discretiized. Requires two
+                datasets, a set of independent variables and a set of classes.
+                It allows multiple classifiers to be built simultaneously.
+                First the classifier model is built then the model is executed
+                against a dataset and produces an outcome.</entry>
+              </row>
             </tbody>
           </tgroup>
         </informaltable></para>
 
-      <para></para>
+      <para>The following is an example of the use of the Naive Bayes
+      routine:</para>
+
+      <para><programlisting>import ml;
+
+value_record := RECORD
+        unsigned rid;
+real height;
+        real weight;
+        real age;
+        integer1 species;
+        integer1 gender; // 0 = unknown, 1 = male, 2 = female
+END;
+
+d := dataset([{1,5*12+7,156*16,43,1,1},
+                                              {2,5*12+7,128*16,31,1,2},
+                                              {3,5*12+9,135*16,15,1,1},
+                                              {4,5*12+7,145*16,14,1,1},
+                                              {5,5*12-2,80*16,9,1,1},
+                                              {6,4*12+8,72*16,8,1,1},
+                                              {7,8,32,2.5,2,2},
+                                              {8,6.5,28,2,2,2},
+                                              {9,6.5,28,2,2,2},
+                                              {10,6.5,21,2,2,1},
+                                              {11,4,15,1,2,0},
+                                              {12,3,10.5,1,2,0},
+                                              {13,2.5,3,0.8,2,0},
+                                              {14,1,1,0.4,2,0}
+                                              ]
+                                              ,value_record);
+  
+// Turn into regular NumericField file (with continuous variables)
+ml.ToField(d,o);
+
+// Hand-code the discretization of some of the variables
+disc := ML.Discretize.ByBucketing(o(Number IN [2,3]),4)+ML.Discretize.ByTiling(o(Number IN
+[1]),6)+ML.Discretize.ByRounding(o(Number=4));
+
+// Create instructions to be executed
+inst := 
+ML.Discretize.i_ByBucketing([2,3],4)+ML.Discretize.i_ByTiling([1],6)+
+ML.Discretize.i_ByRounding([4,5]);
+
+// Execute the instructions
+done := ML.Discretize.Do(o,inst);
+
+//m1 := ML.Classify.BuildPerceptron(done(Number&lt;=3),done(Number&gt;=4));
+//m1
+
+m1 := ML.Classify.BuildNaiveBayes(done(Number&lt;=3),done(Number&gt;=4));
+m1;
+
+Test := ML.Classify.TestNaiveBayes(done(Number&lt;=3),done(Number&gt;=4),m1);
+Test.Raw;
+Test.CrossAssignments;
+Test.PrecisionByClass;
+Test.Headline;
+</programlisting></para>
     </sect1>
 
     <sect1 id="Roxie-Data-Backup">
@@ -752,7 +890,7 @@
 
               <entry>1.5B words producing 6.4M entries</entry>
 
-              <entry>40 minutes </entry>
+              <entry>40 minutes</entry>
 
               <entry>NlgN</entry>
             </row>
@@ -795,7 +933,7 @@
 
               <entry>Creating ‘working’ entries from 1.5B words and the
               ‘keyword MkII’ lexicon, produces 240M words, using the ‘small
-              lexicon’ feature </entry>
+              lexicon’ feature</entry>
 
               <entry>7 minutes</entry>
 
@@ -805,7 +943,7 @@
             <row>
               <entry>Wordbag</entry>
 
-              <entry>Create WordBags from 140M words </entry>
+              <entry>Create WordBags from 140M words</entry>
 
               <entry>114 seconds</entry>
 
@@ -827,7 +965,7 @@
     </sect1>
 
     <sect1 id="Roxie-Data-Backup">
-      <title>Regression </title>
+      <title>Regression</title>
 
       <para><informaltable>
           <tgroup cols="2">
@@ -851,6 +989,25 @@
                 dependant ones (it can perform multiple regressions at
                 once).</entry>
               </row>
+
+              <row>
+                <entry>in the email but may not implemented</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Model comparison</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Tools ot apply models to a new dataset for
+                prediction</entry>
+              </row>
             </tbody>
           </tgroup>
         </informaltable></para>
@@ -863,7 +1020,7 @@
       <title>Univariate Statistics (ML.FieldAggregates)</title>
 
       <para>This module works on the field elements provided. It performs the
-      tasks shown below for ALL the fields at once: </para>
+      tasks shown below for ALL the fields at once:</para>
 
       <para><informaltable>
           <tgroup cols="2">
@@ -881,8 +1038,8 @@
               <row>
                 <entry>Simple stats</entry>
 
-                <entry>Mean, Variance, Standard Deviation, Max, Min
-                etc</entry>
+                <entry>Mean, Variance, Standard Deviation, Max, Min, Count,
+                Sums, etc</entry>
               </row>
 
               <row>
@@ -933,6 +1090,32 @@
                 element – except you get to pick if it is percentiles (N=100)
                 or some other gradation</entry>
               </row>
+
+              <row>
+                <entry>These are mentioned in the email notes as wanted but
+                may not have been implements yet?</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Aggregates</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Visualization</entry>
+
+                <entry>Distributions, frequencies, pie, bar scatter, time etc
+                </entry>
+              </row>
+
+              <row>
+                <entry>r squared</entry>
+
+                <entry></entry>
+              </row>
             </tbody>
           </tgroup>
         </informaltable></para>
@@ -957,17 +1140,35 @@
 
             <tbody>
               <row>
-                <entry>ML.ToFieldElement/FromFieldElement </entry>
+                <entry>ML.ToFieldElement/FromFieldElement</entry>
 
                 <entry>Translates in and out of the core field-element
                 datamodel.</entry>
               </row>
 
               <row>
-                <entry>ML.Types.ToMatrix/FromMatrix </entry>
+                <entry>ML.Types.ToMatrix/FromMatrix</entry>
 
                 <entry>Translates from field elements to and from
                 matrices.</entry>
+              </row>
+
+              <row>
+                <entry>In the email but may not be implemented...</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Model comparison</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry></entry>
               </row>
             </tbody>
           </tgroup>
@@ -979,8 +1180,8 @@
     <sect1 id="Roxie-Data-Backup">
       <title>The Matrix Library (Mat)</title>
 
-      <para>This The library is in addition and subservient to the ML library
-      modules. </para>
+      <para>This library is in addition and subservient to the ML library
+      modules.</para>
 
       <para><informaltable>
           <tgroup cols="2">
@@ -1127,6 +1328,105 @@
 
                 <entry>A vector library – to create vectors from matrices and
                 assign vectors into matrices.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+    </sect1>
+
+    <sect1 id="Roxie-Data-Backup">
+      <title>Coming soon</title>
+
+      <para>The following routines will be supported in the near future:
+      </para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <thead>
+              <row>
+                <entry align="center">Module</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Regression</entry>
+
+                <entry>Logistic regression model fitting including tools for
+                model assessment, variable selection and the creation of
+                predicted values.</entry>
+              </row>
+
+              <row>
+                <entry>Tree</entry>
+
+                <entry>CART, CHAID, Cruise, TreeNet</entry>
+              </row>
+
+              <row>
+                <entry>Univariate Statistics</entry>
+
+                <entry>T-tests, ANOVA, chi-squared, tables of standard
+                distributions, sampling from standard distributions. Other
+                categorical data analysis including loglinear models.</entry>
+              </row>
+
+              <row>
+                <entry>Correlations</entry>
+
+                <entry>Computing of a correlation matrix including, principal
+                components and factor analysis, Fisher's linear discriminant
+                and variable clustering (PROC VARCLUS in SAS).</entry>
+              </row>
+
+              <row>
+                <entry>Cluster</entry>
+
+                <entry>Observation clustering algorithms, both hierarchical
+                and non-hierarchical.</entry>
+              </row>
+
+              <row>
+                <entry>Matrix</entry>
+
+                <entry>Efficient and numerically stable matrix inversion and
+                or decomposition including eigenvalue/eigenvector
+                calculations. </entry>
+              </row>
+
+              <row>
+                <entry>Linear Models</entry>
+
+                <entry>Linear regression models including tools for model
+                assessment and variable selection.</entry>
+              </row>
+
+              <row>
+                <entry>Bayesian models</entry>
+
+                <entry>Monte Carlo simlulations and other
+                bootstrapping/simulation techniques.</entry>
+              </row>
+
+              <row>
+                <entry>Neural networks</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Hidden Markov Models</entry>
+
+                <entry>Including Maximum Entropy and Maximum Entropy Markov
+                model, Conditional Random Fields</entry>
+              </row>
+
+              <row>
+                <entry>Support Vector Machines (SVM)</entry>
+
+                <entry></entry>
               </row>
             </tbody>
           </tgroup>
