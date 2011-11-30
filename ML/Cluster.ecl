@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // Module used to cluster perform clustering on data in the NumericField
 // format.  Includes functions for calculating distance using many different
 // algorithms, determining centroid allegiance based on those distances, and
@@ -131,16 +131,9 @@ EXPORT Cluster := MODULE
 
 // This is the 'distance computation engine'. It extremely configurable - see the 'Control' parameter
 	EXPORT Distances(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DF.Default Control = DF.Euclidean) := FUNCTION
-    // If this is not a self-join, ensure the IDs for the two distinct datasets
-    // are mutually exclusive.
-    iMaxID01:=MAX(d01,id);
-    iMinID02:=MIN(d02,id);
-    BOOLEAN bAdjustIDs:=d01<>d02 AND iMaxID01>iMinID02;
-    d02Adjusted:=IF(bAdjustIDs,PROJECT(d02,TRANSFORM(RECORDOF(d02),SELF.id:=LEFT.id+iMaxID01;SELF:=LEFT;)),d02);
-    
 		// If we are in dense model then fatten up the records; otherwise zeroes not needed
 		df1 := IF( Control.Pmodel & c_model.dense > 0, Utils.Fat(d01), d01(value<>0) );
-		df2 := IF( Control.Pmodel & c_model.dense > 0, Utils.Fat(d02Adjusted), d02Adjusted(value<>0) );
+		df2 := IF( Control.Pmodel & c_model.dense > 0, Utils.Fat(d02), d02(value<>0) );
 		// Construct the summary records used by SJoins and Background processing models
 		si1 := Control.SummaryID1(df1); // Summaries of each document by ID
 		si2 := Control.SummaryID2(df2); // May be used by any summary joins features
@@ -184,7 +177,7 @@ EXPORT Cluster := MODULE
     
     // If the d02 IDs were adjusted to avoid intersection, revert them back
     // to their original numbers before returning the results.
-		RETURN IF(bAdjustIDs,PROJECT(Result,TRANSFORM(RECORDOF(Result),SELF.y:=LEFT.y-iMaxID01;SELF:=LEFT;)),Result);
+		RETURN Result;
 	END;
   
   //---------------------------------------------------------------------------
@@ -194,12 +187,26 @@ EXPORT Cluster := MODULE
   EXPORT Closest(DATASET(Mat.Types.Element) dDistances):=DEDUP(SORT(DISTRIBUTE(dDistances,x),x,value,LOCAL),x,LOCAL);
 
   //---------------------------------------------------------------------------
+  // Boolean to indicate whether the ID ranges of two datasets intersect
+  //---------------------------------------------------------------------------
+  SHARED BOOLEAN bAdjustIDs(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02):=MAX(d01,id)>MIN(d02,id);
+  
+  //---------------------------------------------------------------------------
+  // Function to adjust the IDs of a dataset by a specified integer offset
+  //---------------------------------------------------------------------------
+  SHARED ShiftIDs(DATASET(Types.NumericField) d01,INTEGER iOffset):=FUNCTION
+    RETURN PROJECT(d01,TRANSFORM(RECORDOF(d01),SELF.id:=LEFT.id+iOffset;SELF:=LEFT;));
+  END;
+  
+  //---------------------------------------------------------------------------
   // KMeans takes a data set and a centroid set, both in NumericField format,
   // and recalculates the coordinates for the centroids as the average of the
   // positions of any points from the data set to which the centroid is closest
   //---------------------------------------------------------------------------
   EXPORT Types.NumericField KMeans(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DF.Default fDist=DF.Euclidean):=FUNCTION
-    dDistances:=Distances(d01,d02);
+    // Make sure the IDs of the two datasets do not intersect
+    d02Adjusted:=IF(bAdjustIDs(d01,d02),ShiftIDs(d02,MAX(d01,id)),d02);
+    dDistances:=Distances(d01,d02Adjusted);
     dClosest:=Closest(dDistances);
 		// Number of points for each cluster
     dClusterCounts:=TABLE(dClosest,{y; c:= COUNT(GROUP);},y,FEW);
@@ -210,8 +217,8 @@ EXPORT Cluster := MODULE
 		// Turn the sum of its parts into the average of its parts
     dJoined:=JOIN(dRolled,dClusterCounts,LEFT.id=RIGHT.y,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value/RIGHT.c;SELF:=LEFT;),LOOKUP);
 		// Construct a 'pass thru' of any centroids that are childless
-		dPass := JOIN(d02,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(LEFT),LEFT ONLY,LOOKUP);
-    RETURN dJoined+dPass;
+		dPass := JOIN(d02Adjusted,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(LEFT),LEFT ONLY,LOOKUP);
+    RETURN IF(bAdjustIDs(d01,d02),ShiftIDs(dJoined+dPass,-MAX(d01,id)),dJoined+dPass);
   END;
 
   //---------------------------------------------------------------------------
