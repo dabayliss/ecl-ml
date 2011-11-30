@@ -194,40 +194,70 @@ EXPORT Cluster := MODULE
   //---------------------------------------------------------------------------
   // Function to adjust the IDs of a dataset by a specified integer offset
   //---------------------------------------------------------------------------
-  SHARED ShiftIDs(DATASET(Types.NumericField) d01,INTEGER iOffset):=FUNCTION
+  SHARED Types.NumericField ShiftIDs(DATASET(Types.NumericField) d01,INTEGER iOffset):=FUNCTION
     RETURN PROJECT(d01,TRANSFORM(RECORDOF(d01),SELF.id:=LEFT.id+iOffset;SELF:=LEFT;));
   END;
+  
   
   //---------------------------------------------------------------------------
   // KMeans takes a data set and a centroid set, both in NumericField format,
   // and recalculates the coordinates for the centroids as the average of the
   // positions of any points from the data set to which the centroid is closest
   //---------------------------------------------------------------------------
-  EXPORT Types.NumericField KMeans(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,DF.Default fDist=DF.Euclidean):=FUNCTION
-    // Make sure the IDs of the two datasets do not intersect
-    d02Adjusted:=IF(bAdjustIDs(d01,d02),ShiftIDs(d02,MAX(d01,id)),d02);
-    dDistances:=Distances(d01,d02Adjusted);
-    dClosest:=Closest(dDistances);
-		// Number of points for each cluster
-    dClusterCounts:=TABLE(dClosest,{y; c:= COUNT(GROUP);},y,FEW);
-		// Copy the cluster ID onto the data
-    dClustered:=SORT(DISTRIBUTE(JOIN(d01,dClosest,LEFT.id=RIGHT.x,TRANSFORM(Types.NumericField,SELF.id:=RIGHT.y;SELF:=LEFT;),HASH),id),RECORD,LOCAL);
-		// Create the centroid as the sum of its parts
-    dRolled:=ROLLUP(dClustered,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value+RIGHT.value;SELF:=LEFT;),id,number,LOCAL);
-		// Turn the sum of its parts into the average of its parts
-    dJoined:=JOIN(dRolled,dClusterCounts,LEFT.id=RIGHT.y,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value/RIGHT.c;SELF:=LEFT;),LOOKUP);
-		// Construct a 'pass thru' of any centroids that are childless
-		dPass := JOIN(d02Adjusted,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(LEFT),LEFT ONLY,LOOKUP);
-    RETURN IF(bAdjustIDs(d01,d02),ShiftIDs(dJoined+dPass,-MAX(d01,id)),dJoined+dPass);
-  END;
+  EXPORT KMeans(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,n=1,DF.Default fDist=DF.Euclidean):=MODULE
+  
+    SHARED Types.NumericField Iteration(DATASET(Types.NumericField) dCentroids=d02):=FUNCTION
+      // Make sure the IDs of the two datasets do not intersect
+      dCentroidsAdjusted:=IF(bAdjustIDs(d01,dCentroids),ShiftIDs(dCentroids,MAX(d01,id)),dCentroids);
+      dDistances:=Distances(d01,dCentroidsAdjusted);
+      dClosest:=Closest(dDistances);
+		  // Number of points for each cluster
+      dClusterCounts:=TABLE(dClosest,{y; c:= COUNT(GROUP);},y,FEW);
+		  // Copy the cluster ID onto the data
+      dClustered:=SORT(DISTRIBUTE(JOIN(d01,dClosest,LEFT.id=RIGHT.x,TRANSFORM(Types.NumericField,SELF.id:=RIGHT.y;SELF:=LEFT;),HASH),id),RECORD,LOCAL);
+		  // Create the centroid as the sum of its parts
+      dRolled:=ROLLUP(dClustered,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value+RIGHT.value;SELF:=LEFT;),id,number,LOCAL);
+		  // Turn the sum of its parts into the average of its parts
+      dJoined:=JOIN(dRolled,dClusterCounts,LEFT.id=RIGHT.y,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value/RIGHT.c;SELF:=LEFT;),LOOKUP);
+		  // Construct a 'pass thru' of any centroids that are childless
+		  dPass := JOIN(dCentroidsAdjusted,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(LEFT),LEFT ONLY,LOOKUP);
+    
+      RETURN IF(bAdjustIDs(d01,dCentroids),ShiftIDs(dJoined+dPass,-MAX(d01,id)),dJoined+dPass);
+    END;
+    
+    // Modified version of NumericField.  Third field is a set of values so
+    // that we can store the results of each iteration in a single dataset
+    SHARED KMeansTrace:=RECORD
+      TYPEOF(Types.NumericField.id) id;
+      TYPEOF(Types.NumericField.number) number;
+      SET OF TYPEOF(Types.NumericField.value) values;
+    END;
 
-  //---------------------------------------------------------------------------
-  // Function to perform a user-specified number of iterations of the
-  // KMeans function.
-  //---------------------------------------------------------------------------
-  EXPORT Types.NumericField KMeansN(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,UNSIGNED i,DF.Default fDist=DF.Euclidean):=FUNCTION
-    dNewPositions:=LOOP(d02,i,KMeans(d01,ROWS(LEFT),fDist));
-    RETURN dNewPositions;
+    // Run all iterations with tracing.  In the results, values[1] is the
+    // initial centroid locations, values[2] contains the locations after the 
+    // first iteration, and so on.
+    SHARED KMeansTrace Trace:=FUNCTION
+      dToSet:=PROJECT(d02,TRANSFORM(KMeansTrace,SELF.values:=[LEFT.value];SELF:=LEFT;));
+      dAddIteration(DATASET(kMeansTrace) d,UNSIGNED c):=JOIN(d,Iteration(TABLE(d,{id;number;TYPEOF(d02.value) value:=values[c];})),LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,TRANSFORM(KMeansTrace,SELF.values:=LEFT.values+[RIGHT.value];SELF:=RIGHT;),RIGHT OUTER);
+      dNewPositions:=LOOP(dToSet,n,dAddIteration(ROWS(LEFT),COUNTER));
+		  RETURN dNewPositions;
+    END;
+    
+    // Function to pull iteration N from a traced iteration
+    EXPORT Types.NumericField GetTracedN(UNSIGNED n=n,DATASET(KMeansTrace) d=Trace):=PROJECT(d,TRANSFORM(Types.NumericField,SELF.value:=LEFT.values[n+1];SELF:=LEFT;));
+    
+    // Show the fully traced result set
+    EXPORT KMeansTrace TracedResults:=Trace;
+    // Show the final results of n Iterations
+    EXPORT Types.NumericField Result:=GetTracedN(n);
+    
+    // Determine the delta between any two iterations
+    Types.NumericField tGetDelta(Types.NumericField L,Types.NumericField R):=TRANSFORM
+      SELF.id:=IF(L.id=0,R.id,L.id);
+      SELF.number:=IF(L.number=0,R.number,L.number);
+      SELF.value:=R.value-L.value;
+    END;
+    EXPORT Delta(UNSIGNED n01=n-1,UNSIGNED n02=n,DATASET(KMeansTrace) d=Trace):=JOIN(GetTracedN(n01),GetTracedN(n02),LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,tGetDelta(LEFT,RIGHT));
   END;
 
 // When combining clusters how to compute the distances of the new clusters to each other
