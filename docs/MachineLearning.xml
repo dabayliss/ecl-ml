@@ -1,0 +1,1436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<book lang="en_US">
+  <bookinfo>
+    <title>Machine Learning Library Reference</title>
+
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="../doctest/trunk/images/redswooshWithLogo3.jpg" />
+      </imageobject>
+    </mediaobject>
+
+    <author>
+      <surname>Boca Raton Documentation Team</surname>
+    </author>
+
+    <legalnotice>
+      <para>We welcome your comments and feedback about this document via
+      email to <email>docfeedback@hpccsystems.com</email> Please include
+      <emphasis role="bold">Documentation Feedback</emphasis> in the subject
+      line and reference the document name, page numbers, and current Version
+      Number in the text of the message.</para>
+
+      <para>LexisNexis and the Knowledge Burst logo are registered trademarks
+      of Reed Elsevier Properties Inc., used under license. Other products,
+      logos, and services may be trademarks or registered trademarks of their
+      respective companies. All names and example data used in this manual are
+      fictitious. Any similarity to actual persons, living or dead, is purely
+      coincidental.</para>
+
+      <para></para>
+    </legalnotice>
+
+    <releaseinfo>© 2011 HPCC Systems. All rights reserved</releaseinfo>
+
+    <date>December 2011 Version 1.0</date>
+
+    <corpname>HPCC Systems</corpname>
+
+    <copyright>
+      <year>2011 HPCC Systems. All rights reserved</year>
+    </copyright>
+
+    <mediaobject role="logo">
+      <imageobject>
+        <imagedata fileref="../doctest/trunk/images/LN_Rightjustified.jpg" />
+      </imageobject>
+    </mediaobject>
+  </bookinfo>
+
+  <chapter id="Introduction">
+    <title>Machine Learning Algorithms</title>
+
+    <para>The Lexis Nexis machine learning library contains an extensible
+    collection of machine learning routines which are easy to use and
+    efficient to execute. The list of modules supported will continue to grow
+    over time. The following modules are currently supported:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Associations</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>Classify</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>Cluster</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>Correlations</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>Discretize</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>Docs</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>Regression</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>Tree</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+      <listitem>
+        <para>Univariate Statistics</para>
+      </listitem>
+    </itemizedlist>
+
+    <itemizedlist mark="bullet">
+      <listitem>
+        <para>Uttility</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>These Machine Learning modules are also supported by the Matrix
+    Library (Mat).</para>
+
+    <para>Each module focuses on a specific type of algorithm and contains a
+    number of routines. The functionality of each routine is described.
+    Performance statistics are provided for some routines. These were carried
+    out on a 10 node cluster and are for comparison purposes only.</para>
+
+    <sect1 id="Roxie_Overview">
+      <title>Associations (ML.Associate)</title>
+
+      <para>Use this module to perform frequent pattern matching on the
+      underlying data, as follows:</para>
+
+      <table>
+        <title></title>
+
+        <tgroup cols="2">
+          <colspec align="center" />
+
+          <thead>
+            <row>
+              <entry align="center">Routine</entry>
+
+              <entry align="center">Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>Apriori1,Apriori2,Apriori3</entry>
+
+              <entry>Uses ‘old school’ brute force and speed approach to
+              produce patterns of up to 3 items which appear together with a
+              particular degree of support.</entry>
+            </row>
+
+            <row>
+              <entry>AprioriN</entry>
+
+              <entry>Uses ‘new school’ techniques to find all patterns of up
+              to N items that appear together with a particular degree of
+              support.</entry>
+            </row>
+
+            <row>
+              <entry>EclatN</entry>
+
+              <entry>Uses the ‘eclat’ technique to construct a result
+              identical to AprioriN</entry>
+            </row>
+
+            <row>
+              <entry>Rules</entry>
+
+              <entry>Uses patterns generated by AprioriN or EclatN to answer
+              the question: “given a group of M items exists; what is the
+              M+1th most likely to be”.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <para>The following performance statistics of these routines were
+      observed using a 10 node cluster:</para>
+
+      <informaltable>
+        <tgroup cols="4">
+          <colspec align="center" />
+
+          <thead>
+            <row>
+              <entry align="center">Routine</entry>
+
+              <entry align="center">Description</entry>
+
+              <entry align="center">Result</entry>
+
+              <entry align="center">Expected Order</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>Apriori1</entry>
+
+              <entry>On 140M words</entry>
+
+              <entry>47 seconds</entry>
+
+              <entry>NlgN</entry>
+            </row>
+
+            <row>
+              <entry>Aprior1</entry>
+
+              <entry>On 197M words</entry>
+
+              <entry>91 seconds</entry>
+
+              <entry>NlgN</entry>
+            </row>
+
+            <row>
+              <entry>Apiori2</entry>
+
+              <entry>On 140M words, producing 2.6K pairs</entry>
+
+              <entry>325 seconds</entry>
+
+              <entry>(N/k)^2.MLg(N) where k is proportion of ‘buckets’ average
+              item is in. (Using terms in 5-10% of buckets)</entry>
+            </row>
+
+            <row>
+              <entry>Apiori2</entry>
+
+              <entry>On 193M words (using .1-&gt;1% buckets) – producing 4.4M
+              pairs</entry>
+
+              <entry>21 minutes</entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>Apiori2</entry>
+
+              <entry>On 19M words (10% sample) – producing 4.1M pairs</entry>
+
+              <entry>2 minutes</entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>Apiori3</entry>
+
+              <entry>On 140M words (terms in 5-10% buckets)</entry>
+
+              <entry>Exploded</entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>Apiori3</entry>
+
+              <entry>1.9M words (1% sample of .1-1 buckets) – (172K possible 3
+              groups) – 3.6B intermediate results – 22337 eventual
+              results</entry>
+
+              <entry>73 minutes</entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>Apiori3</entry>
+
+              <entry>On 1.9M words with new ,LOOKUP optimization</entry>
+
+              <entry>42 minutes</entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>EE3</entry>
+
+              <entry>On 1.9M words (1% sample of .1-1 buckets) – 22337
+              eventual results</entry>
+
+              <entry>3 minutes</entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>EE10</entry>
+
+              <entry>On 1.9M words</entry>
+
+              <entry>Locks</entry>
+
+              <entry></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </sect1>
+
+    <sect1 id="Payload_INDEXes">
+      <title>Classify (ML.Classify)</title>
+
+      <para>Use this module to tackle the problem, “can I predict this
+      dependent variable based upon these independent ones?”. The following
+      routines get are provided:</para>
+    </sect1>
+
+    <sect1 id="Roxie_Superfiles">
+      <title>Cluster (ML.Cluster)</title>
+
+      <para>This module is used to perform the clustering of a collection of
+      records containing fields. The following routines are provided:</para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>DF</entry>
+
+                <entry>A submodule used to perform various distance metrics
+                upon two records. Currently, the following are provided:
+                <itemizedlist>
+                    <listitem>
+                      <para>EuclideanManhattan</para>
+                    </listitem>
+                  </itemizedlist><itemizedlist>
+                    <listitem>
+                      <para>Cosine</para>
+                    </listitem>
+                  </itemizedlist><itemizedlist>
+                    <listitem>
+                      <para>Tanimoto</para>
+                    </listitem>
+                  </itemizedlist><itemizedlist>
+                    <listitem>
+                      <para>Euclidean Squared</para>
+                    </listitem>
+                  </itemizedlist>In addition Q variants are provided of some
+                which are much faster on sparse data PROVIDED you are will to
+                accept no distance if there are no dimensions along which the
+                vectors touch.</entry>
+              </row>
+
+              <row>
+                <entry>KMeans</entry>
+
+                <entry>Perform a KMeans iteration.</entry>
+              </row>
+
+              <row>
+                <entry>KmeansN</entry>
+
+                <entry>Perform KMeansN iterations.</entry>
+              </row>
+
+              <row>
+                <entry>Closest</entry>
+
+                <entry>takes a set of distances and returns the closest
+                centroid for each row.</entry>
+              </row>
+
+              <row>
+                <entry>Distances</entry>
+
+                <entry>Distances – the engine to actually compute the distance
+                matrix (as a matrix).</entry>
+              </row>
+
+              <row>
+                <entry>AggloN</entry>
+
+                <entry>Creates a module to perform agglomerative
+                (hierarchical) clustering. The results returned include the
+                cluster assignments, remaining distances between clusters and
+                even the dendrogram (tree).</entry>
+              </row>
+
+              <row>
+                <entry>Mentioned in email but may not be
+                implemented...</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Discriminate funnction</entry>
+
+                <entry></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>When using the Distances definition, the distance
+      matrix is computed as shown by the results in the following
+      example:</para>
+
+      <informaltable>
+        <tgroup cols="7">
+          <tbody>
+            <row>
+              <entry>Distance Timings</entry>
+
+              <entry>2000</entry>
+
+              <entry>10000</entry>
+
+              <entry>21000</entry>
+
+              <entry>105000</entry>
+
+              <entry>211000</entry>
+
+              <entry>525000</entry>
+            </row>
+
+            <row>
+              <entry>DF Euclidean</entry>
+
+              <entry>99</entry>
+
+              <entry>2895</entry>
+
+              <entry></entry>
+
+              <entry></entry>
+
+              <entry></entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>wEuclidean</entry>
+
+              <entry>180</entry>
+
+              <entry>7020</entry>
+
+              <entry></entry>
+
+              <entry></entry>
+
+              <entry></entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>Euclidean</entry>
+
+              <entry></entry>
+
+              <entry>94</entry>
+
+              <entry>390</entry>
+
+              <entry></entry>
+
+              <entry></entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>qEuclidean</entry>
+
+              <entry></entry>
+
+              <entry>12</entry>
+
+              <entry>48</entry>
+
+              <entry>1440</entry>
+
+              <entry>8520</entry>
+
+              <entry></entry>
+            </row>
+
+            <row>
+              <entry>MissingAppx</entry>
+
+              <entry></entry>
+
+              <entry>4.5</entry>
+
+              <entry>17</entry>
+
+              <entry>600</entry>
+
+              <entry>2700</entry>
+
+              <entry>17640</entry>
+            </row>
+
+            <row>
+              <entry>Co-Occur</entry>
+
+              <entry></entry>
+
+              <entry>10</entry>
+
+              <entry>14</entry>
+
+              <entry>374</entry>
+
+              <entry></entry>
+
+              <entry></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </sect1>
+
+    <sect1 id="How-Roxie-Works">
+      <title>Correlations (ML.Correlate)</title>
+
+      <para>Use this module to calculate the degree of correlation between
+      every pair of fields provided, using the following routines:</para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Simple</entry>
+
+                <entry>Pearson and Spearman correlation co-efficients for
+                every pair of fields.</entry>
+              </row>
+
+              <row>
+                <entry>Kendal</entry>
+
+                <entry>Kendal’s Tau for every pair of fields.</entry>
+              </row>
+
+              <row>
+                <entry>Mentioned in email but may not be implemented?</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Residual analysis</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Lack of fit tests</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Tests for influentiall observations</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Checks for outliers</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Checks for multicollinearity</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+
+      <para>The correlation tables expose multicollinearity issues and enable
+      you to look at predicted versus original to expose heteroscedasticity
+      issues.</para>
+    </sect1>
+
+    <sect1 id="Roxie-Data-Backup">
+      <title>Discretize (ML.Discretize)</title>
+
+      <para>This module provides a suite of routines which allow a datastream
+      with continuous real elements to be turned into a stream with discrete
+      (integer) elements. The Discretize module currently supports three
+      methods of discretization, ByRounding, ByBucketing and ByTiling. These
+      method can be used by hand for reasons of simplicity and control.</para>
+
+      <para>In addition, it is possible to turn them into an instruction
+      stream for an 'engine' to execute. Using them in this way allows the
+      discretization strategy to be in meta-data. Use the Do definition to
+      construct the meta-data fragment, which will then perform the
+      discretization. This enables the automatic generation of strategies and
+      even iterates over the modeling process with different discretization
+      strategies which can be programmatically generated.</para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>ByRounding</entry>
+
+                <entry>Using scale and delta.</entry>
+              </row>
+
+              <row>
+                <entry>ByBucketing</entry>
+
+                <entry>Split the range evenly and distribute the values
+                potentially unevenly.</entry>
+              </row>
+
+              <row>
+                <entry>ByTiling</entry>
+
+                <entry>Split the values evenly and have an uneven range.
+                </entry>
+              </row>
+
+              <row>
+                <entry>Do</entry>
+
+                <entry>Constructs a meta-data fragment which will then perform
+                the discretization.</entry>
+              </row>
+
+              <row>
+                <entry>Mentioned in email but may not be implemented</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Naive Bayes</entry>
+
+                <entry>Works on data that has been discretiized. Requires two
+                datasets, a set of independent variables and a set of classes.
+                It allows multiple classifiers to be built simultaneously.
+                First the classifier model is built then the model is executed
+                against a dataset and produces an outcome.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+
+      <para>The following is an example of the use of the Naive Bayes
+      routine:</para>
+
+      <para><programlisting>import ml;
+
+value_record := RECORD
+        unsigned rid;
+real height;
+        real weight;
+        real age;
+        integer1 species;
+        integer1 gender; // 0 = unknown, 1 = male, 2 = female
+END;
+
+d := dataset([{1,5*12+7,156*16,43,1,1},
+                                              {2,5*12+7,128*16,31,1,2},
+                                              {3,5*12+9,135*16,15,1,1},
+                                              {4,5*12+7,145*16,14,1,1},
+                                              {5,5*12-2,80*16,9,1,1},
+                                              {6,4*12+8,72*16,8,1,1},
+                                              {7,8,32,2.5,2,2},
+                                              {8,6.5,28,2,2,2},
+                                              {9,6.5,28,2,2,2},
+                                              {10,6.5,21,2,2,1},
+                                              {11,4,15,1,2,0},
+                                              {12,3,10.5,1,2,0},
+                                              {13,2.5,3,0.8,2,0},
+                                              {14,1,1,0.4,2,0}
+                                              ]
+                                              ,value_record);
+  
+// Turn into regular NumericField file (with continuous variables)
+ml.ToField(d,o);
+
+// Hand-code the discretization of some of the variables
+disc := ML.Discretize.ByBucketing(o(Number IN [2,3]),4)+ML.Discretize.ByTiling(o(Number IN
+[1]),6)+ML.Discretize.ByRounding(o(Number=4));
+
+// Create instructions to be executed
+inst := 
+ML.Discretize.i_ByBucketing([2,3],4)+ML.Discretize.i_ByTiling([1],6)+
+ML.Discretize.i_ByRounding([4,5]);
+
+// Execute the instructions
+done := ML.Discretize.Do(o,inst);
+
+//m1 := ML.Classify.BuildPerceptron(done(Number&lt;=3),done(Number&gt;=4));
+//m1
+
+m1 := ML.Classify.BuildNaiveBayes(done(Number&lt;=3),done(Number&gt;=4));
+m1;
+
+Test := ML.Classify.TestNaiveBayes(done(Number&lt;=3),done(Number&gt;=4),m1);
+Test.Raw;
+Test.CrossAssignments;
+Test.PrecisionByClass;
+Test.Headline;
+</programlisting></para>
+    </sect1>
+
+    <sect1 id="Roxie-Data-Backup">
+      <title>Docs (ML.Docs)</title>
+
+      <para>This module provides a number of routines used to pre-process text
+      to make it more suitable for further processing. The following routines
+      are provided:</para>
+
+      <para><informaltable>
+          <tgroup cols="3">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Sub-Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Tokenize</entry>
+
+                <entry></entry>
+
+                <entry>Routines which turn raw text into a clean processing
+                format</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Enumerate</entry>
+
+                <entry>Applies record numbers to the text for later
+                tracking.</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Clean</entry>
+
+                <entry>Removes lots of nasty punctuation and some other things
+                such as possessives.</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Split</entry>
+
+                <entry>Turns the document into a token (or word)
+                stream.</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Lexicon</entry>
+
+                <entry>Constructs a dictionary (with various statistics) on
+                the underlying documents.</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>ToO/FromO</entry>
+
+                <entry>Uses the lexicon to turn the word stream to and from an
+                optimized token processing format.</entry>
+              </row>
+
+              <row>
+                <entry>Trans</entry>
+
+                <entry></entry>
+
+                <entry>Performs various data transformations on an optimized
+                document stream.</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>WordBag</entry>
+
+                <entry>Turns every document into a wordbag, by removing (and
+                countsing) multiple occurrences of a word within a
+                document</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>WordsCounted</entry>
+
+                <entry>Annotates every word in a document with the total
+                number of times that word occurs in the document, distributing
+                tfdi information for further (faster) processing.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+
+      <para>The following performance statistics of these routines were
+      observed using a 10 node cluster:</para>
+
+      <informaltable>
+        <tgroup cols="4">
+          <colspec align="center" />
+
+          <thead>
+            <row>
+              <entry align="center">Routine</entry>
+
+              <entry align="center">Description</entry>
+
+              <entry align="center">Result</entry>
+
+              <entry align="center">Expected Order</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>Clean and Split</entry>
+
+              <entry>22m documents producing 1.5B words</entry>
+
+              <entry>60 minutes</entry>
+
+              <entry>Linear</entry>
+            </row>
+
+            <row>
+              <entry>Lexicon</entry>
+
+              <entry>1.5B words producing 6.4M entries</entry>
+
+              <entry>40 minutes</entry>
+
+              <entry>NlgN</entry>
+            </row>
+
+            <row>
+              <entry>Lexicon</entry>
+
+              <entry>Creating 'working' entries from 1.5B words and the full
+              6.4m entry lexicon.</entry>
+
+              <entry>46 minutes</entry>
+
+              <entry>NLgN</entry>
+            </row>
+
+            <row>
+              <entry>Lexicon</entry>
+
+              <entry>Creating ‘working’ entries from 1.5B words and the
+              ‘keyword’ lexicon, produces 140M words</entry>
+
+              <entry>37 minutes</entry>
+
+              <entry>NLgN</entry>
+            </row>
+
+            <row>
+              <entry>Lexicon</entry>
+
+              <entry>Creating ‘working’ entries from 1.5B words and the
+              ‘keyword MkII’ lexicon, produces 240M words</entry>
+
+              <entry>40 minutes</entry>
+
+              <entry>NLgN</entry>
+            </row>
+
+            <row>
+              <entry>Lexicon</entry>
+
+              <entry>Creating ‘working’ entries from 1.5B words and the
+              ‘keyword MkII’ lexicon, produces 240M words, using the ‘small
+              lexicon’ feature</entry>
+
+              <entry>7 minutes</entry>
+
+              <entry>Linear</entry>
+            </row>
+
+            <row>
+              <entry>Wordbag</entry>
+
+              <entry>Create WordBags from 140M words</entry>
+
+              <entry>114 seconds</entry>
+
+              <entry>NlgN</entry>
+            </row>
+
+            <row>
+              <entry>Wordbag</entry>
+
+              <entry>Create WordBags from 240M-&gt;193M words</entry>
+
+              <entry>297 seconds</entry>
+
+              <entry>NlgN</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </sect1>
+
+    <sect1 id="Roxie-Data-Backup">
+      <title>Regression</title>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>OLS</entry>
+
+                <entry>Takes a set of independent and dependant variables and
+                exports a module that publishes an ordinary least squares
+                linear regression of the independent variables to produce the
+                dependant ones (it can perform multiple regressions at
+                once).</entry>
+              </row>
+
+              <row>
+                <entry>in the email but may not implemented</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Model comparison</entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry>Tools ot apply models to a new dataset for
+                prediction</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+
+      <para>This routine can also return R^2 and Anova tables based upon the
+      regression.</para>
+    </sect1>
+
+    <sect1 id="Roxie-Data-Backup">
+      <title>Univariate Statistics (ML.FieldAggregates)</title>
+
+      <para>This module works on the field elements provided. It performs the
+      tasks shown below for ALL the fields at once:</para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Simple stats</entry>
+
+                <entry>Mean, Variance, Standard Deviation, Max, Min, Count,
+                Sums, etc</entry>
+              </row>
+
+              <row>
+                <entry>Medians</entry>
+
+                <entry>Provides the median elements.</entry>
+              </row>
+
+              <row>
+                <entry>Modes</entry>
+
+                <entry>Provides the modal value(s) of each field.</entry>
+              </row>
+
+              <row>
+                <entry>Cardinality</entry>
+
+                <entry>Provides the cardinality of each field.</entry>
+              </row>
+
+              <row>
+                <entry>Buckets/Bucket Ranges</entry>
+
+                <entry>Divides the domain of each field evenly and then counts
+                the number of elements falling into each range. Can be used to
+                graphically plot the distribution of a field</entry>
+              </row>
+
+              <row>
+                <entry>SimpleRanked</entry>
+
+                <entry>Lists the ranking of the elements from the smallest to
+                the largest.</entry>
+              </row>
+
+              <row>
+                <entry>Ranked</entry>
+
+                <entry>Adjusts the simple ranking to allow for repeated
+                elements (each repeated element gets a rank which is the mean
+                of the ranks provided to each element individually)</entry>
+              </row>
+
+              <row>
+                <entry>NTiles/NTileRanges</entry>
+
+                <entry>Think of this as giving the percentile rank of each
+                element – except you get to pick if it is percentiles (N=100)
+                or some other gradation</entry>
+              </row>
+
+              <row>
+                <entry>These are mentioned in the email notes as wanted but
+                may not have been implements yet?</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Aggregates</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Visualization</entry>
+
+                <entry>Distributions, frequencies, pie, bar scatter, time etc
+                </entry>
+              </row>
+
+              <row>
+                <entry>r squared</entry>
+
+                <entry></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+    </sect1>
+
+    <sect1 id="Roxie-Data-Backup">
+      <title>Utility</title>
+
+      <para>This module includes the following:</para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>ML.ToFieldElement/FromFieldElement</entry>
+
+                <entry>Translates in and out of the core field-element
+                datamodel.</entry>
+              </row>
+
+              <row>
+                <entry>ML.Types.ToMatrix/FromMatrix</entry>
+
+                <entry>Translates from field elements to and from
+                matrices.</entry>
+              </row>
+
+              <row>
+                <entry>In the email but may not be implemented...</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Model comparison</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry></entry>
+
+                <entry></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+
+      <para></para>
+    </sect1>
+
+    <sect1 id="Roxie-Data-Backup">
+      <title>The Matrix Library (Mat)</title>
+
+      <para>This library is in addition and subservient to the ML library
+      modules.</para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Add</entry>
+
+                <entry>Add two matrices.</entry>
+              </row>
+
+              <row>
+                <entry>Choleski</entry>
+
+                <entry>Decomposition.</entry>
+              </row>
+
+              <row>
+                <entry>Det</entry>
+
+                <entry>Determinant of a matrix.</entry>
+              </row>
+
+              <row>
+                <entry>Each</entry>
+
+                <entry>Some ‘element by element’ processing steps.</entry>
+              </row>
+
+              <row>
+                <entry>Eq</entry>
+
+                <entry>Are two matrices equal.</entry>
+              </row>
+
+              <row>
+                <entry>Has</entry>
+
+                <entry>Various matrix properties.</entry>
+              </row>
+
+              <row>
+                <entry>Identity</entry>
+
+                <entry>Construct an Identity Matrix.</entry>
+              </row>
+
+              <row>
+                <entry>InsertColumn</entry>
+
+                <entry>Add a column to a matrix.</entry>
+              </row>
+
+              <row>
+                <entry>Inv</entry>
+
+                <entry>Invert a matrix.</entry>
+              </row>
+
+              <row>
+                <entry>Is</entry>
+
+                <entry>Boolean tests for certain matrix types (Identity, Zero,
+                Diagonal, Triangular etc).</entry>
+              </row>
+
+              <row>
+                <entry>LU</entry>
+
+                <entry>LU decomposition of a matrix.</entry>
+              </row>
+
+              <row>
+                <entry>MU</entry>
+
+                <entry>Matrix Universe – a number of routines to allow
+                multiple matrices to exist within the same ‘file’ (or
+                dataflow). Useful for iterating around loops etc.</entry>
+              </row>
+
+              <row>
+                <entry>Mul</entry>
+
+                <entry>Multiply two matrices.</entry>
+              </row>
+
+              <row>
+                <entry>Pow</entry>
+
+                <entry>Multiplies a matrix by itself N-1 * (and demo’s
+                MU).</entry>
+              </row>
+
+              <row>
+                <entry>RoundDelta</entry>
+
+                <entry>Round all the elements of a matrix if they are within
+                delta of an integer.</entry>
+              </row>
+
+              <row>
+                <entry>Scale</entry>
+
+                <entry>Multiply a matrix by a constant.</entry>
+              </row>
+
+              <row>
+                <entry>Sub</entry>
+
+                <entry>Subtract one matrix from another.</entry>
+              </row>
+
+              <row>
+                <entry>Substitute</entry>
+
+                <entry>Construct a matrix which is all the elements of the
+                right + any elements from the left which are not in the
+                right.</entry>
+              </row>
+
+              <row>
+                <entry>Thin</entry>
+
+                <entry>Make sure a matrix is fully sparse.</entry>
+              </row>
+
+              <row>
+                <entry>Trans</entry>
+
+                <entry>Construct the transpose of a matrix</entry>
+              </row>
+
+              <row>
+                <entry>Vec</entry>
+
+                <entry>A vector library – to create vectors from matrices and
+                assign vectors into matrices.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+    </sect1>
+
+    <sect1 id="Roxie-Data-Backup">
+      <title>Coming soon</title>
+
+      <para>The following routines will be supported in the near future:
+      </para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <thead>
+              <row>
+                <entry align="center">Module</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Regression</entry>
+
+                <entry>Logistic regression model fitting including tools for
+                model assessment, variable selection and the creation of
+                predicted values.</entry>
+              </row>
+
+              <row>
+                <entry>Tree</entry>
+
+                <entry>CART, CHAID, Cruise, TreeNet</entry>
+              </row>
+
+              <row>
+                <entry>Univariate Statistics</entry>
+
+                <entry>T-tests, ANOVA, chi-squared, tables of standard
+                distributions, sampling from standard distributions. Other
+                categorical data analysis including loglinear models.</entry>
+              </row>
+
+              <row>
+                <entry>Correlations</entry>
+
+                <entry>Computing of a correlation matrix including, principal
+                components and factor analysis, Fisher's linear discriminant
+                and variable clustering (PROC VARCLUS in SAS).</entry>
+              </row>
+
+              <row>
+                <entry>Cluster</entry>
+
+                <entry>Observation clustering algorithms, both hierarchical
+                and non-hierarchical.</entry>
+              </row>
+
+              <row>
+                <entry>Matrix</entry>
+
+                <entry>Efficient and numerically stable matrix inversion and
+                or decomposition including eigenvalue/eigenvector
+                calculations. </entry>
+              </row>
+
+              <row>
+                <entry>Linear Models</entry>
+
+                <entry>Linear regression models including tools for model
+                assessment and variable selection.</entry>
+              </row>
+
+              <row>
+                <entry>Bayesian models</entry>
+
+                <entry>Monte Carlo simlulations and other
+                bootstrapping/simulation techniques.</entry>
+              </row>
+
+              <row>
+                <entry>Neural networks</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Hidden Markov Models</entry>
+
+                <entry>Including Maximum Entropy and Maximum Entropy Markov
+                model, Conditional Random Fields</entry>
+              </row>
+
+              <row>
+                <entry>Support Vector Machines (SVM)</entry>
+
+                <entry></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+    </sect1>
+  </chapter>
+</book>
