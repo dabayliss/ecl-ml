@@ -26,6 +26,7 @@ SHARED DVec(UNSIGNED Ranges,t_FieldReal low,t_FieldReal width) :=
 EXPORT Default := MODULE,VIRTUAL
 	EXPORT RangeWidth := 1.0; // Only really works for discrete - the width of each range
   EXPORT t_FieldReal Density(t_FieldReal RH) := 0.0; // Density function at stated point
+	// Generating functions are responsible for making these in ascending order
   EXPORT DensityV() := DATASET([],Layout); // Probability of between >PreviosRangigh & <= RangeHigh
   // Default CumulativeV works by simple integration of the DensityVec
   EXPORT CumulativeV() := FUNCTION
