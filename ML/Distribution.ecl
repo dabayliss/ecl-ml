@@ -1,4 +1,4 @@
-﻿IMPORT * FROM ML;
+IMPORT * FROM ML;
 IMPORT * FROM ML.Types;
 IMPORT ML.Mat;
 IMPORT ML.Mat.Vec AS Vec;
@@ -215,12 +215,15 @@ EXPORT GenData(t_RecordID N,Default dist,t_FieldNumber fld = 1) := FUNCTION
 // We then use a random integer % 1M / 1M to give us a cumulative probability point
 // We then use the probability ranges (/value ranges) and linear interpolation to provide the datapoint
   CV := dist.CumulativeV();
+	Buckets := 10000; 
+	t_Bucket := UNSIGNED2;
   R := RECORD
 	  CV;
 		REAL8 LowP := 0;
-		UNSIGNED1 PBucket := CV.P*100; // Will be used to turn a ,ALL join into a ,LOOKUP join later
+		t_Bucket PBucket := CV.P*Buckets; // Will be used to turn a ,ALL join into a ,LOOKUP join later
 	END;
 	CVR := TABLE(CV,R);
+	MaxP := MAX(CV,P); // Allows for some of the integration methods not quite reaching a CP of 1
 	// Build up the range low and plow values
 	R CopyLow(CVR le,CVR ri) := TRANSFORM
 		SELF.LowP := le.P;
@@ -228,11 +231,11 @@ EXPORT GenData(t_RecordID N,Default dist,t_FieldNumber fld = 1) := FUNCTION
 	END;
   I := ITERATE(CVR,CopyLow(LEFT,RIGHT));
 	// Now we potentially bulk up the data a little so that there is a record for every range for every percentile of probability
-	R Bulk(R le,UNSIGNED1 C) := TRANSFORM
+	R Bulk(R le,t_Bucket C) := TRANSFORM
 	  SELF.PBucket := le.PBucket-C;
 	  SELF := le;
 	END;
-	No := NORMALIZE(I,1+(UNSIGNED)(LEFT.P*100)-(UNSIGNED)(LEFT.LowP*100),Bulk(LEFT,COUNTER-1));
+	No := NORMALIZE(I,1+(UNSIGNED)(LEFT.P*Buckets)-(UNSIGNED)(LEFT.LowP*Buckets),Bulk(LEFT,COUNTER-1));
 	// Now construct the result vector - first just create the random vector uniformly distributed in the 0-<1 range
 	B1 := 1000000;
 	V := PROJECT( Vec.From(N),TRANSFORM(NumericField,SELF.Id := LEFT.i, SELF.Value := (RANDOM()%B1) / (REAL8)B1,SELF.number:=fld));
@@ -241,7 +244,7 @@ EXPORT GenData(t_RecordID N,Default dist,t_FieldNumber fld = 1) := FUNCTION
 	  SELF.value := IF ( Dist.Discrete OR ri.P=ri.LowP, ri.RangeHigh, ri.RangeLow+(ri.RangeHigh-ri.RangeLow)*(le.value-ri.LowP)/(ri.P-ri.LowP) );
 	  SELF := le;
 	END;
-	J := JOIN(V,No,(UNSIGNED)(LEFT.Value * 100)=RIGHT.PBucket AND LEFT.Value > RIGHT.LowP AND LEFT.Value <= RIGHT.P,Trans(LEFT,RIGHT),LOOKUP);
+	J := JOIN(V,No,(UNSIGNED)(LEFT.Value * Buckets)=RIGHT.PBucket AND ( LEFT.Value > RIGHT.LowP OR LEFT.Value = 0 AND RIGHT.LowP = 0 ) AND ( LEFT.Value <= RIGHT.P OR LEFT.Value >= MaxP ),Trans(LEFT,RIGHT),LOOKUP);
 	RETURN J;
   END;
 
