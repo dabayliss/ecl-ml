@@ -7,7 +7,7 @@
 
     <mediaobject>
       <imageobject>
-        <imagedata fileref="../doctest/trunk/images/redswooshWithLogo3.jpg" />
+        <imagedata fileref="images/redswooshWithLogo3.jpg" />
       </imageobject>
     </mediaobject>
 
@@ -44,13 +44,14 @@
 
     <mediaobject role="logo">
       <imageobject>
-        <imagedata fileref="../doctest/trunk/images/LN_Rightjustified.jpg" />
+        <imagedata fileref="images/LN_Rightjustified.jpg" />
       </imageobject>
     </mediaobject>
   </bookinfo>
 
   <chapter id="Introduction">
-    <title>Machine Learning Algorithms</title>
+    <title id="Machine_Learning_Algorithms">Machine Learning
+    Algorithms</title>
 
     <para>The Lexis Nexis machine learning library contains an extensible
     collection of machine learning routines which are easy to use and
@@ -118,14 +119,129 @@
     </itemizedlist>
 
     <para>These Machine Learning modules are also supported by the Matrix
-    Library (Mat).</para>
+    (Mat) and Utility (ML.Utility) libraries which are used to implement
+    ML.</para>
 
     <para>Each module focuses on a specific type of algorithm and contains a
     number of routines. The functionality of each routine is described.
     Performance statistics are provided for some routines. These were carried
     out on a 10 node cluster and are for comparison purposes only.</para>
 
-    <sect1 id="Roxie_Overview">
+    <sect1 id="Getting_Started">
+      <title>Getting started</title>
+
+      <para>To start using the ML libraries, you need to :</para>
+
+      <orderedlist continuation="continues">
+        <listitem>
+          <para>Download the HPCC Systems from the Portal
+          (http://hpccsystems.com/) and set it up on your PC (see
+          <emphasis>Installing and Running the HPCC Platform</emphasis>, also
+          available from the portal). Once you have installed and started it,
+          verify that your system is working as expected by sending a few
+          simple ECL programs to your cluster using ECL IDE.</para>
+        </listitem>
+      </orderedlist>
+
+      <orderedlist continuation="continues">
+        <listitem>
+          <para>Get a GitHub account from their website
+          (https://github.com/).</para>
+        </listitem>
+      </orderedlist>
+
+      <orderedlist continuation="continues">
+        <listitem>
+          <para>Become a member of the github hpcc-system group. You may need
+          to ask to be added as a member.</para>
+        </listitem>
+      </orderedlist>
+
+      <orderedlist continuation="continues">
+        <listitem>
+          <para>Clone the ecl-ml GitHub repository to your ECL IDE.</para>
+        </listitem>
+      </orderedlist>
+
+      <para><emphasis role="bold"><emphasis role="bold">Cloning the
+      repository</emphasis> </emphasis></para>
+
+      <para>You must have complete steps 1-3 above and you must also be logged
+      into GitHub. Then continue as follows:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Install the Windows GitHub GUI. To do this, follow the
+          procedure described on their website at
+          http://help.github.com/win-set-up-git/.</para>
+        </listitem>
+
+        <listitem>
+          <para>Open the Git GUI from All Programs. On opening, click on the
+          Clone existing repository link. The following dialog is
+          displayed:</para>
+
+          <para><graphic fileref="images/ML002.jpg" /></para>
+        </listitem>
+
+        <listitem>
+          <para>Go to the GitHub site at
+          https://github.com/hpcc-systems/ecl-ml and click on HTTP to display
+          the link for the ecl-ml repository.</para>
+
+          <para><graphic fileref="images/ML001.jpg" /></para>
+        </listitem>
+
+        <listitem>
+          <para>Cut and paste the displayed http link from the GitHub website
+          for the ecl-ml repository into the Source Location field on the Git
+          Gui dialog.</para>
+        </listitem>
+
+        <listitem>
+          <para>Open Windows Explorer and select the location you have
+          specified for your ECL IDE local repository. This location is the
+          same as the one specified as the Working Folder on the Complier tab
+          of ECL IDE preferences and also where your ECL files are stored
+          locally.<graphic fileref="images/ML003.jpg" /></para>
+        </listitem>
+
+        <listitem>
+          <para>Cut and paste this location into the Target Directory field on
+          the Git GUI dialog and add \ECL-ML onto the end of that path. For
+          example: C:\Documents and Settings\All Users\Documents\HPCC
+          Systems\ECL\ECL-ML<graphic fileref="images/ML004.jpg" /></para>
+        </listitem>
+
+        <listitem>
+          <para>Click on the CLONE button. The Git Repository is now copied to
+          your local system.</para>
+        </listitem>
+
+        <listitem>
+          <para>Login to ECL IDE. Go to the Preferences window and select the
+          Compiler tab. Press the ADD button and type in the path you just
+          used as the Target Directory for the clone operation, for example,
+          C:\Documents and Settings\All Users\Documents\HPCC
+          Systems\ECL\ECL-ML.<graphic fileref="images/ML005.jpg" /></para>
+        </listitem>
+
+        <listitem>
+          <para>Click on the APPLY button to add the new folder and then click
+          OK to exit the Preferences window. Your ECL IDE local repository
+          window now includes the ECL-ML folder which, when expanded, is
+          displayed as follows:</para>
+
+          <graphic fileref="images/ML006.jpg" />
+
+          <para>You are now ready to begin using the ML routines currently
+          provided which are described, by module, in the following sections.
+          </para>
+        </listitem>
+      </orderedlist>
+    </sect1>
+
+    <sect1 id="Associations">
       <title>Associations (ML.Associate)</title>
 
       <para>Use this module to perform frequent pattern matching on the
@@ -309,7 +425,7 @@
       </informaltable>
     </sect1>
 
-    <sect1 id="Payload_INDEXes">
+    <sect1 id="Classify">
       <title>Classify (ML.Classify)</title>
 
       <para>Use this module to tackle the problem, “can I predict this
@@ -317,7 +433,7 @@
       routines get are provided:</para>
     </sect1>
 
-    <sect1 id="Roxie_Superfiles">
+    <sect1 id="Cluster">
       <title>Cluster (ML.Cluster)</title>
 
       <para>This module is used to perform the clustering of a collection of
@@ -535,7 +651,7 @@
       </informaltable>
     </sect1>
 
-    <sect1 id="How-Roxie-Works">
+    <sect1 id="Correlations">
       <title>Correlations (ML.Correlate)</title>
 
       <para>Use this module to calculate the degree of correlation between
@@ -611,7 +727,7 @@
       issues.</para>
     </sect1>
 
-    <sect1 id="Roxie-Data-Backup">
+    <sect1 id="Discetize">
       <title>Discretize (ML.Discretize)</title>
 
       <para>This module provides a suite of routines which allow a datastream
@@ -657,8 +773,8 @@
               <row>
                 <entry>ByTiling</entry>
 
-                <entry>Split the values evenly and have an uneven range.
-                </entry>
+                <entry>Split the values evenly and have an uneven
+                range.</entry>
               </row>
 
               <row>
@@ -747,22 +863,16 @@ Test.Headline;
 </programlisting></para>
     </sect1>
 
-    <sect1 id="Roxie-Data-Backup">
-      <title>Docs (ML.Docs)</title>
-
-      <para>This module provides a number of routines used to pre-process text
-      to make it more suitable for further processing. The following routines
-      are provided:</para>
+    <sect1 id="Regression">
+      <title>Regression</title>
 
       <para><informaltable>
-          <tgroup cols="3">
+          <tgroup cols="2">
             <colspec align="center" />
 
             <thead>
               <row>
                 <entry align="center">Routine</entry>
-
-                <entry align="center">Sub-Routine</entry>
 
                 <entry align="center">Description</entry>
               </row>
@@ -770,90 +880,411 @@ Test.Headline;
 
             <tbody>
               <row>
-                <entry>Tokenize</entry>
+                <entry>OLS</entry>
+
+                <entry>Takes a set of independent and dependant variables and
+                exports a module that publishes an ordinary least squares
+                linear regression of the independent variables to produce the
+                dependant ones (it can perform multiple regressions at
+                once).</entry>
+              </row>
+
+              <row>
+                <entry>in the email but may not implemented</entry>
 
                 <entry></entry>
-
-                <entry>Routines which turn raw text into a clean processing
-                format</entry>
               </row>
 
               <row>
                 <entry></entry>
 
-                <entry>Enumerate</entry>
-
-                <entry>Applies record numbers to the text for later
-                tracking.</entry>
+                <entry>Model comparison</entry>
               </row>
 
               <row>
                 <entry></entry>
 
-                <entry>Clean</entry>
-
-                <entry>Removes lots of nasty punctuation and some other things
-                such as possessives.</entry>
-              </row>
-
-              <row>
-                <entry></entry>
-
-                <entry>Split</entry>
-
-                <entry>Turns the document into a token (or word)
-                stream.</entry>
-              </row>
-
-              <row>
-                <entry></entry>
-
-                <entry>Lexicon</entry>
-
-                <entry>Constructs a dictionary (with various statistics) on
-                the underlying documents.</entry>
-              </row>
-
-              <row>
-                <entry></entry>
-
-                <entry>ToO/FromO</entry>
-
-                <entry>Uses the lexicon to turn the word stream to and from an
-                optimized token processing format.</entry>
-              </row>
-
-              <row>
-                <entry>Trans</entry>
-
-                <entry></entry>
-
-                <entry>Performs various data transformations on an optimized
-                document stream.</entry>
-              </row>
-
-              <row>
-                <entry></entry>
-
-                <entry>WordBag</entry>
-
-                <entry>Turns every document into a wordbag, by removing (and
-                countsing) multiple occurrences of a word within a
-                document</entry>
-              </row>
-
-              <row>
-                <entry></entry>
-
-                <entry>WordsCounted</entry>
-
-                <entry>Annotates every word in a document with the total
-                number of times that word occurs in the document, distributing
-                tfdi information for further (faster) processing.</entry>
+                <entry>Tools ot apply models to a new dataset for
+                prediction</entry>
               </row>
             </tbody>
           </tgroup>
         </informaltable></para>
+
+      <para>This routine can also return R^2 and Anova tables based upon the
+      regression.</para>
+    </sect1>
+
+    <sect1 id="Univariate_Statistics">
+      <title>Univariate Statistics (ML.FieldAggregates)</title>
+
+      <para>This module works on the field elements provided. It performs the
+      tasks shown below for ALL the fields at once:</para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <colspec align="center" />
+
+            <thead>
+              <row>
+                <entry align="center">Routine</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Simple stats</entry>
+
+                <entry>Mean, Variance, Standard Deviation, Max, Min, Count,
+                Sums, etc</entry>
+              </row>
+
+              <row>
+                <entry>Medians</entry>
+
+                <entry>Provides the median elements.</entry>
+              </row>
+
+              <row>
+                <entry>Modes</entry>
+
+                <entry>Provides the modal value(s) of each field.</entry>
+              </row>
+
+              <row>
+                <entry>Cardinality</entry>
+
+                <entry>Provides the cardinality of each field.</entry>
+              </row>
+
+              <row>
+                <entry>Buckets/Bucket Ranges</entry>
+
+                <entry>Divides the domain of each field evenly and then counts
+                the number of elements falling into each range. Can be used to
+                graphically plot the distribution of a field</entry>
+              </row>
+
+              <row>
+                <entry>SimpleRanked</entry>
+
+                <entry>Lists the ranking of the elements from the smallest to
+                the largest.</entry>
+              </row>
+
+              <row>
+                <entry>Ranked</entry>
+
+                <entry>Adjusts the simple ranking to allow for repeated
+                elements (each repeated element gets a rank which is the mean
+                of the ranks provided to each element individually)</entry>
+              </row>
+
+              <row>
+                <entry>NTiles/NTileRanges</entry>
+
+                <entry>Think of this as giving the percentile rank of each
+                element – except you get to pick if it is percentiles (N=100)
+                or some other gradation</entry>
+              </row>
+
+              <row>
+                <entry>These are mentioned in the email notes as wanted but
+                may not have been implements yet?</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Aggregates</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Visualization</entry>
+
+                <entry>Distributions, frequencies, pie, bar scatter, time
+                etc</entry>
+              </row>
+
+              <row>
+                <entry>r squared</entry>
+
+                <entry></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+    </sect1>
+
+    <sect1 id="ComingSoon">
+      <title>Coming soon</title>
+
+      <para>The following routines will be supported in the near
+      future:</para>
+
+      <para><informaltable>
+          <tgroup cols="2">
+            <thead>
+              <row>
+                <entry align="center">Module</entry>
+
+                <entry align="center">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Regression</entry>
+
+                <entry>Logistic regression model fitting including tools for
+                model assessment, variable selection and the creation of
+                predicted values.</entry>
+              </row>
+
+              <row>
+                <entry>Tree</entry>
+
+                <entry>CART, CHAID, Cruise, TreeNet</entry>
+              </row>
+
+              <row>
+                <entry>Univariate Statistics</entry>
+
+                <entry>T-tests, ANOVA, chi-squared, tables of standard
+                distributions, sampling from standard distributions. Other
+                categorical data analysis including loglinear models.</entry>
+              </row>
+
+              <row>
+                <entry>Correlations</entry>
+
+                <entry>Computing of a correlation matrix including, principal
+                components and factor analysis, Fisher's linear discriminant
+                and variable clustering (PROC VARCLUS in SAS).</entry>
+              </row>
+
+              <row>
+                <entry>Cluster</entry>
+
+                <entry>Observation clustering algorithms, both hierarchical
+                and non-hierarchical.</entry>
+              </row>
+
+              <row>
+                <entry>Matrix</entry>
+
+                <entry>Efficient and numerically stable matrix inversion and
+                or decomposition including eigenvalue/eigenvector
+                calculations.</entry>
+              </row>
+
+              <row>
+                <entry>Linear Models</entry>
+
+                <entry>Linear regression models including tools for model
+                assessment and variable selection.</entry>
+              </row>
+
+              <row>
+                <entry>Bayesian models</entry>
+
+                <entry>Monte Carlo simlulations and other
+                bootstrapping/simulation techniques.</entry>
+              </row>
+
+              <row>
+                <entry>Neural networks</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>Hidden Markov Models</entry>
+
+                <entry>Including Maximum Entropy and Maximum Entropy Markov
+                model, Conditional Random Fields</entry>
+              </row>
+
+              <row>
+                <entry>Support Vector Machines (SVM)</entry>
+
+                <entry></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
+    </sect1>
+  </chapter>
+
+  <chapter id="ML_with_documents">
+    <title>Using ML with documents</title>
+
+    <sect1>
+      <title id="Docs_module">The Docs Module (ML.Doc)</title>
+
+      <para>The ML.Docs module provides a number of routines used to
+      pre-process text and make it more suitable for further processing. The
+      following routines are provided:</para>
+
+      <informaltable>
+        <tgroup cols="3">
+          <colspec align="center" />
+
+          <thead>
+            <row>
+              <entry align="center">Routine</entry>
+
+              <entry align="center">Sub-Routine</entry>
+
+              <entry align="center">Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>Tokenize</entry>
+
+              <entry></entry>
+
+              <entry>Routines which turn raw text into a clean processing
+              format</entry>
+            </row>
+
+            <row>
+              <entry></entry>
+
+              <entry>Enumerate</entry>
+
+              <entry>Applies record numbers to the text for later
+              tracking.</entry>
+            </row>
+
+            <row>
+              <entry></entry>
+
+              <entry>Clean</entry>
+
+              <entry>Removes lots of nasty punctuation and some other things
+              such as possessives.</entry>
+            </row>
+
+            <row>
+              <entry></entry>
+
+              <entry>Split</entry>
+
+              <entry>Turns the document into a token (or word) stream.</entry>
+            </row>
+
+            <row>
+              <entry></entry>
+
+              <entry>Lexicon</entry>
+
+              <entry>Constructs a dictionary (with various statistics) on the
+              underlying documents.</entry>
+            </row>
+
+            <row>
+              <entry></entry>
+
+              <entry>ToO/FromO</entry>
+
+              <entry>Uses the lexicon to turn the word stream to and from an
+              optimized token processing format.</entry>
+            </row>
+
+            <row>
+              <entry>Trans</entry>
+
+              <entry></entry>
+
+              <entry>Performs various data transformations on an optimized
+              document stream.</entry>
+            </row>
+
+            <row>
+              <entry></entry>
+
+              <entry>WordBag</entry>
+
+              <entry>Turns every document into a wordbag, by removing (and
+              countsing) multiple occurrences of a word within a
+              document</entry>
+            </row>
+
+            <row>
+              <entry></entry>
+
+              <entry>WordsCounted</entry>
+
+              <entry>Annotates every word in a document with the total number
+              of times that word occurs in the document, distributing tfdi
+              information for further (faster) processing.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+
+      <para></para>
+    </sect1>
+
+    <sect1>
+      <title id="Doc_module_usage">Typical usage of the Docs module</title>
+
+      <para>The following code demonstrates how the docs module may be used
+      and show the result at each stage:</para>
+
+      <para><programlisting>IMPORT ML;
+IMPORT ML.Docs AS Docs;
+
+d := DATASET([{'One of the wonderful things about tiggers is tiggers are wonderful things'},
+                                  {'It is a little scarey the drivel that entersone\'s mind 
+                                    when given the task of entering random text'},
+                                  {'I almost quoted obama; but I considered that I had 
+                                    gotten a little too silly already!'},
+                                  {'In Hertford, Hereford and Hampshire Hurricanes hardly 
+                                    ever happen'},
+                                  {'In the beginning was the Word and the Word was with God 
+                                    and the Word was God'}],{string r});
+                                                                                                                
+d1 := PROJECT(d,TRANSFORM(Docs.Types.Raw,SELF.Txt := LEFT.r));
+
+d1;
+
+d2 := Docs.Tokenize.Enumerate(d1);
+
+d2;
+
+d3 := Docs.Tokenize.Clean(d2);
+
+d3;
+
+d4 := Docs.Tokenize.Split(d3);                                                                                                    
+
+d4;
+
+lex := Docs.Tokenize.Lexicon(d4);
+
+lex;
+
+o1 := Docs.Tokenize.ToO(d4,lex);
+o1;
+
+Docs.Trans(o1).WordBag;
+Docs.Trans(o1).WordsCounted;
+
+o2 := Docs.Tokenize.FromO(o1,lex);
+o2;
+</programlisting></para>
+    </sect1>
+
+    <sect1>
+      <title id="Performance_statistics">Performance Statistics</title>
 
       <para>The following performance statistics of these routines were
       observed using a 10 node cluster:</para>
@@ -963,166 +1394,29 @@ Test.Headline;
         </tgroup>
       </informaltable>
     </sect1>
+  </chapter>
+
+  <chapter>
+    <title id="ML_implementation">Useful routines for ML
+    implementation</title>
+
+    <para>The following modules are provided to help with ML
+    implementation:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The Utility module</para>
+      </listitem>
+    </itemizedlist>
+
+    <para><itemizedlist>
+        <listitem>
+          <para>The Matrix module</para>
+        </listitem>
+      </itemizedlist></para>
 
     <sect1 id="Roxie-Data-Backup">
-      <title>Regression</title>
-
-      <para><informaltable>
-          <tgroup cols="2">
-            <colspec align="center" />
-
-            <thead>
-              <row>
-                <entry align="center">Routine</entry>
-
-                <entry align="center">Description</entry>
-              </row>
-            </thead>
-
-            <tbody>
-              <row>
-                <entry>OLS</entry>
-
-                <entry>Takes a set of independent and dependant variables and
-                exports a module that publishes an ordinary least squares
-                linear regression of the independent variables to produce the
-                dependant ones (it can perform multiple regressions at
-                once).</entry>
-              </row>
-
-              <row>
-                <entry>in the email but may not implemented</entry>
-
-                <entry></entry>
-              </row>
-
-              <row>
-                <entry></entry>
-
-                <entry>Model comparison</entry>
-              </row>
-
-              <row>
-                <entry></entry>
-
-                <entry>Tools ot apply models to a new dataset for
-                prediction</entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable></para>
-
-      <para>This routine can also return R^2 and Anova tables based upon the
-      regression.</para>
-    </sect1>
-
-    <sect1 id="Roxie-Data-Backup">
-      <title>Univariate Statistics (ML.FieldAggregates)</title>
-
-      <para>This module works on the field elements provided. It performs the
-      tasks shown below for ALL the fields at once:</para>
-
-      <para><informaltable>
-          <tgroup cols="2">
-            <colspec align="center" />
-
-            <thead>
-              <row>
-                <entry align="center">Routine</entry>
-
-                <entry align="center">Description</entry>
-              </row>
-            </thead>
-
-            <tbody>
-              <row>
-                <entry>Simple stats</entry>
-
-                <entry>Mean, Variance, Standard Deviation, Max, Min, Count,
-                Sums, etc</entry>
-              </row>
-
-              <row>
-                <entry>Medians</entry>
-
-                <entry>Provides the median elements.</entry>
-              </row>
-
-              <row>
-                <entry>Modes</entry>
-
-                <entry>Provides the modal value(s) of each field.</entry>
-              </row>
-
-              <row>
-                <entry>Cardinality</entry>
-
-                <entry>Provides the cardinality of each field.</entry>
-              </row>
-
-              <row>
-                <entry>Buckets/Bucket Ranges</entry>
-
-                <entry>Divides the domain of each field evenly and then counts
-                the number of elements falling into each range. Can be used to
-                graphically plot the distribution of a field</entry>
-              </row>
-
-              <row>
-                <entry>SimpleRanked</entry>
-
-                <entry>Lists the ranking of the elements from the smallest to
-                the largest.</entry>
-              </row>
-
-              <row>
-                <entry>Ranked</entry>
-
-                <entry>Adjusts the simple ranking to allow for repeated
-                elements (each repeated element gets a rank which is the mean
-                of the ranks provided to each element individually)</entry>
-              </row>
-
-              <row>
-                <entry>NTiles/NTileRanges</entry>
-
-                <entry>Think of this as giving the percentile rank of each
-                element – except you get to pick if it is percentiles (N=100)
-                or some other gradation</entry>
-              </row>
-
-              <row>
-                <entry>These are mentioned in the email notes as wanted but
-                may not have been implements yet?</entry>
-
-                <entry></entry>
-              </row>
-
-              <row>
-                <entry>Aggregates</entry>
-
-                <entry></entry>
-              </row>
-
-              <row>
-                <entry>Visualization</entry>
-
-                <entry>Distributions, frequencies, pie, bar scatter, time etc
-                </entry>
-              </row>
-
-              <row>
-                <entry>r squared</entry>
-
-                <entry></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable></para>
-    </sect1>
-
-    <sect1 id="Roxie-Data-Backup">
-      <title>Utility</title>
+      <title id="Utility">Utility</title>
 
       <para>This module includes the following:</para>
 
@@ -1173,14 +1467,12 @@ Test.Headline;
             </tbody>
           </tgroup>
         </informaltable></para>
-
-      <para></para>
     </sect1>
 
-    <sect1 id="Roxie-Data-Backup">
+    <sect1 id="Matrix_Library">
       <title>The Matrix Library (Mat)</title>
 
-      <para>This library is in addition and subservient to the ML library
+      <para>This library is in addition to and subservient to the ML library
       modules.</para>
 
       <para><informaltable>
@@ -1332,105 +1624,17 @@ Test.Headline;
             </tbody>
           </tgroup>
         </informaltable></para>
-    </sect1>
 
-    <sect1 id="Roxie-Data-Backup">
-      <title>Coming soon</title>
+      <para>The following examples demonstrate some of these routines:</para>
 
-      <para>The following routines will be supported in the near future:
-      </para>
+      <para><programlisting>IMPORT ML;
+IMPORT ML.Mat AS Mat;
+d := dataset([{1,1,1.0},{1,2,2.0},{2,1,3.0},{2,2,4.0}],Mat.Types.Element);
 
-      <para><informaltable>
-          <tgroup cols="2">
-            <thead>
-              <row>
-                <entry align="center">Module</entry>
-
-                <entry align="center">Description</entry>
-              </row>
-            </thead>
-
-            <tbody>
-              <row>
-                <entry>Regression</entry>
-
-                <entry>Logistic regression model fitting including tools for
-                model assessment, variable selection and the creation of
-                predicted values.</entry>
-              </row>
-
-              <row>
-                <entry>Tree</entry>
-
-                <entry>CART, CHAID, Cruise, TreeNet</entry>
-              </row>
-
-              <row>
-                <entry>Univariate Statistics</entry>
-
-                <entry>T-tests, ANOVA, chi-squared, tables of standard
-                distributions, sampling from standard distributions. Other
-                categorical data analysis including loglinear models.</entry>
-              </row>
-
-              <row>
-                <entry>Correlations</entry>
-
-                <entry>Computing of a correlation matrix including, principal
-                components and factor analysis, Fisher's linear discriminant
-                and variable clustering (PROC VARCLUS in SAS).</entry>
-              </row>
-
-              <row>
-                <entry>Cluster</entry>
-
-                <entry>Observation clustering algorithms, both hierarchical
-                and non-hierarchical.</entry>
-              </row>
-
-              <row>
-                <entry>Matrix</entry>
-
-                <entry>Efficient and numerically stable matrix inversion and
-                or decomposition including eigenvalue/eigenvector
-                calculations. </entry>
-              </row>
-
-              <row>
-                <entry>Linear Models</entry>
-
-                <entry>Linear regression models including tools for model
-                assessment and variable selection.</entry>
-              </row>
-
-              <row>
-                <entry>Bayesian models</entry>
-
-                <entry>Monte Carlo simlulations and other
-                bootstrapping/simulation techniques.</entry>
-              </row>
-
-              <row>
-                <entry>Neural networks</entry>
-
-                <entry></entry>
-              </row>
-
-              <row>
-                <entry>Hidden Markov Models</entry>
-
-                <entry>Including Maximum Entropy and Maximum Entropy Markov
-                model, Conditional Random Fields</entry>
-              </row>
-
-              <row>
-                <entry>Support Vector Machines (SVM)</entry>
-
-                <entry></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable></para>
+Mat.Sub( Mat.Scale(d,10.0), d );
+Mat.Mul(d,d);
+Mat.Trans(d);
+</programlisting></para>
     </sect1>
   </chapter>
 </book>
