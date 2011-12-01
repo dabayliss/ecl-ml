@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 // This module exists to handle a special sub-case of a matrix; the Vector
 // The vector is really just a matrix with only one dimension
 EXPORT Vec := MODULE
@@ -12,7 +12,7 @@ EXPORT From(Types.t_Index N,Types.t_value def = 1.0) := FUNCTION
 		SELF.value := DEF;
   END;
 	// Create eventual vector across all nodes (in case it is huge)
-	one_per_node := DISTRIBUTE(NORMALIZE(seed, CLUSTERSIZE, addNodeNum(LEFT, COUNTER)), i);
+	one_per_node := DISTRIBUTE(NORMALIZE(seed, CLUSTERSIZE, addNodeNum(LEFT, COUNTER)), i DIV PerCluster);
 
 	Types.VecElement fillRow(Types.VecElement L, UNSIGNED4 c) := TRANSFORM
 		SELF.i := l.i+c;
