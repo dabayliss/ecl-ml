@@ -187,77 +187,94 @@ EXPORT Cluster := MODULE
   EXPORT Closest(DATASET(Mat.Types.Element) dDistances):=DEDUP(SORT(DISTRIBUTE(dDistances,x),x,value,LOCAL),x,LOCAL);
 
   //---------------------------------------------------------------------------
-  // Boolean to indicate whether the ID ranges of two datasets intersect
+  // Suite of functions to perform KMeans clustering.  User passes in the
+  // following parameters:
+  //   d01      : The Document dataset
+  //   d02      : The Centroid dataset
+  //   n        : The number of iterations to perform
+  //   nConverge: [OPTIONAL] If the maximum distance moved by a centroid in
+  //              any one iteration is below the threshold, stop iterating.
+  //              Default is 0.
+  //   fDist    : [OPTIONAL] The distance calculation to use when determining
+  //              centroid allegiance.  Default is simple Euclidean.
   //---------------------------------------------------------------------------
-  SHARED BOOLEAN bAdjustIDs(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02):=MAX(d01,id)>MIN(d02,id);
-  
-  //---------------------------------------------------------------------------
-  // Function to adjust the IDs of a dataset by a specified integer offset
-  //---------------------------------------------------------------------------
-  SHARED Types.NumericField ShiftIDs(DATASET(Types.NumericField) d01,INTEGER iOffset):=FUNCTION
-    RETURN PROJECT(d01,TRANSFORM(RECORDOF(d01),SELF.id:=LEFT.id+iOffset;SELF:=LEFT;));
-  END;
-  
-  
-  //---------------------------------------------------------------------------
-  // KMeans takes a data set and a centroid set, both in NumericField format,
-  // and recalculates the coordinates for the centroids as the average of the
-  // positions of any points from the data set to which the centroid is closest
-  //---------------------------------------------------------------------------
-  EXPORT KMeans(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,n=1,DF.Default fDist=DF.Euclidean):=MODULE
-  
-    SHARED Types.NumericField Iteration(DATASET(Types.NumericField) dCentroids=d02):=FUNCTION
-      // Make sure the IDs of the two datasets do not intersect
-      dCentroidsAdjusted:=IF(bAdjustIDs(d01,dCentroids),ShiftIDs(dCentroids,MAX(d01,id)),dCentroids);
-      dDistances:=Distances(d01,dCentroidsAdjusted);
-      dClosest:=Closest(dDistances);
-		  // Number of points for each cluster
-      dClusterCounts:=TABLE(dClosest,{y; c:= COUNT(GROUP);},y,FEW);
-		  // Copy the cluster ID onto the data
-      dClustered:=SORT(DISTRIBUTE(JOIN(d01,dClosest,LEFT.id=RIGHT.x,TRANSFORM(Types.NumericField,SELF.id:=RIGHT.y;SELF:=LEFT;),HASH),id),RECORD,LOCAL);
-		  // Create the centroid as the sum of its parts
-      dRolled:=ROLLUP(dClustered,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value+RIGHT.value;SELF:=LEFT;),id,number,LOCAL);
-		  // Turn the sum of its parts into the average of its parts
-      dJoined:=JOIN(dRolled,dClusterCounts,LEFT.id=RIGHT.y,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value/RIGHT.c;SELF:=LEFT;),LOOKUP);
-		  // Construct a 'pass thru' of any centroids that are childless
-		  dPass := JOIN(dCentroidsAdjusted,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(LEFT),LEFT ONLY,LOOKUP);
+  EXPORT KMeans(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,UNSIGNED n=1,REAL nConverge=0.0,DF.Default fDist=DF.Euclidean):=MODULE
+    SHARED iOffset:=IF(MAX(d01,id)>MIN(d02,id),MAX(d01,id),0);
     
-      RETURN IF(bAdjustIDs(d01,dCentroids),ShiftIDs(dJoined+dPass,-MAX(d01,id)),dJoined+dPass);
-    END;
-    
-    // Modified version of NumericField.  Third field is a set of values so
-    // that we can store the results of each iteration in a single dataset
-    SHARED KMeansTrace:=RECORD
+    // For the internal storage of all iterations, we convert the VALUE field
+    // in NumericField to a SET OF VALUES, where values[1] is the initial
+    // location of the centroids, values[2] is after the first iteration, etc.
+    SHARED lIterations:=RECORD
       TYPEOF(Types.NumericField.id) id;
       TYPEOF(Types.NumericField.number) number;
       SET OF TYPEOF(Types.NumericField.value) values;
     END;
+    
+    // Function to pull iteration N from a table of type lIterations
+    SHARED Types.NumericField dResult(UNSIGNED n=n,DATASET(lIterations) d):=PROJECT(d,TRANSFORM(Types.NumericField,SELF.value:=LEFT.values[n+1];SELF:=LEFT;));
 
-    // Run all iterations with tracing.  In the results, values[1] is the
-    // initial centroid locations, values[2] contains the locations after the 
-    // first iteration, and so on.
-    SHARED KMeansTrace Trace:=FUNCTION
-      dToSet:=PROJECT(d02,TRANSFORM(KMeansTrace,SELF.values:=[LEFT.value];SELF:=LEFT;));
-      dAddIteration(DATASET(kMeansTrace) d,UNSIGNED c):=JOIN(d,Iteration(TABLE(d,{id;number;TYPEOF(d02.value) value:=values[c];})),LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,TRANSFORM(KMeansTrace,SELF.values:=LEFT.values+[RIGHT.value];SELF:=RIGHT;),RIGHT OUTER);
-      dNewPositions:=LOOP(dToSet,n,dAddIteration(ROWS(LEFT),COUNTER));
-		  RETURN dNewPositions;
-    END;
-    
-    // Function to pull iteration N from a traced iteration
-    EXPORT Types.NumericField GetTracedN(UNSIGNED n=n,DATASET(KMeansTrace) d=Trace):=PROJECT(d,TRANSFORM(Types.NumericField,SELF.value:=LEFT.values[n+1];SELF:=LEFT;));
-    
-    // Show the fully traced result set
-    EXPORT KMeansTrace TracedResults:=Trace;
-    // Show the final results of n Iterations
-    EXPORT Types.NumericField Result:=GetTracedN(n);
-    
-    // Determine the delta between any two iterations
+    // Determine the delta along each axis between any two iterations
     Types.NumericField tGetDelta(Types.NumericField L,Types.NumericField R):=TRANSFORM
       SELF.id:=IF(L.id=0,R.id,L.id);
       SELF.number:=IF(L.number=0,R.number,L.number);
       SELF.value:=R.value-L.value;
     END;
-    EXPORT Delta(UNSIGNED n01=n-1,UNSIGNED n02=n,DATASET(KMeansTrace) d=Trace):=JOIN(GetTracedN(n01),GetTracedN(n02),LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,tGetDelta(LEFT,RIGHT));
+    SHARED dDelta(UNSIGNED n01=n-1,UNSIGNED n02=n,DATASET(lIterations) d):=JOIN(dResult(n01,d),dResult(n02,d),LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,tGetDelta(LEFT,RIGHT));
+    
+    // Determine the distance delta between two iterations, using the distance
+    // method specified by the user for this module
+    SHARED dDistanceDelta(UNSIGNED n01=n-1,UNSIGNED n02=n,DATASET(lIterations) d):=FUNCTION
+      iMax01:=MAX(dResult(n01,d),id);
+      dDistances:=Distances(dResult(n01,d),PROJECT(dResult(n02,d),TRANSFORM(Types.NumericField,SELF.id:=LEFT.id+iMax01;SELF:=LEFT;)));
+      RETURN PROJECT(dDistances(x=y-iMax01),TRANSFORM({Types.NumericField AND NOT [number];},SELF.id:=LEFT.x;SELF:=LEFT;));
+    END;
+
+    // Convert the input centroid dataset to our internal structure, then
+    // iterate as many times as requested by the user.
+    // NOTE: Values will stop being added once convergence is determined
+    // to have been reached.
+    d02Prep:=PROJECT(d02,TRANSFORM(lIterations,SELF.id:=LEFT.id+iOffset;SELF.values:=[LEFT.value];SELF:=LEFT;));
+    fIterate(DATASET(lIterations) d,UNSIGNED c):=FUNCTION
+      // Check the distance delta for the last two iterations.  If the highest
+      // value is below the convergence threshold, then set bConverged to TRUE
+      bConverged:=IF(c=1,FALSE,MAX(dDistanceDelta(c-1,c-2,d),value)<=nConverge);
+      // set the current centroids to the results of the most recent iteration
+      dCentroids:=PROJECT(d,TRANSFORM(Types.NumericField,SELF.value:=LEFT.values[c];SELF:=LEFT;));
+      // get all document-to-centroid distances, and determine centroid allegiance
+      dDistances:=Distances(d01,dCentroids);
+      dClosest:=Closest(dDistances);
+      // Get a count of the number of documents allied to each centroid
+      dClusterCounts:=TABLE(dClosest,{y;UNSIGNED c:=COUNT(GROUP);},y,FEW);
+      // Join closest to the document set and replace the id with the centriod id
+      dClustered:=SORT(DISTRIBUTE(JOIN(d01,dClosest,LEFT.id=RIGHT.x,TRANSFORM(Types.NumericField,SELF.id:=RIGHT.y;SELF:=LEFT;),HASH),id),RECORD,LOCAL);
+      // Now roll up on centroid ID, summing up the values for each axis
+      dRolled:=ROLLUP(dClustered,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value+RIGHT.value;SELF:=LEFT;),id,number,LOCAL);
+      // Join to cluster counts to calculate the new average on each axis
+      dJoined:=JOIN(dRolled,dClusterCounts,LEFT.id=RIGHT.y,TRANSFORM(Types.NumericField,SELF.value:=LEFT.value/RIGHT.c;SELF:=LEFT;),LOOKUP);
+      // Find any centroids with no document allegiance and pass those through also
+		  dPass:=JOIN(dCentroids,TABLE(dJoined,{id},id,LOCAL),LEFT.id=RIGHT.id,TRANSFORM(LEFT),LEFT ONLY,LOOKUP);
+      // Now join to the existing centroid dataset to add the new values to
+      // the end of the values set.
+      dAdded:=JOIN(d,dJoined+dPass,LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,TRANSFORM(lIterations,SELF.values:=LEFT.values+[RIGHT.value];SELF:=RIGHT;),RIGHT OUTER);
+      // If the centroids have converged, simply pass the input dataset through
+      // to the next iteration.  Otherwise perform an iteration.
+      RETURN IF(bConverged,d,dAdded);
+    END;
+    dIterationResults:=LOOP(d02Prep,n,fIterate(ROWS(LEFT),COUNTER));
+    SHARED dIterations:=IF(iOffset>0,PROJECT(dIterationResults,TRANSFORM(lIterations,SELF.id:=LEFT.id-iOffset;SELF:=LEFT;)),dIterationResults);
+
+    // Show the fully traced result set
+    EXPORT lIterations AllResults:=dIterations;
+    
+    // The number of iterations upon which convergence was reached is simply
+    // one less than the number of values in any of the dIterations rows
+    EXPORT UNSIGNED Convergence:=COUNT(dIterations[1].values)-1;
+    
+    // Specific-instance exports for for the SHARED attributes at the top of
+    // the KMeans module (with d assumed to be the iterated results). 
+    EXPORT Types.NumericField Result(UNSIGNED n=Convergence,DATASET(lIterations) d=dIterations):=dResult(MIN(Convergence,n),d);
+    EXPORT Types.NumericField Delta(UNSIGNED n01=Convergence-1,UNSIGNED n02=Convergence,DATASET(lIterations) d=dIterations):=dDelta(MIN(Convergence-1,n01),MIN(Convergence,n02),d);
+    EXPORT DistanceDelta(UNSIGNED n01=Convergence-1,UNSIGNED n02=Convergence,DATASET(lIterations) d=dIterations):=dDistanceDelta(MIN(Convergence-1,n01),MIN(Convergence,n02),d);
   END;
 
 // When combining clusters how to compute the distances of the new clusters to each other
