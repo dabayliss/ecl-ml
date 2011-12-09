@@ -10,7 +10,7 @@ r := RECORD
 	UNSIGNED YMax := MAX(GROUP,d.y);
   END;
 
-SHARED Stats := TABLE(dn,r)[1];
+EXPORT Stats := TABLE(dn,r)[1];
 
 // The largest dimension of the matrix
 EXPORT Dimension := MAX(Stats.XMax,Stats.YMax);
