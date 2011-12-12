@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 // This module exists to handle a special sub-case of a matrix; the Vector
 // The vector is really just a matrix with only one dimension
 EXPORT Vec := MODULE
@@ -6,20 +6,20 @@ EXPORT Vec := MODULE
 // Create a vector from 'thin air' - with N entries each of value def
 EXPORT From(Types.t_Index N,Types.t_value def = 1.0) := FUNCTION
 	seed := DATASET([{0,0}], Types.VecElement);
-
+  PerCluster := ROUNDUP(N/CLUSTERSIZE);
 	Types.VecElement addNodeNum(Types.VecElement L, UNSIGNED4 c) := transform
-    SELF.i := c;
+    SELF.i := (c-1)*PerCluster;
 		SELF.value := DEF;
   END;
 	// Create eventual vector across all nodes (in case it is huge)
-	one_per_node := DISTRIBUTE(NORMALIZE(seed, CLUSTERSIZE, addNodeNum(LEFT, COUNTER)), i);
+	one_per_node := DISTRIBUTE(NORMALIZE(seed, CLUSTERSIZE, addNodeNum(LEFT, COUNTER)), i DIV PerCluster);
 
 	Types.VecElement fillRow(Types.VecElement L, UNSIGNED4 c) := TRANSFORM
-		SELF.i := l.i+CLUSTERSIZE*(c-1);
+		SELF.i := l.i+c;
 		SELF.value := def;
 	END;
 	// Now generate on each node; filter 'clips' of the possible extra '1' generated on some nodes
-	m := NORMALIZE(one_per_node, ROUNDUP(N/CLUSTERSIZE), fillRow(LEFT,COUNTER))(i <= N);
+	m := NORMALIZE(one_per_node, PerCluster, fillRow(LEFT,COUNTER))(i <= N);
 	RETURN m;
 
 END;
