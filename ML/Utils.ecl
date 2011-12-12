@@ -85,5 +85,33 @@ EXPORT RebaseDiscrete(DATASET(Types.DiscreteField) cl,Types.t_FieldNumber new_lo
 	INTEGER Delta := new_lowval-CurrentBase;
 	RETURN PROJECT(cl,TRANSFORM(Types.DiscreteField,SELF.number := LEFT.number+Delta,SELF := LEFT));
   END;
+
+EXPORT RebaseNumericField(DATASET(Types.NumericField) cl) := MODULE
+  SHARED MapRec:=RECORD
+		Types.t_FieldNumber old;
+		Types.t_FieldNumber new;
+	END;
+  olds := TABLE(cl, {cl.number,COUNT(GROUP)}, number, FEW);	
+	
+	EXPORT Mapping(Types.t_FieldNumber new_lowval=1) := FUNCTION
+	MapRec mapthem(olds le, UNSIGNED c) := TRANSFORM
+		SELF.old := le.number;
+		SELF.new := c-1+new_lowval;
+	END;
+		RETURN PROJECT(olds, mapthem(LEFT, COUNTER));
+	END;
+		
+	EXPORT ToNew(DATASET(MapRec) MapTable) := FUNCTION
+ 		RETURN JOIN(cl,MapTable,LEFT.number=RIGHT.old,TRANSFORM(Types.NumericField, SELF.number := RIGHT.new, SELF:=LEFT),LOOKUP);
+  END;	
+	
+	EXPORT ToOld(DATASET(Types.NumericField) cl, DATASET(MapRec) MapTable) := FUNCTION
+ 		RETURN JOIN(cl,MapTable,LEFT.number=RIGHT.new,TRANSFORM(Types.NumericField, SELF.number := RIGHT.old, SELF:=LEFT),LOOKUP);
+  END;	
+	
+  END;	
+	
+
+	
 	
 END;

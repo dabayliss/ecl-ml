@@ -1,4 +1,5 @@
 ﻿IMPORT * FROM $;
+IMPORT ML.Mat;
 /*
 		The object of the classify module is to generate a classifier.
     A classifier is an 'equation' or 'algorithm' that allows the 'class' of an object to be imputed based upon other properties
@@ -295,4 +296,66 @@ EXPORT BuildPerceptron(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteFie
 	END;
 	RETURN LOOP(InitWeights,Passes,PASS(ROWS(LEFT)));
 END;
+
+/*
+	Logistic Regression implementation base on the iteratively-reweighted least squares (IRLS) algorithm:
+  http://www.cs.cmu.edu/~ggordon/IRLS-example
+
+	The inputs to the Logistic Regression are:
+  a) A training dataset X of discretized independant variables
+  b) A dataset of class results Y.
+
+	Output: A regression coefficients dataset Beta including the intercept Beta0. 
+          A dataset modelY = 1 ./ (1+exp(-X*Beta))
+*/
+EXPORT Logistic(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y, 
+                        REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIter=200) := MODULE
+
+  SHARED mu_comp := ENUM ( Beta = 1,  Y = 2 );
+	SHARED RebaseY := Utils.RebaseNumericField(Y);
+	SHARED Y_Map := RebaseY.Mapping(1);
+	Y_0 := RebaseY.ToNew(Y_Map);
+	mY := Types.ToMatrix(Y_0);
+	mX_0 := Types.ToMatrix(X);
+	mX := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
+	
+	mXstats := Mat.Has(mX).Stats;
+	mX_n := mXstats.XMax;
+	mX_m := mXstats.YMax;
+
+	mW := Mat.Vec.ToCol(Mat.Vec.From(mX_n,1.0),1);
+	mRidge := Mat.Vec.ToDiag(Mat.Vec.From(mX_m,ridge));
+	mBeta0 := Mat.Vec.ToCol(Mat.Vec.From(mX_m,0.0),1);	
+	mBeta00 := Mat.MU.To(mBeta0, mu_comp.Beta);
+	OldExpY_0 := Mat.Vec.ToCol(Mat.Vec.From(mX_n,-1.0),1); // -ones(size(mY))
+	OldExpY_00 := Mat.MU.To(OldExpY_0, mu_comp.Y);
+
+  Step(DATASET(Mat.Types.MUElement) BetaPlusY) := FUNCTION
+	  OldExpY := Mat.MU.From(BetaPlusY, mu_comp.Y);
+		AdjY := Mat.Mul(mX, Mat.MU.From(BetaPlusY, mu_comp.Beta));
+		// expy =  1./(1+exp(-adjy))
+		ExpY := Mat.Each.Reciprocal(Mat.Each.Add(Mat.Each.Exp(Mat.Scale(AdjY, -1)),1));
+		// deriv := expy .* (1-expy)
+		Deriv := Mat.Each.Mul(expy,Mat.Each.Add(Mat.Scale(ExpY, -1),1));
+		// wadjy := w .* (deriv .* adjy + (y-expy))
+		W_AdjY := Mat.Each.Mul(mW,Mat.Add(Mat.Each.Mul(Deriv,AdjY),Mat.Sub(mY, ExpY)));
+		// weights := spdiags(deriv .* w, 0, n, n)
+		Weights := Mat.Vec.ToDiag(Mat.Vec.FromCol(Mat.Each.Mul(Deriv, mW),1));
+		// mBeta := Inv(x' * weights * x + mRidge) * x' * wadjy
+		mBeta :=  Mat.Mul(Mat.Mul(Mat.Inv(Mat.Add(Mat.Mul(Mat.Mul(Mat.Trans(mX), weights), mX), mRidge)), Mat.Trans(mX)), W_AdjY);
+		err := SUM(Mat.Each.Abs(Mat.Sub(ExpY, OldExpY)),value);	
+			RETURN IF(err < mX_n*Epsilon, BetaPlusY, Mat.MU.To(mBeta, mu_comp.Beta)+Mat.MU.To(ExpY, mu_comp.Y));
+		END;
+
+	SHARED BetaPair := LOOP(mBeta00+OldExpY_00, MaxIter, Step(ROWS(LEFT)));	
+	BetaM := Mat.MU.From(BetaPair, mu_comp.Beta);
+	BetaNF := Types.FromMatrix(BetaM);
+	// convert Beta into NumericField dataset, and shift IDs down by one to ensure the intercept Beta0 has id=0
+	EXPORT Beta := PROJECT(BetaNF,TRANSFORM(Types.NumericField,SELF.id:= LEFT.id-1;SELF:=LEFT;));
+
+  modelY_M := Mat.MU.From(BetaPair, mu_comp.Y);
+	modelY_NF := Types.FromMatrix(modelY_M);
+	EXPORT modelY := RebaseY.ToOld(modelY_NF, Y_Map);
+	
+	END; // Logistic Module
 END;
