@@ -1,6 +1,5 @@
 ﻿// Element-wise matrix operations
-//IMPORT * FROM $;
-IMPORT Mat.Types;
+IMPORT ML.Mat.Types;
 EXPORT Each := MODULE
 
 EXPORT Sqrt(DATASET(Types.Element) d) := FUNCTION
