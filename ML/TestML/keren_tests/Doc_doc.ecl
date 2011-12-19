@@ -1,0 +1,20 @@
+﻿IMPORT ML;
+IMPORT ML.Docs AS Docs;
+d := DATASET([{'One of the wonderful things about tiggers is tiggers are wonderful things'},{'It is a little scarey the drivel that entersone\'s mind when given the task of entering random text'},{'I almost quoted obama; but I considered that I had gotten a little too silly already!'},
+{'In Hertford, Hereford and Hampshire Hurricanes hardly ever happen'}, {'In the beginning was the Word and the Word was with God and the Word was God'}],{string r});
+d1 := PROJECT(d,TRANSFORM(Docs.Types.Raw,SELF.Txt := LEFT.r));
+d1;
+d2 := Docs.Tokenize.Enumerate(d1);
+d2;
+d3 := Docs.Tokenize.Clean(d2);
+d3;
+d4 := Docs.Tokenize.Split(d3);
+d4;
+lex := Docs.Tokenize.Lexicon(d4);
+lex;
+o1 := Docs.Tokenize.ToO(d4,lex);
+o1;
+Docs.Trans(o1).WordBag;
+Docs.Trans(o1).WordsCounted;
+o2 := Docs.Tokenize.FromO(o1,lex);
+o2;
