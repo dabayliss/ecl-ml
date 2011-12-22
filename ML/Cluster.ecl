@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Module used to cluster perform clustering on data in the NumericField
 // format.  Includes functions for calculating distance using many different
 // algorithms, determining centroid allegiance based on those distances, and
@@ -84,6 +84,25 @@ EXPORT Cluster := MODULE
     EXPORT Euclidean := MODULE(EuclideanSquared)
       EXPORT Types.t_FieldReal BackFront(Mat.Types.Element Back,ClusterPair Fro) := SQRT(IF ( Fro.id>0, Back.value+Fro.value01-Fro.value02-Fro.value03, Back.value ));
     END;
+    EXPORT Manhattan:=MODULE(Default),VIRTUAL
+      EXPORT UNSIGNED1 PModel := c_model.Background;
+      EXPORT SummaryID1(DATASET(Types.NumericField) d) := PROJECT(TABLE(d,{id,val:=SUM(GROUP,value);},id),TRANSFORM(Types.NumericField,SELF.value:=LEFT.val,SELF.number:=0,SELF.id:=LEFT.id));
+      EXPORT Comb1(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2):=SUM(d,ABS(Value01-Value02));
+      EXPORT Comb2(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2):=SUM(D,Value01);
+      EXPORT Comb3(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2):=SUM(D,Value02);
+      EXPORT Types.t_FieldReal Background(Types.NumericField va1,Types.NumericField va2):=va1.value+va2.value;
+      EXPORT Types.t_FieldReal BackFront(Mat.Types.Element Back,ClusterPair Fro):=IF(Fro.id>0,Back.value+Fro.value01-Fro.value02-Fro.value03,Back.value);
+    END;
+    EXPORT Cosine := MODULE(Default),VIRTUAL
+      EXPORT UNSIGNED1 PModel := c_model.Background;
+      EXPORT SummaryID1(DATASET(Types.NumericField) d) := PROJECT(TABLE(d,{id,val:=SQRT(SUM(GROUP,(value*value)));},id),TRANSFORM(Types.NumericField,SELF.value:=LEFT.val,SELF.number:=0,SELF.id:=LEFT.id));
+      EXPORT Comb1(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(d,Value01*Value02);
+      EXPORT Types.t_FieldReal Background(Types.NumericField va1,Types.NumericField va2):=va1.value*va2.value;
+      EXPORT Types.t_FieldReal BackFront(Mat.Types.Element Back,ClusterPair Fro):=IF(Fro.id>0,1.0-(Fro.Value01/Back.value),1.0);
+    END;
+    EXPORT Tanimoto := MODULE(Cosine),VIRTUAL
+      EXPORT Types.t_FieldReal BackFront(Mat.Types.Element Back,ClusterPair Fro):=IF(Fro.id>0,1.0-(Fro.Value01/(Back.value-Fro.Value01)),1.0);
+    END;
 // These compute full Euclidean	the 'simple' way and have no obvious restrictions
 // Expect to wait a while
     EXPORT WEuclideanSquared := MODULE(Default),VIRTUAL
@@ -93,18 +112,18 @@ EXPORT Cluster := MODULE
     EXPORT WEuclidean := MODULE(WEuclideanSquared)
 			EXPORT Comb1(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2) := SQRT( SUM(D,Value01) );
     END;
-    EXPORT Manhattan := MODULE(Default),VIRTUAL
+    EXPORT WManhattan := MODULE(Default),VIRTUAL
 			EXPORT IV1(Types.t_FieldReal x,Types.t_FieldReal y) := ABS(x-y);
 			EXPORT IV2(Types.t_FieldReal x,Types.t_FieldReal y) := 0;
 			EXPORT Comb1(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2) := SUM(D,Value01);
     END;
-		EXPORT Maximum := MODULE(Manhattan)
+		EXPORT Maximum := MODULE(WManhattan)
 			EXPORT Comb1(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2) := MAX(D,Value01);
 		END;
-    EXPORT Cosine := MODULE(Default),VIRTUAL
+    EXPORT WCosine := MODULE(Default),VIRTUAL
 			EXPORT Comb1(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02)));
     END;
-    EXPORT Tanimoto := MODULE(Default),VIRTUAL
+    EXPORT WTanimoto := MODULE(Default),VIRTUAL
 			EXPORT Comb1(DATASET(ClusterPair) d,REAL8 ev1,REAL8 ev2) := 1-SUM(D,Value01*Value02)/( SQRT(SUM(D,Value01*Value01))*SQRT(SUM(D,Value02*Value02))-SUM(D,Value01*Value02));
     END;
 		// Now for some quick and dirty functions
