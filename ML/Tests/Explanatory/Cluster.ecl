@@ -1,4 +1,4 @@
-﻿// K-MEANS EXAMPLE
+// K-MEANS EXAMPLE
 //
 // Presents K-Means clustering in a 2-dimensional space. 100 data points
 // are initialized with random values on the x and y axes, and 4 centroids
@@ -136,5 +136,6 @@ KMeans.Delta(0);                                         // The total distance t
 KMeans.DistanceDelta(5,15);                              // The straight-line distance travelled by each centroid from iterations 5 to 15
 KMeans.DistanceDelta(0);                                 // The total straight-line distance each centroid travelled 
 KMeans.DistanceDelta();                                  // The distance travelled by each centroid during the last iteration.
+
 
 
