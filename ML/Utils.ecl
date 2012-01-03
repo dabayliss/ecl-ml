@@ -1,4 +1,4 @@
-﻿// Utilities for the implementation of ML (rather than the interface to it)
+// Utilities for the implementation of ML (rather than the interface to it)
 IMPORT * FROM $;
 EXPORT Utils := MODULE
 
@@ -31,11 +31,12 @@ EXPORT REAL8 NCK(INTEGER2 N, INTEGER2 K) := Fac(N)/(Fac(K)*Fac(N-k));
 // Evaluate a polynomial from a set of co-effs. Co-effs 1 is assumed to be the HIGH order of the equation
 // Thus for ax^2+bx+c - the set would need to be Coef := [a,b,c];
 EXPORT REAL8 Poly(REAL8 x, SET OF REAL8 Coeffs) := BEGINC++
-//       bool isAllXyz, size32_t lenXyz, void *  xyz
   if (isAllCoeffs)
 	  return 0.0;
 	int num = lenCoeffs / 8; // Note - REAL8 specified in prototype
-	double * cp = (double *)coeffs; // Will not work if sizeof(double) != 8
+	if ( num == 0 )
+		return 0.0;
+	const double * cp = (const double *)coeffs; // Will not work if sizeof(double) != 8
 	double tot = *cp++;
 	while ( --num )
 		tot = tot * x + *cp++;
@@ -63,7 +64,7 @@ EXPORT stirlingFormula(real8 x) :=FUNCTION
 end;
 /*
 	return the value of gamma function of real number x
-  The implementation referen open source weka gamma function but not strictly follow it
+  The implementation references open source weka gamma function but does not strictly follow it
 	12/02/2011
 */
 EXPORT gamma(REAL8 x) :=FUNCTION
@@ -136,7 +137,7 @@ EXPORT gamma(REAL8 x) :=FUNCTION
 		REAL8 g3 := z4 * u / v;
 		
 	  REAL8 g := MAP(
-						isFail => 9999,//FAIL(99, 'x should not be zero or negaive integers'),
+						isFail => 9999,//FAIL(99, 'x should not be zero or negative integers'),
 						x>1.0e-9 AND ((absx-intx)<1.0e-9 OR abs((round(absx)-absx))<1.0e-9) => g0,
 						//x is big enough
 						ABS(x)>=6.0 => g2,
@@ -162,14 +163,14 @@ EXPORT Beta(REAL8 x, REAL8 y) := FUNCTION
 	 isYLeftInt :=ABS((ROUND(absy)-absy))<1.0e-9;
 	 isYfail := absy<1.0e-9 OR (y<0 AND (isYRightInt OR isYLeftInt));
 	 
-		bp := gamma(x)*gamma(y)/gamma(x+y);
-		bn :=(x+y)*gamma(x+1)*gamma(y+1)/(x*y*gamma(x+y+1));
+	 bp := gamma(x)*gamma(y)/gamma(x+y);
+	 bn :=(x+y)*gamma(x+1)*gamma(y+1)/(x*y*gamma(x+y+1));
 	
-	b := MAP(
+	 b := MAP(
 						x>0 AND y>0 => bp,
 						isXfail OR isYfail => 9999, // failed becuase one of them negative integers or zero
 						bn //when both x and y negative real numbers				
-					);
+					 );
 					
 	RETURN b;
 END;
