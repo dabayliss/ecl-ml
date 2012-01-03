@@ -1,4 +1,5 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
+IMPORT Std.Str ;
 IMPORT ML.mat as Mat;
 /*
 	The object of the regression module is to generate a regression model.
@@ -123,6 +124,37 @@ EXPORT Poly(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y, UNSIGNE
 
 	EXPORT RSquared	:= OLS(newX, Y).RSquared;
 	
+	// use K out of N polynomial components, and find the best model
+	EXPORT SubBeta(UNSIGNED1 K, UNSIGNED1 N) := FUNCTION
+	
+		nk := Utils.NchooseK(N, K);
+		R := RECORD
+			REAL r2 := 0;
+			nk.Kperm;
+		END;
+		// permutations
+		perms := TABLE(nk, R);
+	
+		// evaluate permutations for the model fit based on RSquared
+		R T(R le) := TRANSFORM
+			reg := OLS(newX(number IN (SET OF INTEGER1)Str.SplitWords(le.Kperm, ' ')), Y);
+			SELF.r2 := (reg.RSquared)[1].rsquared;
+			SELF := le;
+		END;
+
+		fitDS := PROJECT(perms, T(LEFT)); 
+		
+		//winning permutation
+		wperm := fitDS((r2=MAX(fitDS,r2)))[1].Kperm;
+
+		wB := OLS(newX(number IN (SET OF INTEGER1)Str.SplitWords(wperm, ' ')), Y).Beta();
+
+		prittyB := PROJECT(wB, TRANSFORM({Types.t_RecordID id;STRING10 name;Types.t_FieldReal value;}, 
+							SELF.name := CHOOSE((Generate.tp_Method) LEFT.number, 'LogX','X', 'XLogX',
+														'XX', 'XXLogX', 'XXX', 'X0'); SELF:=LEFT));	 
+		RETURN prittyB;
+
+	END;
 END;
 
 END;
