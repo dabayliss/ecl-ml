@@ -1,4 +1,4 @@
-IMPORT * FROM $;
+﻿IMPORT * FROM $;
 IMPORT Std.Str ;
 IMPORT ML.mat as Mat;
 /*
@@ -47,9 +47,19 @@ EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODUL
 	
 	// use calculated estimator to predict Y values
 	Y_estM := Mat.Trans(Mat.Mul(Mat.Trans(MDM.Cholesky.Betas) , mXt));	
-	Y_est := Types.FromMatrix(Y_estM);
+	EXPORT modelY := Types.FromMatrix(Y_estM);
+	
+	EXPORT Extrapolate(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Beta) := FUNCTION
+		Beta0 := PROJECT(Beta,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1;SELF:=LEFT;));
+	  mBeta := Types.ToMatrix(Beta0);
+	  mX_0 := Types.ToMatrix(X);
+		mXloc := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
+		RETURN Types.FromMatrix( Mat.Mul(mXloc, Mat.Trans(mBeta)) );
+		
+	END;	
+	
 	// Y.number = number*2; Y_est.number = number*2+1;
-	Y_est1 := PROJECT(Y_est, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number+1; SELF := LEFT));
+	Y_est1 := PROJECT(modelY, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number+1; SELF := LEFT));
 	Y1 := PROJECT(Y, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number; SELF := LEFT));
 
 	SHARED corr_ds := Correlate(Y1+Y_est1).Simple;

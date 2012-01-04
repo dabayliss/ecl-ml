@@ -357,6 +357,18 @@ EXPORT Logistic(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y,
   modelY_M := Mat.MU.From(BetaPair, mu_comp.Y);
 	modelY_NF := Types.FromMatrix(modelY_M);
 	EXPORT modelY := RebaseY.ToOld(modelY_NF, Y_Map);
-	
+
+  EXPORT Extrapolate(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Beta) := FUNCTION
+		Beta0 := PROJECT(Beta,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1;SELF:=LEFT;));
+	  mBeta := Types.ToMatrix(Beta0);
+	  mX_0 := Types.ToMatrix(X);
+		mXloc := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
+		
+		AdjY := ML.Mat.Mul(mXloc, ML.Mat.Trans(mBeta)) ;
+		// expy =  1./(1+exp(-adjy))
+		sigmoid := ML.Mat.Each.Reciprocal(ML.Mat.Each.Add(ML.Mat.Each.Exp(ML.Mat.Scale(AdjY, -1)),1));
+		RETURN sigmoid;
+	END;
+		
 	END; // Logistic Module
 END;
