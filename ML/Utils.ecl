@@ -168,7 +168,7 @@ EXPORT Beta(REAL8 x, REAL8 y) := FUNCTION
 	
 	 b := MAP(
 						x>0 AND y>0 => bp,
-						isXfail OR isYfail => 9999, // failed becuase one of them negative integers or zero
+						isXfail OR isYfail => 9999, // failed because one of them negative integers or zero
 						bn //when both x and y negative real numbers				
 					 );
 					
