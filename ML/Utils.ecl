@@ -1,5 +1,6 @@
 // Utilities for the implementation of ML (rather than the interface to it)
 IMPORT * FROM $;
+IMPORT Std.Str;
 EXPORT Utils := MODULE
 
 EXPORT Pi := 3.1415926535897932384626433;
@@ -257,6 +258,39 @@ EXPORT RebaseNumericField(DATASET(Types.NumericField) cl) := MODULE
   END;	
 	
   END;	
+
+// Service functions and support pattern
+EXPORT	NotFirst(STRING S) := IF(Str.FindCount(S,' ')=0,'',S[Str.Find(S,' ',1)+1..]);
+EXPORT	NotLast(STRING S) := IF(Str.FindCount(S,' ')=0,'',S[1..Str.Find(S,' ',Str.FindCount(S,' '))-1]);
+EXPORT	NotNN(STRING S,UNSIGNED2 NN) := MAP( NN = 1 => NotFirst(S),
+																						 NN = Str.WordCount(S) => NotLast(S),
+                                             S[1..Str.Find(S,' ',NN-1)]+S[Str.Find(S,' ',NN)+1..] );
+EXPORT  LastN(STRING S) := Str.GetNthWord(S,Str.WordCount(S));			
+
+// Choose K (ascending element) permutations out of string of '1 2 3 ... N'  elements
+// E.g. KoutofN(2,3) = '1 2', '2 3'
+EXPORT  NchooseK(UNSIGNED1 N, UNSIGNED1 K) := FUNCTION
+// generate string sample txt '1 2 3 ... N' to choose K elements from
+rec := {UNSIGNED1 num};
+seed := DATASET([{0}], rec);
+txt := Str.CombineWords(SET(NORMALIZE(seed, N, TRANSFORM(rec, SELF.num := COUNTER)), (STRING2)num), ' ' );
+
+R := RECORD
+	STRING Kperm ;
+	STRING From ;
+END;
+Init := DATASET([{'',txt}],R);
+R Permutate(DATASET(R) infile) := FUNCTION
+R TakeOne(R le, UNSIGNED1 c) := TRANSFORM
+  SELF.Kperm := IF( (INTEGER1)Str.GetNthWord(le.from,c)> (INTEGER1)LastN(le.Kperm),le.Kperm + ' '+Str.GetNthWord(le.From, c),SKIP);
+	SELF.From := NotNN(le.From,c);
+END;
+RETURN NORMALIZE(infile,Str.WordCount(LEFT.From),TakeOne(LEFT,COUNTER));
+END;
+
+RETURN TABLE(LOOP(Init,K,Permutate(ROWS(LEFT))), {Kperm});
+
+END;
 	
 
 	

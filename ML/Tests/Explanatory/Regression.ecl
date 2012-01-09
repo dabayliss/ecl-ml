@@ -15,6 +15,10 @@ Y := O(Number IN [2]); // Pull out the height
 Reg := ML.Regression.OLS(X,Y);
 B := Reg.Beta();
 B;
+Reg.ModelY;
+Reg.Extrapolate(X,B);
+
 Reg.RSquared;
 Reg.Anova;
 B2:= Reg.Beta(Reg.MDM.LU);
+

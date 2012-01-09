@@ -20,5 +20,7 @@ d := DATASET([{1,35,149,0},{2,11,138,0},{3,12,148,1},{4,16,156,0},
                                                                                                                 
 ML.ToField(d,flds);
 logistic := ML.Classify.Logistic(flds(Number=2),flds(Number=3));
-logistic.Beta;
+b := logistic.Beta;
+b;
 logistic.modelY;
+logistic.Extrapolate(flds(Number=2),b);

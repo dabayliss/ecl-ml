@@ -1,4 +1,5 @@
 ﻿IMPORT * FROM $;
+IMPORT Std.Str ;
 IMPORT ML.mat as Mat;
 /*
 	The object of the regression module is to generate a regression model.
@@ -46,9 +47,19 @@ EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODUL
 	
 	// use calculated estimator to predict Y values
 	Y_estM := Mat.Trans(Mat.Mul(Mat.Trans(MDM.Cholesky.Betas) , mXt));	
-	Y_est := Types.FromMatrix(Y_estM);
+	EXPORT modelY := Types.FromMatrix(Y_estM);
+	
+	EXPORT Extrapolate(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Beta) := FUNCTION
+		Beta0 := PROJECT(Beta,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1;SELF:=LEFT;));
+	  mBeta := Types.ToMatrix(Beta0);
+	  mX_0 := Types.ToMatrix(X);
+		mXloc := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
+		RETURN Types.FromMatrix( Mat.Mul(mXloc, Mat.Trans(mBeta)) );
+		
+	END;	
+	
 	// Y.number = number*2; Y_est.number = number*2+1;
-	Y_est1 := PROJECT(Y_est, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number+1; SELF := LEFT));
+	Y_est1 := PROJECT(modelY, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number+1; SELF := LEFT));
 	Y1 := PROJECT(Y, TRANSFORM(Types.NumericField, SELF.number := 2*LEFT.number; SELF := LEFT));
 
 	SHARED corr_ds := Correlate(Y1+Y_est1).Simple;
@@ -123,6 +134,37 @@ EXPORT Poly(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y, UNSIGNE
 
 	EXPORT RSquared	:= OLS(newX, Y).RSquared;
 	
+	// use K out of N polynomial components, and find the best model
+	EXPORT SubBeta(UNSIGNED1 K, UNSIGNED1 N) := FUNCTION
+	
+		nk := Utils.NchooseK(N, K);
+		R := RECORD
+			REAL r2 := 0;
+			nk.Kperm;
+		END;
+		// permutations
+		perms := TABLE(nk, R);
+	
+		// evaluate permutations for the model fit based on RSquared
+		R T(R le) := TRANSFORM
+			reg := OLS(newX(number IN (SET OF INTEGER1)Str.SplitWords(le.Kperm, ' ')), Y);
+			SELF.r2 := (reg.RSquared)[1].rsquared;
+			SELF := le;
+		END;
+
+		fitDS := PROJECT(perms, T(LEFT)); 
+		
+		//winning permutation
+		wperm := fitDS((r2=MAX(fitDS,r2)))[1].Kperm;
+
+		wB := OLS(newX(number IN (SET OF INTEGER1)Str.SplitWords(wperm, ' ')), Y).Beta();
+
+		prittyB := PROJECT(wB, TRANSFORM({Types.t_RecordID id;STRING10 name;Types.t_FieldReal value;}, 
+							SELF.name := CHOOSE((Generate.tp_Method) LEFT.number, 'LogX','X', 'XLogX',
+														'XX', 'XXLogX', 'XXX', 'X0'); SELF:=LEFT));	 
+		RETURN prittyB;
+
+	END;
 END;
 
 END;
