@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 TestSize := 25000000;
 // Check normal
 a1 := ML.Distribution.Normal(4,4,10000);

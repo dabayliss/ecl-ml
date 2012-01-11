@@ -1,4 +1,4 @@
-﻿// Matrix Properties
+// Matrix Properties
 IMPORT * FROM $;
 EXPORT Has(DATASET(Types.Element) d) := MODULE
 

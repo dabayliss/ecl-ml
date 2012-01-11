@@ -1,4 +1,4 @@
-﻿import ml;
+import ml;
 
 value_record := RECORD
   unsigned rid;

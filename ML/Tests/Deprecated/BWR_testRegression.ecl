@@ -1,4 +1,4 @@
-﻿IMPORT * FROM ML;
+IMPORT * FROM ML;
 
 /*
 Healthy  Breakfast: a subset of data about different brands of cerial

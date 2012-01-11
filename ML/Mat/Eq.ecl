@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 EXPORT Eq(DATASET(Types.Element) l,DATASET(Types.Element) r) := FUNCTION
   lt := Thin(l);
 	rt := Thin(r);

@@ -1,4 +1,4 @@
-﻿IMPORT * FROM ML;
+IMPORT * FROM ML;
 
 value_record := RECORD
                 unsigned rid;

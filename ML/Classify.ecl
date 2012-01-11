@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 IMPORT ML.Mat;
 /*
 		The object of the classify module is to generate a classifier.

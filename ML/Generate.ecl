@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 
 /*
 	This module exists to turn one column into new columns 

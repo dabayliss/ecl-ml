@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 
 /*
 		This module exists to turn a dataset of numberfields into a dataset of DiscreteFields

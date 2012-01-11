@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 // I suspect some would argue I should common up the Add & Subtract code; or use Scale to map between the two
 // These are fundamental low-level operations; and it is less that 10 lines of code
 EXPORT Add(DATASET(Types.Element) l,DATASET(Types.Element) r) := FUNCTION

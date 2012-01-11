@@ -1,4 +1,4 @@
-﻿IMPORT * FROM ML;
+IMPORT * FROM ML;
 /*
  Poly Tests:
 		Use different seed column distributions dx (1,2,3..., 10,20,30..., 100, 200, 300..., 1, 10, 100...)

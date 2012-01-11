@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 EXPORT Decomp := MODULE
 
 // Back substitution algorithm for solving an upper-triangular system of linear 

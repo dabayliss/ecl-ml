@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 EXPORT FieldAggregates(DATASET(Types.NumericField) d) := MODULE
 
 SingleField := RECORD
