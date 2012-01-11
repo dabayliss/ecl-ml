@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 
 TestSize := 1000000;
 

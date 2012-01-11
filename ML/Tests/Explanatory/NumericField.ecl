@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 value_record := RECORD
 UNSIGNED rid;
 REAL height;

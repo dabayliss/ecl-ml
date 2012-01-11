@@ -1,4 +1,4 @@
-﻿VARSTRING stem(VARSTRING word, INTEGER word_len) := BEGINC++
+VARSTRING stem(VARSTRING word, INTEGER word_len) := BEGINC++
 
 /* This is the Porter stemming algorithm, coded up in ANSI C by the
    author. It may be be regarded as cononical, in that it follows the
@@ -331,6 +331,6 @@ int stem(char * p, int i, int j)
 ENDC++;
 
 
-EXPORT STRING PorterStem(STRING word) := FUNCTION
+EXPORT STRING PorterStemC(STRING word) := FUNCTION
 	RETURN stem(word, LENGTH(word));
 END;

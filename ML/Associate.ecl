@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 IMPORT Std.Str;
 
 EXPORT Associate(DATASET(Types.ItemElement) d,Types.t_Count M) := MODULE

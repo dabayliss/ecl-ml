@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 EXPORT Sub(DATASET(Types.Element) l,DATASET(Types.Element) r) := FUNCTION
 // Only slight nastiness is that these matrices may be sparse - so either side could be null
 Types.Element Su(l le,r ri) := TRANSFORM

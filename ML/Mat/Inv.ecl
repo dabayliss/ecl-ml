@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
  
 Inverse(DATASET(Types.Element) matrix) := FUNCTION
 	dim := Has(matrix).Dimension;

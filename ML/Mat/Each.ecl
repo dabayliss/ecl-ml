@@ -1,4 +1,4 @@
-﻿// Element-wise matrix operations
+// Element-wise matrix operations
 IMPORT ML.Mat.Types;
 EXPORT Each := MODULE
 

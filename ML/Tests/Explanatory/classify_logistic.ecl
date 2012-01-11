@@ -1,4 +1,3 @@
-﻿
 IMPORT ML;
 
 value_record := RECORD

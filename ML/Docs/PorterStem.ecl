@@ -1,4 +1,4 @@
-export string FCN_PorterStemmer(string WORD) := FUNCTION
+export string PorterStem(string WORD) := FUNCTION
 
     //------ Regular expressions -------------------------
     // This is a consonant. Not "aiueo" and "y" only if preceded by a vowel

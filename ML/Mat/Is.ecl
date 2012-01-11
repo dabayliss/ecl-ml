@@ -1,4 +1,4 @@
-﻿// Various tests to see if a matrix is a particular type
+// Various tests to see if a matrix is a particular type
 IMPORT * FROM $;
 EXPORT Is(DATASET(Types.Element) d) := MODULE
 

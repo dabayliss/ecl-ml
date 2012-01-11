@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 EXPORT Correlate(DATASET(Types.NumericField) d) := MODULE
   Singles := FieldAggregates(d).Simple;
 

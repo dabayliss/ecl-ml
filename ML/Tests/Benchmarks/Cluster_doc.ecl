@@ -1,4 +1,4 @@
-﻿// K-MEANS EXAMPLE
+// K-MEANS EXAMPLE
 //
 // Presents K-Means clustering in a 2-dimensional space. 100 data points
 // are initialized with random values on the x and y axes, and 4 centroids

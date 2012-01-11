@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 
 EXPORT Mul(DATASET(Types.Element) l,DATASET(Types.Element) r) := FUNCTION
 

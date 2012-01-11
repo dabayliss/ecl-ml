@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 
 // Raise the matrix d to the power of n (which must be positive)
 EXPORT Pow(DATASET(Types.Element) d,UNSIGNED2 n) := FUNCTION

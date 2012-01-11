@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 R := RECORD
 INTEGER rid;
 INTEGER Recs;
