@@ -1,5 +1,5 @@
 IMPORT * FROM $;
-IMPORT ML.Mat;
+IMPORT $.Mat;
 /*
 		The object of the classify module is to generate a classifier.
     A classifier is an 'equation' or 'algorithm' that allows the 'class' of an object to be imputed based upon other properties
@@ -364,9 +364,9 @@ EXPORT Logistic(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y,
 	  mX_0 := Types.ToMatrix(X);
 		mXloc := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
 		
-		AdjY := ML.Mat.Mul(mXloc, ML.Mat.Trans(mBeta)) ;
+		AdjY := $.Mat.Mul(mXloc, $.Mat.Trans(mBeta)) ;
 		// expy =  1./(1+exp(-adjy))
-		sigmoid := ML.Mat.Each.Reciprocal(ML.Mat.Each.Add(ML.Mat.Each.Exp(ML.Mat.Scale(AdjY, -1)),1));
+		sigmoid := $.Mat.Each.Reciprocal($.Mat.Each.Add($.Mat.Each.Exp($.Mat.Scale(AdjY, -1)),1));
 		RETURN sigmoid;
 	END;
 		

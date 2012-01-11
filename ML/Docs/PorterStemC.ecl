@@ -331,6 +331,6 @@ int stem(char * p, int i, int j)
 ENDC++;
 
 
-EXPORT STRING PorterStem(STRING word) := FUNCTION
+EXPORT STRING PorterStemC(STRING word) := FUNCTION
 	RETURN stem(word, LENGTH(word));
 END;
