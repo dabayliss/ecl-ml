@@ -1,4 +1,4 @@
-﻿IMPORT * FROM ML;
+IMPORT * FROM ML;
 //a := ML.Distribution.Normal(4,5,10000);
 a := ML.Distribution.Poisson(40,100);
 //a := ML.Distribution.Uniform(0,100,10000);

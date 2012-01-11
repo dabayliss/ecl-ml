@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 TestSize := 1000;
 a1 := ML.Distribution.Uniform(0,100,10000);
 b1 := ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
