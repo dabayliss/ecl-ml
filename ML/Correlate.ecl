@@ -1,4 +1,4 @@
-IMPORT * FROM $;
+﻿IMPORT * FROM $;
 EXPORT Correlate(DATASET(Types.NumericField) d) := MODULE
   Singles := FieldAggregates(d).Simple;
 
@@ -42,7 +42,8 @@ CoRec MakeCo(with_x le, singles ri) := TRANSFORM
   EXPORT Simple := JOIN(with_x,singles,LEFT.right_number=RIGHT.number,MakeCo(LEFT,RIGHT),LOOKUP);
 
 OrderedPairRec := RECORD
-	Types.t_RecordID  rid;
+	Types.t_RecordID  left_rid;
+	Types.t_RecordID  right_rid;
 	Types.t_FieldNumber number;
   Types.t_FieldReal left_value;
 	Types.t_FieldReal right_value;
@@ -50,33 +51,29 @@ OrderedPairRec := RECORD
 	END;
 
 OrderedPairRec calculate_rank_direction(d le, d ri) := TRANSFORM
-  SELF.rid := [];
+  SELF.left_rid := le.id;
+	SELF.right_rid := ri.id;
   SELF.number := le.number;
   SELF.left_value := le.value;
 	SELF.right_value := ri.value;
 	SELF.sign := IF(le.value<ri.value, 1, IF(le.value=ri.value, 0, -1));
   END;
 	
-ordered_pairs := JOIN(d,d,LEFT.number=RIGHT.number AND LEFT.id<RIGHT.id,calculate_rank_direction(LEFT,RIGHT));
-
-Utils.mac_SequenceInField(ordered_pairs, number, rid, sequenced_pairs);
-//sequenced_pairs; 
+sequenced_pairs := JOIN(d,d,LEFT.number=RIGHT.number AND LEFT.id<RIGHT.id,calculate_rank_direction(LEFT,RIGHT));
 
 PairRec := RECORD
-	Types.t_RecordID  rid;
   Types.t_FieldNumber left_number;
 	Types.t_FieldNumber right_number;
 	Types.t_FieldSign   sign;
 	END;
 
 PairRec calculate_cordance(OrderedPairRec le, OrderedPairRec ri) := TRANSFORM
-  SELF.rid := le.rid;
   SELF.left_number := le.number;
 	SELF.right_number := ri.number;
 	SELF.sign := le.sign*ri.sign;
   END;
 
-pairs := JOIN(sequenced_pairs,sequenced_pairs, LEFT.rid=RIGHT.rid AND LEFT.number<RIGHT.number,calculate_cordance(LEFT,RIGHT));
+pairs := JOIN(sequenced_pairs,sequenced_pairs, LEFT.right_rid=RIGHT.right_rid AND LEFT.left_rid=RIGHT.left_rid AND LEFT.number<RIGHT.number,calculate_cordance(LEFT,RIGHT));
 //pairs;
 
 PairAccum := RECORD
