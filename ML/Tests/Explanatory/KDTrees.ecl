@@ -10,7 +10,7 @@ a3 := ML.Distribution.Normal(100,20);
 b3 := ML.Distribution.GenData(TestSize,a3,3);
 
 D := b1+b2+b3 : PERSIST('temp::tree_data');
-C := ML.Trees.kdtree(D,10);
+C := ML.Trees.KdTree(D,10);
 C.Splits;
 C.Partitioned;
 C.Counts;
