@@ -1,27 +1,26 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="Dataset[starts-with(@name,'D3')]" mode="generate_body">
 
-  <xsl:template match="Dataset[starts-with(@name,'GOOGLEStd')]" mode="generate_body">
-  <div>
-    <xsl:attribute name="id"><xsl:value-of select="@name"/></xsl:attribute>
-  </div>
-  </xsl:template>
+  <div class="body">
+    <div class="content">
+       <div class='gallery'>
+           <xsl:attribute name="id"><xsl:value-of select="@name"/></xsl:attribute>
+       </div>
+       <link href='http://mbostock.github.com/d3/ex/colorbrewer.css' rel='stylesheet' type='text/css' />
+       <link href='http://mbostock.github.com/d3/ex/voronoi.css' rel='stylesheet' type='text/css' />
+       <script src='http://mbostock.github.com/d3/d3.geom.js?2.4.6' type='text/javascript'></script>
+       <script type='text/javascript'>
 
-  <xsl:template match="Dataset[starts-with(@name,'GOOGLEStd')]" mode="generate_script">
-      <xsl:text>
-      google.setOnLoadCallback(draw</xsl:text><xsl:value-of select="@name"/><xsl:text>);
-      function draw</xsl:text><xsl:value-of select="@name"/><xsl:text>()
-      {
-</xsl:text>
-//---------------------------------------------------------------------------
-// DATA PASTED HERE
-//---------------------------------------------------------------------------
- <xsl:for-each select="Row[chartelementtype='DATA']">
-     <xsl:value-of select="s"/>
- </xsl:for-each>
 //---------------------------------------------------------------------------
 // OPTIONS PASTED HERE
 //---------------------------------------------------------------------------
  <xsl:for-each select="Row[chartelementtype='OPTIONS']">
+     <xsl:value-of select="s"/>
+ </xsl:for-each>
+//---------------------------------------------------------------------------
+// DATA PASTED HERE
+//---------------------------------------------------------------------------
+ <xsl:for-each select="Row[chartelementtype='DATA']">
      <xsl:value-of select="s"/>
  </xsl:for-each>
 //---------------------------------------------------------------------------
@@ -31,8 +30,12 @@
      <xsl:value-of select="s"/>
  </xsl:for-each>
 //---------------------------------------------------------------------------
-      <xsl:text>
-      }
-      </xsl:text>
+
+      </script>
+    </div>
+  </div>
+
+  </xsl:template>
+  <xsl:template match="Dataset[starts-with(@name,'D3Voronoi')]" mode="generate_script">
   </xsl:template>
 </xsl:stylesheet>

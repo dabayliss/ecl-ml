@@ -1,11 +1,13 @@
-IMPORT ML;
+﻿IMPORT ML;
 IMPORT ML.Types AS Types;
 IMPORT ML.Cluster.DF AS DF;
+IMPORT VL;
 
 UNSIGNED4 InDocumentCount:=1000 :STORED('DocumentCount');
 UNSIGNED2 InCentroidCount:=50   :STORED('CentroidCount');
 UNSIGNED1 InIterations:=20      :STORED('NumberOfIterations');
 
+lOutput:={STRING CHARTELEMENTTYPE;STRING s;};
 
 ML.Types.NumericField CreateElements(UNSIGNED iRows,UNSIGNED iFields=2,UNSIGNED iBeginAt=1,iMaxVal=1000):=FUNCTION
   d01:=DATASET([{0,0,0}],ML.Types.NumericField);
@@ -22,10 +24,14 @@ KMeansNAsArray(DATASET(Types.NumericField) d01,DATASET(Types.NumericField) d02,U
   dCentroidsRolled:=ROLLUP(dNormalized,LEFT.i!=-RIGHT.i,TRANSFORM(RECORDOF(dNormalized),SELF.s:=LEFT.s+IF(LEFT.i=RIGHT.i,IF(LEFT.number<RIGHT.number,',','],['),']],[[')+RIGHT.s;SELF:=RIGHT;));
   sCentroids:='var vertices=[[['+dCentroidsRolled[1].s+']]];';
   sDocuments:='var documents=[['+dDocumentsRolled[1].s+']];';
-  RETURN DATASET([{sDocuments},{sCentroids}],{STRING s});
+  RETURN DATASET([{'DATA',sDocuments},{'DATA',sCentroids}],lOutput);
 END;
 
 dData:=CreateElements(InDocumentCount);
 dCentroids:=CreateElements(InCentroidCount,,InDocumentCount+1);
 KMeans:=ML.Cluster.KMeans(dData,dCentroids,InIterations);
-OUTPUT(KMeansNAsArray(dData,dCentroids,InIterations),NAMED('D3Voronoi_test'));
+dKMeansData:=KMeansNAsArray(dData,dCentroids,InIterations);
+
+sChartName:='D3Voronoi_test';
+dWithChartCall:=dKMeansData+DATASET([{'CHARTCALL',VL.D3Templates.VoronoiDynamic(sChartName)}],lOutput);
+OUTPUT(dWithChartCall,NAMED(sChartName));

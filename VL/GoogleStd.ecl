@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 // Macro to produce a Google chart.  Parameters are:
 //   d          : Name of the dataset containing the data to chart.
 //   sChartType : [OPTIONAL] The type of chart to display.  Default is 'Line'
