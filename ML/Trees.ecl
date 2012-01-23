@@ -47,7 +47,7 @@ EXPORT Trees := MODULE
 		  SELF.node_id := (le.node_id << 1) + IF(le.value<ri.value,0,1);
 		  SELF.id := le.id;
 		END;
-		// The ,FEW means that the result will be distributed by ID still
+		// The ,LOOKUP means that the result will be distributed by ID still
 		ndata := JOIN(working_nodes,splits,LEFT.node_id = RIGHT.node_id AND LEFT.number=RIGHT.number,NoteNI(LEFT,RIGHT),LOOKUP);
 		// The we apply those record_id/node_id pairs back to the original data / we can use local because of the ,LOOKUP above
 		patched := JOIN(working_nodes,ndata,LEFT.id=RIGHT.id,TRANSFORM(Node,SELF.node_id := RIGHT.node_id, SELF.level := LEFT.level+1,SELF := LEFT),LOCAL);
