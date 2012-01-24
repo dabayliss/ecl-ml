@@ -150,16 +150,31 @@ EXPORT Trees := MODULE
 	END;
 		SHARED res := LOOP(ind1,Depth,Split(ROWS(LEFT),COUNTER));
 		SplitF := RECORD
-		  t_node node_id;
-			t_level level;
+		  t_node node_id; // The node that is being split
+			t_level level;  // The level the split is occuring
 			ML.Types.t_FieldNumber number; // The column used to split
-			ML.Types.t_Discrete value;
-			t_node new_node_id;
+			ML.Types.t_Discrete value; // The value for the column in question
+			t_node new_node_id; // The new node that value goes to
 		END;
 		EXPORT Splits := PROJECT(Res(id=0),TRANSFORM(SplitF,SELF.new_node_id := LEFT.value, SELF.value := LEFT.depend, SELF := LEFT)); // The split points used to partition each node id
 		SHARED nsplits := res(id<>0);
 		EXPORT Partitioned := PROJECT(nsplits,Node); // The training data - all partitioned
-		// number=1 pulled simply to get 1 record per record-id <note: did a .FatD earlier>
+		// Now we want to create records to show the predicted dependant variable for each node; together with a %age hit rate
+		mode_r := RECORD
+			nsplits.node_id;
+			nsplits.depend;
+			Cnt := COUNT(GROUP);
+			OCnt := 0; // Records 'other' than the current one (filled in later)
+		END;
+		d := TABLE(nsplits(number=1),mode_r,node_id,depend,MERGE);
+		m := SORT( DISTRIBUTE(d,HASH(node_id)), node_id,-Cnt,LOCAL);
+		mode_r rol(m le,m ri) := TRANSFORM
+		  SELF.OCnt := le.OCnt + ri.Cnt;
+		  SELF := le;
+		END;
+		m1 := ROLLUP(m,LEFT.node_id=RIGHT.node_id,rol(LEFT,RIGHT),LOCAL);
+		EXPORT Modes := TABLE(m1,{node_id,depend,size := Cnt+OCnt,pcnt := 100.0 * Cnt / (Cnt+OCnt)});
+		EXPORT Precision := SUM(Modes,size*pcnt/100)/SUM(Modes,size);
 		EXPORT Counts := TABLE(Partitioned(number=1),{ node_id, Lvl := MAX(GROUP,level), Cnt := COUNT(GROUP) }, node_id, FEW); // Number of training elements in each partition
 		EXPORT Purities := ML.Utils.Gini(nsplits(number=1),node_id,depend);
 		EXPORT CountMean := AVE(Counts,Cnt);
