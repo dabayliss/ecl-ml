@@ -17,12 +17,10 @@
 //---------------------------------------------------------------------------
 IMPORT VL;
 EXPORT GoogleStd(d,sChartType='Bar',sOpt='\'\''):=FUNCTIONMACRO
-  lOutput:={STRING CHARTELEMENTTYPE;STRING s;};
-
-  dData:=PROJECT(VL.ToGoogleTable(d),TRANSFORM(lOutput,SELF.CHARTELEMENTTYPE:='DATA';SELF:=LEFT;));
-  dOptions:=DATASET([{'OPTIONS','var options={'+sOpt+'};'}],lOutput);
+  dData:=PROJECT(VL.ToGoogleTable(d),TRANSFORM(VL.Types.ChartInterface,SELF.CHARTELEMENTTYPE:='DATA';SELF:=LEFT;));
+  dOptions:=DATASET([{'OPTIONS','var options={'+sOpt+'};'}],VL.Types.ChartInterface);
   #UNIQUENAME(c)
-  dChart:=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'Chart(document.getElementById(\'GOOGLEStd_'+sChartType+%'c'%+'\'));chart.draw(data,options);'}],lOutput);
+  dChart:=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'Chart(document.getElementById(\'GOOGLEStd_'+sChartType+%'c'%+'\'));chart.draw(data,options);'}],VL.Types.ChartInterface);
 
   dOutput:=dData+dOptions+dChart;
 
