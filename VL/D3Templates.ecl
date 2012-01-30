@@ -40,11 +40,6 @@ EXPORT STRING VoronoiStatic(STRING chartname):=''+
   'var svg = d3.select("#'+chartname+'").append("svg:svg").attr("width", w).attr("height", h).attr("class", "Spectral");'+
   'svg.selectAll("path").data(d3.geom.voronoi(centroids)).enter().append("svg:path").attr("class", function(d, i) { return "q" + (i % 11) + "-11"; }).attr("d", function(d) { return "M" + d.join("L") + "Z"; });'+
   'svg.selectAll("circle").data(centroids).enter().append("svg:circle").attr("transform", function(d) { return "translate(" + d + ")"; }).attr("r", 7).style("fill", "steelblue");'+
-  'svg.selectAll("rect").data(documents).enter().append("svg:rect").attr("transform", function(d) { return "translate(" + d + ")"; }).attr("width", 3).attr("height",3);';/*+
-  'function update()'+
-  '{'+
-  'svg.selectAll("path").data(d3.geom.voronoi(centroids).map(function(d) { return "M" + d.join("L") + "Z"; })).filter(function(d) { return this.getAttribute("d") != d; }).attr("d", function(d) { return d; });'+
-  'svg.selectAll("circle").data(centroids).attr("transform",function(d) {return "translate("+d+")";}).attr("r", 7);'+
-  '}';*/
+  'svg.selectAll("rect").data(documents).enter().append("svg:rect").attr("transform", function(d) { return "translate(" + d + ")"; }).attr("width", 3).attr("height",3);';
 
 END;

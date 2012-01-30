@@ -1,3 +1,8 @@
+//---------------------------------------------------------------------------
+// Macro takes a matrix of x and y values and plots them into a Voronoi
+// Tesselation.
+// The dataset is assumed to be a 2-column table of numeric data.
+//---------------------------------------------------------------------------
 IMPORT VL;
 EXPORT D3Voronoi(d,sOpt='\'\''):=FUNCTIONMACRO
   sData:=VL.ToArray(d);
