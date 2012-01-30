@@ -11,6 +11,11 @@
        <script src='http://mbostock.github.com/d3/d3.geom.js?2.4.6' type='text/javascript'></script>
        <script type='text/javascript'>
 
+// Default values for width, height and margin
+var w = 800;
+var h = 600;
+var margin=3;
+
 //---------------------------------------------------------------------------
 // OPTIONS PASTED HERE
 //---------------------------------------------------------------------------
