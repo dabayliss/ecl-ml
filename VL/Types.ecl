@@ -1,0 +1,6 @@
+EXPORT Types:=MODULE
+  EXPORT ChartInterface:=RECORD
+    STRING CHARTELEMENTTYPE;
+    STRING s;
+  END;
+END;

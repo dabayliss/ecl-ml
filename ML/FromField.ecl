@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 // Macro to reconstitute an original matrix from a NumericField-formatted
 // dataset.  In the simplest case, the assumption is that the field order
 // of the resulting table is in line with the field numbers in the input
@@ -55,7 +55,8 @@ EXPORT FromField(dIn,lOut,dOut,dMap=''):=MACRO
     #END
   #END
   // Denormalize the data using the #EXPAND string constructed above.
+  #UNIQUENAME(id)
   #UNIQUENAME(dIDs)
-  %dIDs%:=PROJECT(TABLE(%dInPrep%,{id},id,LOCAL),TRANSFORM({lOut;TYPEOF(%dInPrep%.id) id;},SELF:=LEFT;SELF:=[];));
-  dOut:=PROJECT(DENORMALIZE(%dIDs%,%dInPrep%,LEFT.id=RIGHT.id,TRANSFORM(RECORDOF(%dIDs%),#EXPAND(%'assignments'%)SELF:=LEFT;)),lOut);
+  %dIDs%:=PROJECT(TABLE(%dInPrep%,{TYPEOF(%dInPrep%.id) %id%:=id},id,LOCAL),TRANSFORM({lOut;TYPEOF(%dInPrep%.id) %id%;},SELF:=LEFT;SELF:=[];));
+  dOut:=PROJECT(DENORMALIZE(%dIDs%,%dInPrep%,LEFT.%id%=RIGHT.id,TRANSFORM(RECORDOF(%dIDs%),#EXPAND(%'assignments'%)SELF:=LEFT;)),lOut);
 ENDMACRO;

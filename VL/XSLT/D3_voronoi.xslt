@@ -8,8 +8,8 @@
            <xsl:attribute name="id"><xsl:value-of select="@name"/></xsl:attribute>
        </div>
        <link href='http://mbostock.github.com/d3/ex/colorbrewer.css' rel='stylesheet' type='text/css' />
-       <link href='http://mbostock.github.com/d3/ex/voronoi.css' rel='stylesheet' type='text/css' />
        <script src='http://mbostock.github.com/d3/d3.geom.js?2.4.6' type='text/javascript'></script>
+       <link href='http://mbostock.github.com/d3/ex/voronoi.css' rel='stylesheet' type='text/css' />
        <script type='text/javascript'>
 
 var w = 800;
