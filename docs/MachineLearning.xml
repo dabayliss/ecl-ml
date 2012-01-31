@@ -34,7 +34,7 @@
 
     <releaseinfo>© 2012 HPCC Systems. All rights reserved</releaseinfo>
 
-    <date>January 2012 Version 1.0</date>
+    <date>January 2012 Version 1.0.0A</date>
 
     <corpname>HPCC Systems</corpname>
 
@@ -44,20 +44,389 @@
 
     <mediaobject role="logo">
       <imageobject>
-        <imagedata fileref="images/ML_COVER_Rightjustified.jpg" />
+        <imagedata fileref="images/iStock_000012344803XSmall.jpg" />
       </imageobject>
     </mediaobject>
   </bookinfo>
 
-  <chapter id="Introduction">
-    <title id="Machine_Learning_Algorithms">Machine Learning
-    Algorithms</title>
+  <chapter id="Introduction_Installation">
+    <title>Introduction and Installation</title>
 
-    <para>The Lexis Nexis machine learning library contains an extensible
+    <para>LexisNexis Risk Solutions is an industry leader in data content,
+    data aggregation, and information services which has independently
+    developed and implemented a solution for data-intensive computing called
+    HPCC (High-Performance Computing Cluster).</para>
+
+    <para>The HPCC System is designed to run on clusters, leveraging the
+    resources across all nodes. However, it can also be installed on a single
+    machine and/or VM for learning or test purposes. It will also run on the
+    AWS Cloud.</para>
+
+    <para>The HPCC platform also includes ECL (Enterprise Control Language)
+    which is a powerful high-level, heavily-optimized, data-centric
+    declarative language used for parallel data processing. The flexibility of
+    the ECL language is such that any ECL code will run unmodified regardless
+    of the size of the cluster being used.</para>
+
+    <para>Instructions for installing the HPCC are available on the HPCC
+    Systems website, <ulink
+    url="http://hpccsystems.com/community/docs/installation-and-administration">http://hpccsystems.com/community/docs/installation-and-administration</ulink>.
+    More information about running HPCC on the AWS Cloud can be found in this
+    document, <emphasis>Running the HPCC System's Thor Platform within Amazon
+    Web Services</emphasis>, <ulink
+    url="http://hpccsystems.com/community/docs/aws-install-thor">http://hpccsystems.com/community/docs/aws-install-thor</ulink>.</para>
+
+    <sect1 id="HPCC_Platform">
+      <title>The HPCC Platform</title>
+
+      <para>HPCC is fast, flexible and highly scalable. It can be used for any
+      data-centric task and can meet the needs of any database regardless of
+      size. There are two types of cluster:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>The Thor cluster is used to process all data in all
+          files.</para>
+        </listitem>
+
+        <listitem>
+          <para>The Roxie cluster is used to search for a particular record or
+          set of records.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>As shown by the following diagram, the HPCC architecture also
+      incorporates:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Common middle-ware components.</para>
+        </listitem>
+
+        <listitem>
+          <para>An external communications layer.</para>
+        </listitem>
+
+        <listitem>
+          <para>Client interfaces which provide both end-user services and
+          system management tools.</para>
+        </listitem>
+
+        <listitem>
+          <para>Auxiliary components to support monitoring and to facilitate
+          loading and storing of file system data from external sources</para>
+        </listitem>
+      </itemizedlist>
+
+      <para><graphic fileref="images/ML008.jpg" /></para>
+
+      <para>For more information about the HPCC architecture, clusters and
+      components, see the HPCC website, <ulink
+      url="http://hpccsystems.com/Why-HPCC/How-it-works">http://hpccsystems.com/Why-HPCC/How-it-works</ulink>.</para>
+    </sect1>
+
+    <sect1 id="ECL_Programming_Language">
+      <title>The ECL Programming Language</title>
+
+      <para>The ECL programming language is a key factor in the flexibility
+      and capabilities of the HPCC processing environment. It is designed to
+      be a transparent and implicitly parallel programming language for
+      data-intensive applications. It is a high-level, highly-optimized,
+      data-centric declarative language that allows programmers to define what
+      the data processing result should be and the dataflows and
+      transformations that are necessary to achieve the result.</para>
+
+      <para>Execution is not determined by the order of the language
+      statements, but from the sequence of dataflows and transformations
+      represented by the language statements. It combines data representation
+      with algorithm implementation, and is the fusion of both a query
+      language and a parallel data processing language.</para>
+
+      <para>ECL uses an intuitive syntax which has taken cues from other
+      familiar languages, supports modular code organization with a high
+      degree of reusability and extensibility, and supports high-productivity
+      for programmers in terms of the amount of code required for typical
+      applications compared to traditional languages like Java and C++. It is
+      compiled into optimized C++ code for execution on the HPCC system
+      platform, and can be used for complex data processing and analysis jobs
+      on a Thor cluster or for comprehensive query and report processing on a
+      Roxie cluster.</para>
+
+      <para>ECL allows inline C++ functions to be incorporated into ECL
+      programs, and external programs in other languages can be incorporated
+      and parallelized through a PIPE facility.</para>
+
+      <para>External services written in C++ and other languages which
+      generate DLLs can also be incorporated in the ECL system library, and
+      ECL programs can access external Web services through a standard
+      SOAPCALL interface.</para>
+
+      <para>The ECL language includes extensive capabilities for data
+      definition, filtering, data management, and data transformation, and
+      provides an extensive set of built-in functions to operate on records in
+      datasets which can include user-defined transformation functions. The
+      Thor system allows data transformation operations to be performed either
+      locally on each node independently in the cluster, or globally across
+      all the nodes in a cluster, which can be user-specified in the ECL
+      language.</para>
+
+      <para>An additional important capability provided in the ECL programming
+      language is support for natural language processing (NLP) with PATTERN
+      statements and the built-in PARSE operation. Using this capability of
+      the ECL language it is possible to implement parallel processing from
+      information extraction applications across document files including
+      XML-based documents or Web pages.</para>
+
+      <para>Some benefits of using ECL are:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>It incorporates transparent and implicit data parallelism
+          regardless of the size of the computing cluster and reduces the
+          complexity of parallel programming increasing development
+          productivity.</para>
+        </listitem>
+
+        <listitem>
+          <para>It enables the implementation of data-intensive applications
+          with huge volumes of data previously thought to be intractable or
+          infeasible. ECL was specifically designed for manipulation of data
+          and query processing. Orders of magnitude performance increases over
+          other approaches are possible.</para>
+        </listitem>
+
+        <listitem>
+          <para>The ECL compiler generates highly optimized C++ for
+          execution.</para>
+        </listitem>
+
+        <listitem>
+          <para>It is a powerful, high-level, parallel programming language
+          ideal for implementation of ETL, information retrieval, information
+          extraction, record linking and entity resolution, and many other
+          data-intensive applications.</para>
+        </listitem>
+
+        <listitem>
+          <para>It is a mature and proven language but is still evolving as
+          new advancements in parallel processing and data-intensive computing
+          occur.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The HPCC platform also provides a comprehensive IDE (ECL IDE)
+      which provide a highly-interactive environment for rapid development and
+      implementation of ECL applications.</para>
+
+      <para>HPCC and the ECL IDE downloads are available from the HPCC systems
+      website, <ulink
+      url="http://hpccsystems.com/">http://hpccsystems.com/</ulink> which also
+      provides access to documentation and tutorials.</para>
+    </sect1>
+
+    <sect1 id="ECL_IDE">
+      <title>ECL IDE</title>
+
+      <para>ECL IDE is an ECL programmer's tool. Its main use is to create
+      queries and ECL files and is designed to make ECL coding as easy as
+      possible. It has all the ECL built-in functions available to you for
+      simple point-and-click use in your query construction. For example, the
+      Standard String Library (Std.Str) contains common functions to operate
+      on STRING fields such as the ToUpperCase function which converts
+      characters in a string to uppercase.</para>
+
+      <para>You can mix-and-match your data with any of the ECL built-in
+      functions and/or ECL files you have defined to create Queries. Because
+      ECL files build upon each other, the resulting queries can be as complex
+      as needed to obtain the result.</para>
+
+      <para>Once the Query is built, submit it to an HPCC cluster, which will
+      process the query and return the results.</para>
+
+      <para>Configuration files (.CFG) are used to store the information for
+      any HPCC you want to connect to, for example, it stores the location of
+      the HPCC and the location of any folders containing ECL files that you
+      may want to use while developing queries. These folders and files are
+      shown in the <emphasis role="bold">Repository</emphasis> window.</para>
+
+      <para><graphic fileref="images/CT06.jpg" /></para>
+
+      <para>For more information on using ECL IDE see the Client Tools manual
+      which may be downloaded from the HPCC website, <ulink
+      url="http://hpccsystems.com/community/docs/client-tools">http://hpccsystems.com/community/docs/client-tools</ulink>.</para>
+    </sect1>
+
+    <sect1 id="Installing_Using_ML">
+      <title>Installing and using the ML Libraries</title>
+
+      <para>The ML Libraries can only be used in conjunction with an HPCC
+      System, ECL IDE and the Client tools.</para>
+
+      <sect2>
+        <title>Requirements</title>
+
+        <para>If you don't already use the HPCC platform and/or ECL IDE and
+        the Client Tools, you must download and install them before
+        downloading the ML libraries:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Download and install the relevant HPCC platform for your
+            needs. (<ulink
+            url="http://hpccsystems.com/download/free-community-edition">http://hpccsystems.com/download/free-community-edition</ulink>)</para>
+          </listitem>
+
+          <listitem>
+            <para>Download and install the ECL IDE and Client Tools (<ulink
+            url="http://hpccsystems.com/download/free-community-edition/ecl-ide-and-client-tools">http://hpccsystems.com/download/free-community-edition/ecl-ide-and-client-tools</ulink>)</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The HPCC Systems website provides more information, about the
+        HPCC and ECL IDE.</para>
+
+        <para>If you are new to the ECL Language, take a look at the a
+        programmers guide and language reference guides, <ulink
+        url="http://hpccsystems.com/community/docs/learning-ecl">http://hpccsystems.com/community/docs/learning-ecl</ulink>.</para>
+
+        <para>The HPCC Systems website also provides tutorials designed to get
+        you started using data on the HPCC System, <ulink
+        url="http://hpccsystems.com/community/docs/tutorials">http://hpccsystems.com/community/docs/tutorials</ulink>.</para>
+      </sect2>
+
+      <sect2>
+        <title>Installing the ML Libraries</title>
+
+        <para>To install the ML Libraries:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Go to the Machine Learning page of the HPCC Systems website,
+            <ulink
+            url="http://hpccsystems.com/ml">http://hpccsystems.com/ml</ulink>
+            and click on <emphasis role="bold">Download and Get
+            Started</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Click on <emphasis role="bold">Step 1: Download the ML
+            Library</emphasis> and save the file to your computer.</para>
+          </listitem>
+
+          <listitem>
+            <para>Extract the downloaded files to your ECL IDE source
+            folder.</para>
+
+            <para>This folder is typically located here:
+            "C:\Users\Public\Documents\HPCC Systems\ECL\My Files".</para>
+
+            <para>To find out the location of this folder, simply go to your
+            ECL IDE <emphasis role="bold">Preferences</emphasis> window either
+            from the login dialog or from the <emphasis
+            role="bold">Orb</emphasis> menu.</para>
+
+            <para>Click on the <emphasis role="bold">Compiler</emphasis> tab
+            and use the first <emphasis role="bold">Working Folder</emphasis>
+            location listed.</para>
+          </listitem>
+        </orderedlist>
+      </sect2>
+
+      <sect2>
+        <title>Using the ML Libraries</title>
+
+        <para>ML module walk-throughs are provided in this manual, which are
+        designed to get you started using ML with the HPCC System.</para>
+
+        <para>Now that the ML Libraries are installed, you can use ECL IDE to
+        write queries to analyze your data:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Login to ECL IDE, accessing the HPCC System you have
+            installed.</para>
+          </listitem>
+
+          <listitem>
+            <para>Using the <emphasis role="bold">Repository</emphasis>
+            toolbox, expand <emphasis role="bold">My Files</emphasis>.</para>
+
+            <para>Notice that the <emphasis role="bold">ML</emphasis> folder
+            and its contents are now available for you to use in your
+            code.</para>
+          </listitem>
+
+          <listitem>
+            <para>Open a new builder window and start writing your
+            query.</para>
+
+            <para>To reference the ML libraries in your ECL source code, use
+            an import statement.</para>
+
+            <para>For example:<programlisting><?dbfo keep-together="always"?>IMPORT * FROM ML;
+ 
+IMPORT * FROM ML.Cluster;
+ 
+IMPORT * FROM ML.Types;
+ 
+x2 := DATASET([
+{1, 1, 1}, {1, 2, 5},
+{2, 1, 5}, {2, 2, 7},
+{3, 1, 8}, {3, 2, 1},
+{4, 1, 0}, {4, 2, 0},
+{5, 1, 9}, {5, 2, 3},
+{6, 1, 1}, {6, 2, 4},
+{7, 1, 9}, {7, 2, 4}],NumericField);
+ 
+c := DATASET([
+{1, 1, 1}, {1, 2, 5},
+{2, 1, 5}, {2, 2, 7},
+{3, 1, 9}, {3, 2, 4}],NumericField);
+ 
+x3 := Kmeans(x2,c);
+ 
+OUTPUT(x3);</programlisting></para>
+          </listitem>
+        </orderedlist>
+
+        <para></para>
+      </sect2>
+    </sect1>
+
+    <sect1 id="Contributing_Sources">
+      <title>Contributing to the sources</title>
+
+      <para>Both HPCC and ECL-ML are open source projects and contributions to
+      the sources are welcome. If you are interested in contributing to these
+      projects, simply download the GitHub client and go to the relevant
+      GitHub pages.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>To contribute to the HPCC open source project, go to <ulink
+          url="https://github.com/hpcc-systems/HPCC-Platform">https://github.com/hpcc-systems/HPCC-Platform</ulink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>To contribute to the ECL-ML open source project, go to <ulink
+          url="https://github.com/hpcc-systems/ecl-ml">https://github.com/hpcc-systems/ecl-ml</ulink>.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>You are required to sign a contribution agreement to become a
+      contributor.</para>
+    </sect1>
+  </chapter>
+
+  <chapter id="Machine_Learning_Algorithms">
+    <title>Machine Learning Algorithms</title>
+
+    <para>The HPCC Systems Machine Learning libraries contain an extensible
     collection of machine learning routines which are easy and efficient to
-    use and are designed to execute in parallel across a cluster. The list of
-    modules supported will continue to grow over time. The following modules
-    are currently supported:</para>
+    use and are designed to execute in parallel across a cluster. T</para>
+
+    <para>he list of modules supported will continue to grow over time. The
+    following modules are currently supported:</para>
 
     <itemizedlist>
       <listitem>
@@ -116,7 +485,7 @@
       </listitem>
 
       <listitem>
-        <para>Utility (ML.Utility) </para>
+        <para>Utility (ML.Utility)</para>
       </listitem>
 
       <listitem>
@@ -124,14 +493,13 @@
       </listitem>
     </itemizedlist>
 
-    <para>The ML Modules are used in conjunction with the Lexis Nexis HPCC
-    system. More information about the HPCC System and it's components is
-    available on the following website, <ulink
-    url="http://hpccsystems.com/"><ulink
+    <para>The ML Modules are used in conjunction with the HPCC system. More
+    information about the HPCC System is available on the following website,
+    <ulink url="http://hpccsystems.com/"><ulink
     url="http://hpccsystems.com/">http://hpccsystems.com/</ulink></ulink>.</para>
 
-    <sect1>
-      <title id="ML_Data_Models">The ML Data Models</title>
+    <sect1 id="ML_Data_Models">
+      <title>The ML Data Models</title>
 
       <para>The ML routines are all centered around a small number of core
       processing models. As a user of ML (rather than an implementer) the
@@ -141,37 +509,56 @@
       shared between various modules within ML are all contained within the
       Type definition.</para>
 
-      <sect2>
-        <title id="Numeric_Field">Numeric field</title>
+      <sect2 id="Numeric_Field">
+        <title>Numeric field</title>
 
-        <para>The principle type that under girds most of the ML processing is
-        the Numeric Field which is a general representation of an arbitrary
+        <para>The principle type that undergirds most of the ML processing is
+        the Numeric Field. This is a general representation of an arbitrary
         ECL record of numeric entries. The record has 3 fields:</para>
 
-        <orderedlist>
-          <listitem>
-            <para>Id (the ‘record id). An identifier for the record being
-            modeled; it will be shared between all of the fields of the
-            record.</para>
-          </listitem>
+        <informaltable>
+          <tgroup cols="2">
+            <colspec align="left" colwidth="100pt" />
 
-          <listitem>
-            <para>The field number. An ECL record with 10 fields which
-            produces 10 ‘numericfield’ records, one with each of the field
-            numbers from 1 to 10.</para>
-          </listitem>
+            <colspec align="left" colwidth="400" />
 
-          <listitem>
-            <para>Value. The value of the field.</para>
-          </listitem>
-        </orderedlist>
+            <thead>
+              <row>
+                <entry align="left">Field</entry>
 
-        <para>This is perhaps visualized by making a comparison with a
-        traditional ECL record. This simple example shows some height, weight
-        and age facts for certain individuals:</para>
+                <entry align="left">Description</entry>
+              </row>
+            </thead>
 
-        <para><programlisting>IMPORT ml;
+            <tbody>
+              <row>
+                <entry>Id</entry>
 
+                <entry>The 'record' id. This is an identifier for the record
+                being modeled. It will be shared between all of the fields of
+                the record.</entry>
+              </row>
+
+              <row>
+                <entry>Field Number</entry>
+
+                <entry>And ECL record with 10 fields produces 10
+                ‘numericfield’ records, one with each of the field numbers
+                from 1 to 10<superscript>[1]</superscript>.</entry>
+              </row>
+
+              <row>
+                <entry>Value</entry>
+
+                <entry>The value of the field.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
+
+        <para>This is perhaps visualized by comparison to a traditional ECL
+        record. Here is a simple example showing some height, weight and age
+        facts for certain individuals:<programlisting>IMPORT ml;
 value_record := RECORD
                 UNSIGNED rid;
   REAL height;
@@ -180,231 +567,215 @@ value_record := RECORD
                 INTEGER1 species; // 1 = human, 2 = tortoise
                 INTEGER1 gender; // 0 = unknown, 1 = male, 2 = female
   END;
-
 d := dataset([{1,5*12+7,156*16,43,1,1},
-                                                               {2,5*12+7,128*16,31,1,2},
-                                                               {3,5*12+9,135*16,15,1,1},
-                                                               {4,5*12+7,145*16,14,1,1},
-                                                               {5,5*12-2,80*16,9,1,1},
-                                                               {6,4*12+8,72*16,8,1,1},
-                                                               {7,8,32,2.5,2,2},
-                                                               {8,6.5,28,2,2,2},
-                                                               {9,6.5,28,2,2,2},
-                                                               {10,6.5,21,2,2,1},
-                                                               {11,4,15,1,2,0},
-                                                               {12,3,10.5,1,2,0},
-                                                               {13,2.5,3,0.8,2,0},
-                                                               {14,1,1,0.4,2,0}
-                                                               ]
-                                                               ,value_record);
-
+              {2,5*12+7,128*16,31,1,2},
+              {3,5*12+9,135*16,15,1,1},
+              {4,5*12+7,145*16,14,1,1},
+              {5,5*12-2,80*16,9,1,1},
+              {6,4*12+8,72*16,8,1,1},
+              {7,8,32,2.5,2,2},
+              {8,6.5,28,2,2,2},
+              {9,6.5,28,2,2,2},
+              {10,6.5,21,2,2,1},
+              {11,4,15,1,2,0},
+              {12,3,10.5,1,2,0},
+              {13,2.5,3,0.8,2,0},
+              {14,1,1,0.4,2,0}
+              ]
+              ,value_record);
 d;
-</programlisting>There are 14 rows of data. Each row has 5 interesting data
-        fields and a ‘record id’ that is prepended to uniquely identify the
-        record. ML provides the ToField operation that converts a record in
-        this general format to the NumericField format:</para>
-
-        <para><programlisting>ml.ToField(d,o);
-d;
-o
-</programlisting>This shows the original data but also the data in the
-        standard ML NumericField format. The latter has 70 rows (5x14). If a
-        file has N rows and M columns then the order of the ToField operation
-        will be O(mn).</para>
-
-        <para>It is also possible to turn the NumericField format back into a
-        ‘regular’ ECL style record using the FromField operation:</para>
-
-        <para><programlisting>ml.ToField(d,o);
-d;
-o;
-ml.FromField(o,value_record,d1);
-d1;
-
-Will leave d1 = d
 </programlisting></para>
 
-        <para>By default, the ToField operation assumes the first field is the
-        “id” field, and all subsequent numeric fields are to be assigned a
-        field number in the resulting table. However, additional parameters
-        may be specified in the ToField that facilitates the ability to
-        specify the name of the id column in the original table as well as the
-        columns to be used as data fields.</para>
+        <para>It has 14 rows of data. Each row has 5 interesting data fields
+        and a ‘record id’ that is prepended to uniquely identify the record
+        (the ECL record has to have the record-id prepended – so a ’10 field’
+        ECL record actually has 11 fields). ML provides the ToField operation
+        that converts a record in this general format to the NumericField
+        format. Thus:</para>
 
-        <para>For example:</para>
+        <programlisting>ml.ToField(d,o);
+d;
+o
+</programlisting>
 
-        <para><programlisting>IMPORT ML;
+        <para>Shows not only the original data, but also the data in the
+        standard ML NumericField format. The latter has 70 rows (5x14). If a
+        file has N rows and M columns then the order of the ToField operation
+        will be O(mn). It is also possible to turn the NumericField format
+        back into a ‘regular’ ECL style record using the FromField operation:
+        <programlisting>ml.ToField(d,o);
+d;
+o; 
+ml.FromField(o,value_record,d1); 
+d1; 
+Will leave d1 = d </programlisting></para>
+
+        <sect3>
+          <title>Advanced - Converting more complex records</title>
+
+          <para>By default, the ToField operation assumes the first field is
+          the “id” field, and all subsequent numeric fields are to be assigned
+          a field number in the resulting table. However, additional
+          parameters may be specified to ToField that facilitates the ability
+          to specify the name of the id column in the original table as well
+          as the columns to be used as data fields.</para>
+
+          <para>For example:</para>
+
+          <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
+
 value_record := RECORD
-  STRING first_name;
-  STRING last_name;
-  UNSIGNED name_id;
-  REAL height;
-  REAL weight;
-  REAL age;
-  STRING eye_color;
-  INTEGER1 species; // 1 = human, 2 = tortoise
-  INTEGER1 gender; // 0 = unknown, 1 = male, 2 = female
+STRING first_name;
+STRING last_name;
+UNSIGNED name_id;
+REAL height;
+REAL weight;
+REAL age;
+STRING eye_color;
+INTEGER1 species; // 1 = human, 2 = tortoise
+INTEGER1 gender; // 0 = unknown, 1 = male, 2 = female
+
 END;
 
-d := dataset([
-  {'Charles','Babbage',1,5*12+7,156*16,43,'Blue',1,1},
-  {'Tim','Berners-Lee',2,5*12+7,128*16,31, 'Brown',1,1},
-  {'George','Boole',3,5*12+9,135*16,15, 'Hazel',1,1},
-  {'Herman','Hollerith',4,5*12+7,145*16,14,'Green',1,1},
-  {'John','Von Neumann',5,5*12-2,80*16,9,'Blue',1,1},
-  {'Dennis','Ritchie',6,4*12+8,72*16,8, 'Brown',1,1},
-  {'Alan','Turing',7,8,32,2.5, 'Brown',2,1}
+dOrig := dataset([
+{'Charles','Babbage',1,5*12+7,156*16,43,'Blue',1,1},
+{'Tim','Berners-Lee',2,5*12+7,128*16,31, 'Brown',1,1},
+{'George','Boole',3,5*12+9,135*16,15, 'Hazel',1,1},
+{'Herman','Hollerith',4,5*12+7,145*16,14,'Green',1,1},
+{'John','Von Neumann',5,5*12-2,80*16,9,'Blue',1,1},
+{'Dennis','Ritchie',6,4*12+8,72*16,8, 'Brown',1,1},
+{'Alan','Turing',7,8,32,2.5, 'Brown',2,1}
 ],value_record);
 
-ML.ToField(d,o,name_id,'height,weight,age,gender',m);
-d;
-o;
-m;
+ML.ToField(dOrig,dResult,name_id,'height,weight,age,gender');
+dOrig;
+dResult;
 
 </programlisting>In the above example, the name_id column is taken as the id.
-        Height, weight, age and gender will be parsed into numbered fields.
-        The last parameter that was passed was the name of a mapping table
-        that may be optionally requested. For the above example, the mapping
-        table looks like this:</para>
+          Height, weight, age and gender will be parsed into numbered
+          fields.</para>
 
-        <informaltable>
-          <tgroup cols="2">
-            <tbody>
-              <row>
-                <entry>first_name</entry>
+          <para><emphasis role="bold">Note:</emphasis> The id name is not in
+          quotes, but the comma-delimited list of fields is.</para>
 
-                <entry>NA</entry>
-              </row>
+          <para>Along with creating the new table in NumericField format, the
+          ToField macro also creates three other objects to help with field
+          translation, two functions and a dataset.</para>
 
-              <row>
-                <entry>last_name</entry>
+          <para>The two functions are outtable_ToName() and
+          outtable_ToNumber(), where outtable is the name of the output table
+          specified in the macro call. Passing in a number in the first one
+          will produce the field name mapped to that number, and passing a
+          string into the second one will produce the number assigned to that
+          field name.</para>
 
-                <entry>NA</entry>
-              </row>
+          <para>For the previous example, we can therefore do the
+          following:</para>
 
-              <row>
-                <entry>name_id</entry>
+          <para><programlisting><?dbfo keep-together="always"?>dResult_ToName(2);      // Returns ‘weight’
+dResult_ToNumber(‘age’) // Returns 3 (note that the field name is always lowercase)
+</programlisting></para>
 
-                <entry>ID</entry>
-              </row>
+          <para>The other dataset that is created is a 2-column mapping table
+          named outtable_Map which contains every field from the original
+          table in the first column, and what it is mapped to in the second
+          column.</para>
 
-              <row>
-                <entry>height</entry>
+          <para>This would either be the column number, the string “ID” if it
+          is the ID field, or the string “NA” indicating that the field was
+          not mapped to a NumericField number. In the above example, the table
+          is named:</para>
 
-                <entry>1</entry>
-              </row>
+          <para><programlisting><?dbfo keep-together="always"?>dResult_Map;
+</programlisting></para>
 
-              <row>
-                <entry>weight</entry>
+          <para>The mapping table may be used when reconstituting the data
+          back to the original format. For example:</para>
 
-                <entry>2</entry>
-              </row>
+          <para><programlisting><?dbfo keep-together="always"?>ML.FromField(dResult,value_record,dReconstituted,dResult_Map);
+dReconstituted;
+</programlisting></para>
 
-              <row>
-                <entry>age</entry>
+          <para>The output from this FromField call will have the same
+          structure as the initial table, and values that existed in the
+          NumericField version of the table will be allocated to the fields
+          specified in the mapping table.</para>
 
-                <entry>3</entry>
-              </row>
-
-              <row>
-                <entry>eye_color</entry>
-
-                <entry>NA</entry>
-              </row>
-
-              <row>
-                <entry>species</entry>
-
-                <entry>NA</entry>
-              </row>
-
-              <row>
-                <entry>gender</entry>
-
-                <entry>4</entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable>
-
-        <para>The mapping table may be used when reconstituting the data back
-        to the original format, for example:</para>
-
-        <para><programlisting>ML.FromField(o,value_record,r,m);
-r;
-</programlisting>The output from this FromField call will have the same
-        structure as the initial table and values that existed in the
-        NumericField version of the table will be allocated to the fields
-        specified in the mapping table. An important note is that any data
-        that did not translate into the NumericField table will be left blank
-        or zero in the reconstituted table.</para>
-
-        <para>(Editor’s note: The authors do not actually know the true eye
-        color of the people named above. However, it did come as a surprise to
-        discover that Alan Turing was in fact a tortoise!)</para>
+          <para><emphasis role="bold">Note:</emphasis> Any data that did not
+          translate into the NumericField table will be left blank or zero in
+          the reconstituted table.</para>
+        </sect3>
       </sect2>
 
-      <sect2>
-        <title id="Discrete_field">Discrete field</title>
+      <sect2 id="Discrete_field">
+        <title>Discrete field</title>
 
         <para>Some of the ML routines do not require the field values to be
         real, rather they require discrete (integral) values. The structure of
         the records are essentially identical to NumericField but, the value
         is of type t_Discrete (typically INTEGER) rather than t_FieldReal
-        (typically REAL8). There are no explicit routines to get to a
-        discrete-field structure from an ECL record, rather it is presumed
-        that NumericField will be used as an intermediary. There is an entire
-        module (Discretize) devoted to moving a NumericField structured file
-        into a DiscreteField structured file. The options and reasons for the
-        options are described in the Discretize module section. For this
-        introduction it is adequate to show that all of the numeric fields
-        could be made integral simply by using:</para>
+        (typically REAL8).</para>
 
-        <para><programlisting>ml.ToField(d,o);
+        <para>There are no explicit routines to get to a discrete-field
+        structure from an ECL record, rather it is presumed that NumericField
+        will be used as an intermediary.</para>
+
+        <para>There is an entire module (Discretize) devoted to moving a
+        NumericField structured file into a DiscreteField structured file. The
+        options and reasons for the options are described in the Discretize
+        module section.</para>
+
+        <para>For this introduction it is adequate to show that all of the
+        numeric fields could be made integral simply by using:</para>
+
+        <para><programlisting><?dbfo keep-together="always"?>ml.ToField(d,o);
 o;
 o1 := ML.Discretize.ByRounding(o);
 o1</programlisting></para>
       </sect2>
 
-      <sect2>
-        <title id="ItemElement">ItemElement</title>
+      <sect2 id="ItemElement">
+        <title>ItemElement</title>
 
         <para>A rather more specialist format is the ItemElement format. This
         does not model an ECL record directly, rather it models an abstraction
-        that can be derived from an ECL record. The item element has a record
-        id and a value (which is of type t_Item). The t_Item is an integral
-        value – but unlike t_Discrete the values are not considered to be
-        ordinal. Put another way, in t_Discrete 4 &gt; 3 and 2 &lt; 3. In
-        t_Item the 2, 3, 4 are just arbitrary labels that ‘happen’ to be
-        integers for efficiency. Note also, that ItemElement does not have a
-        field number. There is no significance placed upon the field from
-        which the value was derived. This models the abstract notion of a
-        collection of ‘bags’ of items. An example of the use of this type of
-        structure will be given in the Using ML with documents,
-        section.</para>
+        that can be derived from an ECL record.</para>
+
+        <para>The item element has a record id and a value (which is of type
+        t_Item). The t_Item is an integral value – but unlike t_Discrete the
+        values are not considered to be ordinal. Put another way, in
+        t_Discrete 4 &gt; 3 and 2 &lt; 3. In t_Item the 2, 3, 4 are just
+        arbitrary labels that ‘happen’ to be integers for efficiency.</para>
+
+        <para><emphasis role="bold">Note:</emphasis> ItemElement does not have
+        a field number.</para>
+
+        <para>There is no significance placed upon the field from which the
+        value was derived. This models the abstract notion of a collection of
+        ‘bags’ of items. An example of the use of this type of structure will
+        be given in the Using ML with documents section.</para>
       </sect2>
 
-      <sect2>
-        <title id="Coding_ML_Data_Models">Coding with the ML data
-        models</title>
+      <sect2 id="Coding_ML_Data_Models" role="nobrk">
+        <title>Coding with the ML data models</title>
 
         <para>The ML data models are extremely flexible to work with; but
         using them is a little different from traditional ECL programming.
         This section aims to detail some of the possibilities.</para>
 
-        <sect3>
-          <title id="Column_Splitting">Column splitting</title>
+        <sect3 id="Column_Splitting">
+          <title>Column splitting</title>
 
           <para>Some of the ML routines expect to be handed two datasets which
           may be, for example, a dataset of independent variables and another
           of dependent variables. The data as it originally exists will
-          usually have the independent and dependant data within the same row.
+          usually have the independent and dependent data within the same row.
           For example, when using a classifier to produce a model to predict
           the species or gender of an entity from the other details, the
           height, weight and age fields would need to be in a different ‘file’
           to the species and gender. However, they have to have the same
           record ID to show the correlation between the two. In the ML data
-          model this is as simple as applying two filters: <programlisting>ml.ToField(d,o);
+          model this is as simple as applying two filters: <programlisting><?dbfo keep-together="always"?>ml.ToField(d,o);
 o1 := ML.Discretize.ByBucketing(o,5);
 Independents := o1(Number &lt;= 3);
 Dependents := o1(Number &gt;= 4);
@@ -413,30 +784,29 @@ Bayes
 </programlisting></para>
         </sect3>
 
-        <sect3>
-          <title id="Genuine_Nulls">Genuine nulls</title>
+        <sect3 id="Genuine_Nulls">
+          <title>Genuine nulls</title>
 
           <para>Implementing a genuine null can be done by simply removing
           certain fields with certain values from the datastream. For example,
           if 0 was considered an invalid weight then one could
-          do:<programlisting>Better := o(Number&lt;&gt;2 OR Value&lt;&gt;0);</programlisting></para>
+          do:<programlisting><?dbfo keep-together="always"?>Better := o(Number&lt;&gt;2 OR Value&lt;&gt;0);</programlisting></para>
         </sect3>
 
-        <sect3>
-          <title id="Sampling">Sampling</title>
+        <sect3 id="Sampling">
+          <title>Sampling</title>
 
           <para>By far the easiest way to split a single data file into
           samples is to use the SAMPLE and ENTH verbs upon the datafile PRIOR
           to the conversion to ML format.</para>
         </sect3>
 
-        <sect3>
-          <title id="Inserting_Column_Computed_Value">Inserting a column with
-          a computed value</title>
+        <sect3 id="Inserting_Column_Computed_Value">
+          <title>Inserting a column with a computed value</title>
 
           <para>Inserting a column with a new value computed from another
           field value is a fairly advanced technique. The following inserts
-          the square of the weight as a new column:<programlisting>ml.ToField(d,o);
+          the square of the weight as a new column:<programlisting><?dbfo keep-together="always"?>ml.ToField(d,o);
 
 BelowW := o(Number &lt;= 2); 
 // Those columns whose numbers are not changed
@@ -457,7 +827,7 @@ NewO;
     </sect1>
 
     <sect1 id="Generating_test_data">
-      <title id="Generating_test_data">Generating test data</title>
+      <title>Generating test data</title>
 
       <para>ML is interesting when it is being executed against data with
       meaning and significance. However, sometimes it can be useful to get
@@ -476,7 +846,7 @@ NewO;
       generates 1M records each with a random number from 0-100 in the first
       column:</para>
 
-      <para><programlisting>IMPORT ML;
+      <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 
 TestSize := 1000000;
 a1 := ML.Distribution.Uniform(0,100,10000); 
@@ -488,7 +858,7 @@ ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
       distributed, one Normally distributed (mean 0, Standard Deviation 10)
       and one with a Poisson distribution (Mean of 4):</para>
 
-      <programlisting>IMPORT ML;
+      <programlisting><?dbfo keep-together="always"?>IMPORT ML;
 
 TestSize := 1000000;
 
@@ -517,29 +887,26 @@ ML.FieldAggregates(D).Simple;  // Perform some statistics on the test data to en
   </chapter>
 
   <chapter id="ML_module_walkthroughs">
-    <title id="ML_module_walkthroughs">ML module walk-throughs</title>
+    <title>ML module walk-throughs</title>
 
     <para>To help you get started, a walk-through is provided for each ML
     module. The walk-throughs explain how the modules work and demonstrate how
     they can be used to generate the results you require.</para>
 
     <sect1 id="Classify_walkthrough">
-      <title id="Classify_walkthrough">Classification walk-through</title>
+      <title>Classification walk-through</title>
 
       <para><emphasis role="bold">Modules: Classify, Regression,
       Doc</emphasis></para>
 
       <para>Classification techniques tackle the problem of identifying which
       groups new observations belong to, based on learned characteristics of
-      an equivalent training set.</para>
-
-      <para>Based upon a set of observations and groups provided in a training
-      set, can we correctly predict the group of an observation outside of the
-      training set.</para>
-
-      <para>This is really where data processing gives way to machine
-      learning. Based upon some form of training set can I derive a rule or
-      model to predict something about other data records?</para>
+      an equivalent training set. Based upon a set of observations and groups
+      provided in a training set, can we correctly predict the group of an
+      observation outside of the training set. This is really where data
+      processing gives way to machine learning. Based upon some form of
+      training set can I derive a rule or model to predict something about
+      other data records?</para>
 
       <para>Classification is sufficiently central to machine learning that we
       provide three different methods of doing it. You will need to examine
@@ -550,7 +917,7 @@ ML.FieldAggregates(D).Simple;  // Perform some statistics on the test data to en
       way to solve the given example.</para>
 
       <sect2 id="Naive_Bayes">
-        <title id="Naive_Bayes">Naive Bayes</title>
+        <title>Naive Bayes</title>
 
         <para>The concept behind Naïve Bayes is that every property of an
         object is in and of itself a predictor of the type of that object. By
@@ -563,11 +930,10 @@ ML.FieldAggregates(D).Simple;  // Perform some statistics on the test data to en
         it predicts ordinal values (integers – 0, 1, 2 etc), it is not
         producing a ‘score’ so, it does not restrict the integers to being ‘in
         sequence’. So a property of an object might predict a 0 or 2, but it
-        will not predict a 1.</para>
-
-        <para>Bayes will not predict anything if handed totally random data.
-        It is precisely looking for a relationship between the data that is
-        non-random. The following example generates test data by:</para>
+        will not predict a 1. Bayes will not predict anything if handed
+        totally random data. It is precisely looking for a relationship
+        between the data that is non-random. The following example generates
+        test data by:</para>
 
         <orderedlist>
           <listitem>
@@ -591,10 +957,8 @@ ML.FieldAggregates(D).Simple;  // Perform some statistics on the test data to en
         presented here. In the rest of this section if a ‘D1’ appears from
         nowhere, it is referencing this dataset.</para>
 
-        <para><programlisting>IMPORT ML;
-
+        <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 TestSize := 10000000;
-
 a1 := ML.Distribution.Poisson(5,100); 
 b1 := ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
 a2 := ML.Distribution.Poisson(3,100);
@@ -610,7 +974,6 @@ B4 := PROJECT(TABLE(D,{Id,Val := SUM(GROUP,Value)},Id),TRANSFORM(ML.Types.Numeri
                                                                     &lt; 10 =&gt; 1, // Normal
                                                                           2 ); // Big
                                            SELF := LEFT));
-
 D1 := D+B4;
 </programlisting>When generating and preparing data for Naïve Bayes you need
         to be aware that Bayes is looking for discrete numbers as input (not
@@ -621,9 +984,9 @@ D1 := D+B4;
         <para>To keep things simple we will just round all the fields to
         integers in this example:</para>
 
-        <para><programlisting>D2 := ML.Discretize.ByRounding(D1);</programlisting>It
+        <para><programlisting><?dbfo keep-together="always"?>D2 := ML.Discretize.ByRounding(D1);</programlisting>It
         is now possible to ‘train’ the Naïve Bayes classifier using the
-        BuildNaiveBayes definition:<programlisting>ML.Classify.BuildNaiveBayes(D2(Number&lt;=3),D2(Number=4))</programlisting></para>
+        BuildNaiveBayes definition:<programlisting><?dbfo keep-together="always"?>ML.Classify.BuildNaiveBayes(D2(Number&lt;=3),D2(Number=4))</programlisting></para>
 
         <para>Notice that all of the values I ‘know’ are being passed in as
         the first parameter (these are the independent variables). All of the
@@ -646,67 +1009,69 @@ D1 := D+B4;
         results to show how good (or bad) the classifier was. The following
         results are produced:</para>
 
-        <table>
-          <title></title>
-
+        <informaltable>
           <tgroup cols="2">
-            <colspec align="center" />
+            <colspec align="left" colwidth="110pt" />
+
+            <colspec align="left" colwidth="480pt" />
 
             <thead>
               <row>
-                <entry align="center">Result</entry>
+                <entry align="left">Result</entry>
 
-                <entry align="center">Description</entry>
+                <entry align="left">Description</entry>
               </row>
             </thead>
 
             <tbody>
               <row>
-                <entry>Headline</entry>
+                <entry align="left">Headline</entry>
 
-                <entry>Gives you the main precision number. On this test data
-                how often was the classifier correct.</entry>
+                <entry>Gives you the main precision number. On this test data,
+                the result shows how often was the classifier correct.</entry>
               </row>
 
               <row>
-                <entry>PrecisionByClass</entry>
+                <entry align="left">PrecisionByClass</entry>
 
                 <entry>Similar to Headline except that it gives the precision
                 broken down by the class that it SHOULD have been classified
-                to. It is possible that a classifier might work well in
-                general but may be particularly poor at identifying one of the
-                groups.</entry>
+                to. It is possible that a classifier might work well but may
+                be particularly poor at identifying one of the groups.</entry>
               </row>
 
               <row>
-                <entry>CrossAssignments</entry>
+                <entry align="left">CrossAssignments</entry>
 
                 <entry>It is one thing to say a classification is ‘wrong’.
-                This table is there to show, “if a particular class is
-                mis-classified, what is it most likely to be mis-classified
-                as?”.</entry>
+                This table shows, “if a particular class is mis-classified,
+                what is it most likely to be mis-classified as?”.</entry>
               </row>
 
               <row>
-                <entry>Raw</entry>
+                <entry align="left">Raw</entry>
 
                 <entry>Gives a very detailed breakdown of every record in the
-                test corpus such as what the classification should have been
-                and what it was.</entry>
+                test corpus, for example, what the classification should have
+                been and what it was.</entry>
               </row>
             </tbody>
           </tgroup>
-        </table>
+        </informaltable>
 
         <para>Assuming you are happy with your model the final step is to use
-        it! This is very easy to do because the Classify module has a
+        it!</para>
+
+        <para>This is very easy to do because the Classify module has a
         NaiveBayes definition which takes the independent data and the model
         you supply and produces the dependent columns you require. In the
-        following example, this is done using the training set we used ealier.
-        For real work this would be a completely different dataset that was
-        being processed:</para>
+        following example, this is done using the training set we used
+        earlier.50</para>
 
-        <para><programlisting>Model := ML.Classify.BuildNaiveBayes(D2(Number&lt;=3),D2(Number=4));
+        <para>For real work this would be a completely different dataset that
+        was being processed:</para>
+
+        <para><programlisting><?dbfo keep-together="always"?>Model := ML.Classify.BuildNaiveBayes(D2(Number&lt;=3),D2(Number=4));
 Results := ML.Classify.NaiveBayes(D2(Number&lt;=3),Model);
 Results 
 </programlisting></para>
@@ -715,7 +1080,7 @@ Results
       </sect2>
 
       <sect2 id="Logisitic_regression">
-        <title id="Logisitic_regression">Logistic Regression </title>
+        <title>Logistic Regression</title>
 
         <para>Regression analysis includes techniques for modeling the
         relationship between a dependent variable Y and one or more
@@ -735,7 +1100,7 @@ Results
         Logistic Regression model predicts two outcomes 0 or 1, and it can be
         used as a tool for classification.</para>
 
-        <para><programlisting>IMPORT ML;
+        <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 
 value_record:= RECORD
     unsigned   rid;
@@ -775,26 +1140,27 @@ logistic.modelY;
       </sect2>
     </sect1>
 
-    <sect1>
-      <title id="Cluster_Walkthrough">Cluster Walk-through</title>
+    <sect1 id="Cluster_Walkthrough">
+      <title>Cluster Walk-through</title>
 
       <para><emphasis role="bold">Modules: Cluster, Doc</emphasis></para>
 
       <para>The cluster module contains routines that can be used to find
-      groups of records that appear to be ‘fairly similar’. The module has
-      been shown to work on records with as few as two fields and as many as
-      sixty thousand; the latter was used for clustering documents of words
-      (see Using ML with documents). The clustering module has more than half
-      a dozen different ways of measuring the distance (defining ‘similar’)
-      between two records but it is also possible to write your own.</para>
+      groups of records that appear to be ‘fairly similar’.</para>
+
+      <para>The module has been shown to work on records with as few as two
+      fields and as many as sixty thousand. The latter was used for clustering
+      documents of words (see Using ML with documents). The clustering module
+      has more than half a dozen different ways of measuring the distance
+      (defining ‘similar’) between two records but it is also possible to
+      write your own.</para>
 
       <para>Below are walk-throughs for the methods covered in the ML.Cluster
       module. Each begins with the following set of entities in 2-dimensional
       space, where the values on each axis are restricted to between 0.0 and
       10.0:</para>
 
-      <para><programlisting>IMPORT ML;
-
+      <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 lMatrix:={UNSIGNED id;REAL x;REAL y;};
 
 dEntityMatrix:=DATASET([
@@ -819,16 +1185,16 @@ dEntityMatrix:=DATASET([
   {19,9.3669,7.7855},
   {20,2.3341,8.5196}
 ],lMatrix);
-
 ML.ToField(dEntityMatrix,dEntities);
-</programlisting><note>
-          <para>The use of the ToField macro which converts the original
-          rectangular matrix, dEntityMatrix, into a table in the standard
-          NumericField format used by the ML library named “dEntities”.</para>
-        </note></para>
+</programlisting></para>
 
-      <sect2>
-        <title id="kmeans">KMeans</title>
+      <para><emphasis role="bold">Note:</emphasis> The use of the ToField
+      macro which converts the original rectangular matrix, dEntityMatrix,
+      into a table in the standard NumericField format that is used by the ML
+      library named “dEntities”.</para>
+
+      <sect2 id="kmeans">
+        <title>KMeans</title>
 
         <para>With k-means clustering the user creates a second set of
         entities called centroids, with coordinates in the same space as the
@@ -837,7 +1203,7 @@ ML.ToField(dEntityMatrix,dEntities);
         represents the number of clusters that will be determined. For our
         example, we will define four centroids:</para>
 
-        <para><programlisting>dCentroidMatrix:=DATASET([
+        <para><programlisting><?dbfo keep-together="always"?>dCentroidMatrix:=DATASET([
   {1,1,1},
   {2,2,2},
   {3,3,3},
@@ -848,10 +1214,12 @@ ML.ToField(dCentroidMatrix,dCentroids);
 </programlisting>As with the entity matrix, we have used ToField to convert
         the centroid matrix into the table “dCentroids”.</para>
 
-        <para>Note that although these points are arbitrary, they are clearly
-        not random. These points form an asymmetrical pattern in one corner of
-        the space. This is to highlight a feature of k-means clustering which
-        is that the centroids will end up in the same resting place (or very
+        <para><emphasis role="bold">Note:</emphasis> Although these points are
+        arbitrary, they are clearly not random.</para>
+
+        <para>These points form an asymmetrical pattern in one corner of the
+        space. This is to highlight a feature of k-means clustering which is
+        that the centroids will end up in the same resting place (or very
         close to it) regardless of where they started. The only caveat related
         to centroid positioning is that no two centroids should occupy the
         same initial location.</para>
@@ -865,7 +1233,7 @@ ML.ToField(dCentroidMatrix,dCentroids);
         <para>To set up this process, we make the following call to the KMeans
         routine:</para>
 
-        <para><programlisting>MyKMeans:=ML.Cluster.KMeans(dEntities,dCentroids,30,.3);
+        <para><programlisting><?dbfo keep-together="always"?>MyKMeans:=ML.Cluster.KMeans(dEntities,dCentroids,30,.3);
 </programlisting>Here, we are passing in our two datasets, dEntities and
         dCentroids. In order to prevent infinite loops, we also must specify a
         maximum number of iterations, which is set to 30 in the above
@@ -873,17 +1241,18 @@ ML.ToField(dCentroidMatrix,dCentroids);
 
         <para>Convergence is defined as the point at which we can say the
         centroids have found their final resting places. Ideally, this will be
-        when they stop moving completely. However, there will be situations
-        where centroids may experience a “see-sawing” action, constantly
-        trading affiliations back and forth indefinitely. To address this, we
-        have the option of specifying a positive value as the convergence
-        threshold. The process will assume convergence if, during any
-        iteration, no centroid moves a distance greater than that number. In
-        our above example, we are setting the convergence threshold to 0.3. If
-        no threshold is specified, then the threshold is set to 0.0. If the
-        process hits the maximum number of iterations passed in as parameter
-        3, then it stops regardless of whether convergence is achieved or
-        not.</para>
+        when they stop moving completely.</para>
+
+        <para>However, there will be situations where centroids may experience
+        a “see-sawing” action, constantly trading affiliations back and forth
+        indefinitely. To address this, we have the option of specifying a
+        positive value as the convergence threshold. The process will assume
+        convergence if, during any iteration, no centroid moves a distance
+        greater than that number. In our above example, we are setting the
+        convergence threshold to 0.3. If no threshold is specified, then the
+        threshold is set to 0.0. If the process hits the maximum number of
+        iterations passed in as parameter 3, then it stops regardless of
+        whether convergence is achieved or not.</para>
 
         <para>The final parameter, which is also optional, specifies which
         distance formula to use. For our example we are leaving this parameter
@@ -894,28 +1263,30 @@ ML.ToField(dCentroidMatrix,dCentroids);
         <para>Below are calls to the available attributes within the KMeans
         module:</para>
 
-        <para><programlisting>MyKMeans.AllResults;
+        <para><programlisting><?dbfo keep-together="always"?>MyKMeans.AllResults;
 </programlisting>This will produce a table with a layout similar to
         NumericField, but instead of a single value field, we have a field
-        named “values” which is a set of values. Each row will have the same
-        number of values in this set, which is equal to the number of
-        iterations + 1. Values[1] is the initial value for the id/number
-        combination, Values[2] is after the first iteration, etc.</para>
+        named “values” which is a set of values.</para>
 
-        <para><programlisting>MyKMeans.Convergence;</programlisting>Convergence
+        <para>Each row will have the same number of values in this set, which
+        is equal to the number of iterations + 1. Values[1] is the initial
+        value for the id/number combination, Values[2] is after the first
+        iteration, etc.</para>
+
+        <para><programlisting><?dbfo keep-together="always"?>MyKMeans.Convergence;</programlisting>Convergence
         will respond with the number of iterations that were performed, which
         will be an integer between 1 and the maximum specified in the
         parameters. If it is equal to the maximum, then you may want to
         increase that number or specify a higher convergence threshold because
         it had not yet achieved convergence when it completed.</para>
 
-        <para><programlisting>MyKMeans.Result();  // The final locations of the centroids
+        <para><programlisting><?dbfo keep-together="always"?>MyKMeans.Result();  // The final locations of the centroids
 MyKMeans.Result(3); // The results of iteration 3
-</programlisting>Result will respond with the centroid locations after the
+</programlisting>Results will respond with the centroid locations after the
         specified number of iterations. If no number is passed, this will be
         the locations after the final iteration.</para>
 
-        <para><programlisting>MyKMeans.Delta(3,5); // The distance every centroid travelled across each axis from 
+        <para><programlisting><?dbfo keep-together="always"?>MyKMeans.Delta(3,5); // The distance every centroid travelled across each axis from 
                         iterations 3 to 5
 MyKMeans.Delta(0);   // The total distance the centroids travelled on each axis from the 
                         beginning to the end
@@ -924,7 +1295,7 @@ MyKMeans.Delta(0);   // The total distance the centroids travelled on each axis 
         no parameters are passed, this will be the delta between the last two
         iterations.</para>
 
-        <para><programlisting>MyKMeans.DistanceDelta(3,5); // The straight-line distance travelled by each centroid from 
+        <para><programlisting><?dbfo keep-together="always"?>MyKMeans.DistanceDelta(3,5); // The straight-line distance travelled by each centroid from 
                                 iterations 3 to 5
 MyKMeans.DistanceDelta(0);   // The total straight-line distance each centroid travelled 
 MyKMeans.DistanceDelta();    // The distance traveled by each centroid during the last 
@@ -934,8 +1305,8 @@ MyKMeans.DistanceDelta();    // The distance traveled by each centroid during th
         instructed to use, which in our example is Euclidean.</para>
       </sect2>
 
-      <sect2>
-        <title id="AggloN">AggloN</title>
+      <sect2 id="AggloN">
+        <title>AggloN</title>
 
         <para>With Agglomerative, or Hierarchical, clustering there is no need
         for a centroid set. This method takes a bottom-up approach whereby it
@@ -948,7 +1319,7 @@ MyKMeans.DistanceDelta();    // The distance traveled by each centroid during th
         <para>We set up this clustering routine using the following
         call:</para>
 
-        <para><programlisting>MyAggloN:=ML.Cluster.AggloN(dEntities,4);</programlisting>Here,
+        <para><programlisting><?dbfo keep-together="always"?>MyAggloN:=ML.Cluster.AggloN(dEntities,4);</programlisting>Here,
         we are passing in our sample data set and telling the routine that we
         want a maximum of 4 iterations.</para>
 
@@ -1001,125 +1372,420 @@ MyKMeans.DistanceDelta();    // The distance traveled by each centroid during th
     </sect1>
 
     <sect1>
-      <title id="Colocation_Walkthrough">CoLocation Walkthrough</title>
+      <title>Correlations Walk-through</title>
+
+      <para>Most of the algorithms within the ML libraries assume that one of
+      your inputs are a collection features of a particular object and the
+      algorithm exists to predict some other feature based upon the features
+      you have. In the literature the ‘features you have’ are usually referred
+      to as the ‘independent variables’ and the features you are trying to
+      predict are called the ‘dependent variables’.</para>
+
+      <para>Masked within those names is an assumption that is almost never
+      true. That the features you have for a given object are actually
+      independent of each other. Consider, for example, a classification
+      algorithm that tries to predict risk of heart disease based upon height,
+      weight, age and gender. The independent variables are not even close to
+      being independent. Pick any two of those variables and there is a known
+      link between them (even age and gender; women live longer). These
+      linkages between the ‘independent’ variables usually represent an error
+      factor in the algorithm used to compute the dependent variable.</para>
+
+      <para>The Correlation module exists to allow you to quantify the degree
+      of relatedness between a set of variables. There are three measures
+      provided. Under the title ‘simple’ the Covariance and Pearson statistic
+      is provided for every pair of variables. The Kendall measure provides
+      the Kendal Tau statistic for every pair of variables; it should be noted
+      that computation of Kendall’s Tau is an O(N^2) process. This will hurt
+      on very large datasets.</para>
+
+      <para>The definition and interpretation of these terms can be found in
+      any statistical text; for example: <ulink
+      url="http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient">http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient</ulink>
+      <ulink
+      url="http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient">http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient</ulink></para>
+
+      <para>(we implement tau-a)</para>
+
+      <programlisting>import ml;
+
+value_record := RECORD
+                unsigned rid;
+  real height;
+                real weight;
+                real age;
+                integer1 species;
+                integer1 gender; // 0 = unknown, 1 = male, 2 = female
+  END;
+
+d := dataset([{1,5*12+7,156*16,43,1,1},
+              {2,5*12+7,128*16,31,1,2},
+              {3,5*12+9,135*16,15,1,1},
+              {4,5*12+7,145*16,14,1,1},
+              {5,5*12-2,80*16,9,1,1},
+              {6,4*12+8,72*16,8,1,1},
+              {7,8,32,2.5,2,2},
+              {8,6.5,28,2,2,2},
+              {9,6.5,28,2,2,2},
+              {10,6.5,21,2,2,1},
+              {11,4,15,1,2,0},
+              {12,3,10.5,1,2,0},
+              {13,2.5,3,0.8,2,0},
+              {14,1,1,0.4,2,0}
+             ]
+             ,value_record);
+// Turn into regular NumericField file (with continuous variables)
+ml.ToField(d,o);
+
+Cor := ML.Correlate(o);
+Cor.Simple;
+Cor.Kendall;
+</programlisting>
+    </sect1>
+
+    <sect1 id="Discretize_Walkthrough">
+      <title>Discretize Walk-through</title>
+
+      <para><emphasis role="bold">Modules: Discretize</emphasis></para>
+
+      <para>As discussed briefly in the section on data models it is not
+      unusual for data to be provided in a manner where the data forms some
+      real value. For example a height or weight might be measured down to the
+      inch or ounce; a price might be measured down to the nearest cent. Yet
+      in terms of predictiveness we might expect ‘similar’ values in those
+      fields to exhibit similar behavior in some particular regard. Some of
+      the ML modules expect the input data to have been ‘banded’; that is for
+      data which was originally in ‘real values’ to have been turn into a set
+      of discrete bands. More concretely they require data in the
+      DiscreteField format even if it was originally provided in NumericField
+      format. The Discretize module exists to perform this conversion. All of
+      the examples in this walk-through use the first dataset (d) from the
+      NumericField walk-through earlier; it might help you to just quickly
+      look at that dataset again in both original and NumericField form to
+      remind you of the format.</para>
+
+      <para><programlisting><?dbfo keep-together="always"?>ml.ToField(d,o);
+d;
+o;
+</programlisting>There are currently 3 main methods available to create
+      discrete values, ByRounding, ByBucketing and ByTiling.</para>
+
+      <para>All three methods operate upon all the data handed to them.
+      Applying different methods to different fields is very easy using the
+      methods discussed in the section entitled: “Data Models”. This simple
+      example Auto-buckets columns 2 &amp; 3 into four bands, tiles column 1
+      into 6 bands and the rounds the fourth column to the nearest
+      integer:</para>
+
+      <para><programlisting>disc := ML.Discretize.ByBucketing(o(Number IN [2,3]),4)+ML.Discretize.ByTiling(o(Number IN 
+                                              [1]),6)+ML.Discretize.ByRounding(o(Number=4));
+disc;
+</programlisting>It may be observed that in the description above I was able
+      to describe how to discretize data a number of different ways but could
+      not give any firm guidelines as to the exactly number of bands or the
+      exact best method to use for any given item of data. That is because
+      whilst there are schemes and guidelines out there, there is no firm
+      consensus as to which are the best. It is quite possible that the best
+      way to work is to ‘try a few’ and see which gives you the best
+      results!</para>
+
+      <para>The Discretize module supports this ‘suck it and see’ approach by
+      allowing you to specify the discretization methods entirely within data.
+      The core of this is the ‘Do’ command that takes a series of instructions
+      and discretizes a dataset based upon those instructions. Each
+      instruction is actually a little record of type r_Method defined in the
+      Discretize module and you can construct these records yourself if you
+      wish. It would be fairly easy to even create a little ‘discreting
+      programming language’ and have it execute. For the slightly less
+      ambitious there are a collection of parameterized functions that will
+      construct an r_Method record for each of the three main discretize
+      types.</para>
+
+      <para>The following example is exactly equivalent to the
+      previous:</para>
+
+      <para><programlisting><?dbfo keep-together="always"?>// Build up the instructions into a single data file (‘mini program’)
+inst := ML.Discretize.i_ByBucketing([2,3],4)+ML.Discretize.i_ByTiling([1],6)
+                                            +ML.Discretize.i_ByRounding([4]);
+// Execute the instructions
+done := ML.Discretize.Do(o,inst);
+done;
+
+</programlisting></para>
+
+      <sect2 id="ByRounding">
+        <title>ByRounding</title>
+
+        <para>The ByRounding method exists to convert a real number to an
+        integer by ‘rounding it’. At its simplest this means that every real
+        number is converted to an integer. Values that were less than a half
+        go down to the nearest integer; those that were .5 or above go up.
+        Therefore if you have a field that has house prices; perhaps from
+        $10,000 to $1M then you potentially will end up with 990,000 different
+        discrete values (ever possible dollar value).</para>
+
+        <para>This has made the data discrete but it hasn’t really satisfied
+        the problem that ‘similar values’ have an identical discrete value. We
+        might expect a $299,999 dollar house to be quite similar to a $299,998
+        dollar house. The ByRounding method therefore has a scale. The real
+        number in the data is multiplied by the scale factor PRIOR to
+        rounding.</para>
+
+        <para>In our example, if we apply a scale of 0.0001 (1/10000) a
+        $299999 house (and a $299998 house) will both get a ByRounding result
+        of 30. The scale effectively reduces the range of a variable. In the
+        house case a scale of 0.0001 reduces the range from “$10,000 to $1M”
+        to 1-100 which is much more manageable.</para>
+
+        <para>Sometimes the scaled ranges do not work out so neatly. Suppose
+        the field is measuring height of high-school seniors. The original
+        range is probably from 48 inches up to possibly 88 inches. A scale of
+        0.25 is probably enough to give the number of discrete values you
+        require (10), but they will range from 12 to 22 which is not
+        convenient. Therefore a DELTA is available, which is ADDED to the
+        value AFTER scaling but before rounding. It can therefore be used to
+        bring the eventual range down to a convenient number. In this case a
+        Delta of -11 would give us an eventual range of 1-11, which is
+        perfect.</para>
+      </sect2>
+
+      <sect2 id="ByBucketing">
+        <title>ByBucketing</title>
+
+        <para>ByBucketing is mathematically similar to ByRounding but with
+        rather more ease of use. There is a slight performance hit and rather
+        less control with the ByBucketing method. Within the ByBucketing
+        method you do not specify the scale or the delta, you simply specify
+        the number of eventual buckets (or the number of discrete values) that
+        you eventually want. It does a pre-pass of the data to compute the
+        scale and delta before applying it.</para>
+      </sect2>
+
+      <sect2 id="ByTiling">
+        <title>ByTiling</title>
+
+        <para>Both of the previous methods divide the banding evenly across
+        the range of the original variable. However, while the range has been
+        divided evenly, the number of different records within each band could
+        vary greatly. In the height example, one would expect a large number
+        of children within the 60-72 inch range (rounded values of 3-7) but
+        very few in bands 1 or 11.</para>
+
+        <para>An alternative approach is not to band by some absolute range
+        but rather to band on the value of a given value relative to all of
+        the other records. For example, you may want to end with 10 bands
+        where each band has the same number of records in it; and band 10 is
+        the top 10% of the population, band nine is the second 10% etc. This
+        result is achieved using the ByTiling scheme. Similar to ByBucketing
+        you specify the number of bands you eventually want and the system
+        will automatically allocate the field values for you.</para>
+
+        <para><emphasis role="bold">Note</emphasis>: ByTiling does require the
+        data to be sorted and so will have an NLgN performance profile.</para>
+      </sect2>
+    </sect1>
+
+    <sect1 id="Docs_Walkthrough">
+      <title>Docs Walk-through</title>
 
       <para><emphasis role="bold">Modules: Docs</emphasis></para>
 
-      <para>The Docs/CoLocation module exists to perform textual analysis on a
-      corpus of documents. It harvests n-grams and enables the user to perform
-      analysis on those n-grams to determine significance.</para>
+      <para>The processing of textual data is a unique problem in the field of
+      Machine Learning because of the highly unstructured manner in which
+      humans write. There are many ways to say the same thing and many ways
+      that different statements can look alike. There is an enormous body of
+      research that has been performed to determine algorithms for accurately
+      and efficiently extracting useful information from data such as
+      electronic documents, articles, and transcriptions, all of which rely on
+      human speech patterns.</para>
 
-      <para>For the purposes of this walk-through we will be using the
-      following limited dataset:</para>
+      <para>The Docs module of the ML library is designed to help prepare
+      unstructured and semi-structured text to make it more suitable for
+      further processing. This includes routines to decompose the text into
+      discrete word elements and collating simple statistics on those tokens,
+      such as Term Frequency and Inverse Document Frequency. Also included are
+      the basic tools to help determine token association strength using
+      industry-standard functions such as Support and Confidence.</para>
 
-      <para><programlisting>IMPORT ML.Docs AS Docs;
+      <sect2 id="Tokenize">
+        <title>Tokenize</title>
 
-d:=DATASET([
+        <para>The Tokenize module breaks a set of raw text into its lexical
+        elements. From there, it can produce a dictionary of those elements,
+        with weighting, as well as perform integer replacement that
+        significantly reduces the space overhead needed to process such large
+        amounts of data.</para>
+
+        <para>For the purposes of this walk-through we will be using the
+        following limited dataset: <programlisting><?dbfo keep-together="always"?>IMPORT ML;
+
+dSentences:=DATASET([
   {1,'David went to the market and bought milk and bread'},
   {2,'John picked up butter on his way home from work.'},
   {3,'Jill craved lemon cookies, so she grabbed some at the convenience store'},
   {4,'Mary needs milk, bread and butter to make breakfast tomorrow morning.'},
-  {5,'William's lunch included a sandwich on wheat bread and chocolate chip cookies.'}
-],Docs.Types.Raw);
-</programlisting>The format of the initial dataset is in the Raw format in
-      Docs.Types, which is a simple numeric ID and a string of free text of
-      indeterminate length.</para>
+  {5,'William\'s lunch included a sandwich on wheat bread and chocolate chip cookies.'}
+],ML.Docs.Types.Raw);
+</programlisting></para>
 
-      <para>The first step in processing the free text is to map all of the
-      words. We do this by calling the Words attribute, which will utilize
-      elements of the Tokenize module to break all of the text out into its
-      elements:</para>
+        <para>The format of the initial dataset is in the Raw format in
+        Docs.Types, which is a simple numeric ID and a string of free text of
+        indeterminate length.</para>
 
-      <para><programlisting>Words:=Docs.CoLocation.Words(d);</programlisting>The
-      AllNGrams attribute will then harvest every n-gram, from unigrams up to
-      the n defined by the user. This will result in a table that contains a
-      row for every unique id/n-gram combination. In the following line, we
-      are asking for anything up to a 4-gram. If the n parameter is left
-      blank, the default is 3.</para>
+        <para>It is important that a unique ID is assigned to each row so that
+        we can have references not just for every word, but for every document
+        as well.</para>
 
-      <para>Note that the second parameter has been left blank and will be
-      covered a little later.</para>
+        <para>In the above dataset we already have assigned these IDs, but if
+        your input table does not yet have them, a quick call to
+        Tokenize.Enumerate will assign a sequential integer ID to the
+        table:<programlisting><?dbfo keep-together="always"?>dSequenced:=ML.Docs.Tokenize.Enumerate(dSentences)</programlisting></para>
 
-      <para><programlisting>AllNGrams:=Docs.CoLocation.AllNGrams(Words,,4);</programlisting>Below
-      are calls to the standard metrics that are currently built into the
-      CoLocation module. Note that the call to Words above has converted all
-      characters in the text to uppercase:</para>
+        <para>The first step in parsing the text is to run it through the
+        Clean function. This is a simple function that standardizes the text
+        by performing actions such as removing punctuation, converting all
+        letters into capitals, and normalizing some common
+        contractions.<programlisting>dCleaned:=ML.Docs.Tokenize.Clean(dSentences);</programlisting></para>
 
-      <para><programlisting>// SUPPORT: User passes a SET OF STRING and the output from the ALLNGrams attribute
-Docs.CoLocation.Support(['MILK','BREAD','BUTTER'],AllNGrams);
+        <para>Once cleaned, the next step is to break out each word as a
+        separate entity using the Split function. A word is defined
+        intuitively as a series of non-white-space characters surrounded by
+        white space.<programlisting>dSplit:=ML.Docs.Tokenize.Split(dCleaned);</programlisting></para>
+
+        <para>The output produced from the Split function is a 3-column table
+        in ML.Docs.Types.WordElement format, with the document ID, the ordinal
+        position of the word within the text of that document, and the word
+        itself.</para>
+
+        <para>In our example, the first few rows of this table will
+        be:<programlisting><?dbfo keep-together="always"?>1   1   DAVID
+1   2   WENT
+1   3   TO
+</programlisting></para>
+
+        <para>This opens us up a number of possibilities for processing our
+        text. Most, require one further step, which is to derive some
+        aggregate information of the words that appear in our corpus of
+        documents. We do this using the Lexicon function:<programlisting>dLexicon:=ML.Docs.Tokenize.Lexicon(dSplit)</programlisting></para>
+
+        <para>This function aggregates the data in our dSplit table, grouping
+        on word. The resulting dataset contains one row for each word along
+        with a unique ID (an integer starting at 1), a total count of the
+        number of times the word occurs in the entire corpus, and the number
+        of unique documents within which the word exists. The ID assigned to
+        the word is inversely proportional to the word frequency, which means
+        that the word that appears the most often will be assigned 1, the next
+        most common will have 2, and so on.</para>
+
+        <para>When processing very large amounts of text, there is an
+        additional function ToO which can be used to reduce the amount of
+        resources used during processing: <programlisting>dReplaced:=ML.Docs.Tokenize.ToO(dSplit,dLexicon);</programlisting></para>
+
+        <para>The output from this function will have as many rows as there
+        are in dSplit, but instead of seeing the words as they are in the
+        text, you will see the word ID that was assigned to it in dLexicon.
+        This saves a large amount of memory because the word ID is always
+        4-byte integer, while the word is variable length and usually much
+        larger. Since the function has access to the aggregate information
+        collected by the Lexicon function, this information is also tacked
+        back on to the output from ToO so that it is readily available if
+        desired.</para>
+
+        <para>From this point, we have the framework for performing numerous
+        Natural Language Processing algorithms, such as keyword designation
+        and extraction using the TF/IDF method, or even clustering by treating
+        each word ID as a dimension in Euclidean space.</para>
+
+        <para>Finally, the function FromO is pretty self-explanatory. This
+        simply re-constitutes a table that was produced by the ToO function
+        back into the WordElement format.</para>
+
+        <para><programlisting>dReconstituted:=ML.Docs.Tokenize.FromO(dReplaced,dLexicon);</programlisting></para>
+      </sect2>
+
+      <sect2 id="CoLocation">
+        <title>Co-Location</title>
+
+        <para>The Docs.CoLocation module takes the textual analysis one step
+        further than Tokenize. It harvests n-grams rather than just single
+        words and enables the user to perform analyses on those n-grams to
+        determine significance. The same dataset (dSentences) that was used in
+        the walk-through of the Tokenize module above, is also used as the
+        starting point for the examples shown below.</para>
+
+        <para>As with Tokenize, the first step in processing the free text for
+        Colocation is to map all of the words. This is done by calling the
+        Words attribute, which also calls the Tokenize.Clean and
+        Tokenize.Split functions respectively: <programlisting>dWords:=ML.Docs.CoLocation.Words(dSentences);</programlisting></para>
+
+        <para>The AllNGrams attribute then harvests every n-gram, from
+        unigrams up to the n defined by the user. This produces result in a
+        table that contains a row for every unique id/n-gram combination. In
+        the following line, we are asking for anything up to a 4-gram. If the
+        n parameter is left blank, the default is 3. <programlisting>dAllNGrams:=ML.Docs.CoLocation.AllNGrams(dWords,,4);</programlisting></para>
+
+        <para><emphasis role="bold">Note:</emphasis> The above call has left
+        the second parameter blank.</para>
+
+        <para>The second parameter is a reference to a Lexicon which is used
+        if you decide to perform integer replacement on the words prior to
+        processing. This is advisable for very large corpuses. In such a case,
+        we would have first called the Lexicon function (which exists in
+        CoLocation as a pass-through of the same function in Tokenize) and is
+        then passed that output as the second parameter:<programlisting>dLexicon:=ML.Docs.CoLocation.Lexicon(dWords);
+dAllNGrams:=ML.Docs.CoLocation.AllNGrams(dWords,dLexicon,4);
+</programlisting></para>
+
+        <para>Below are calls to the standard metrics that are currently built
+        into the CoLocation module. Remember that the call to Words above has
+        called Tokenize.Clean, which has converted all characters in the text
+        to uppercase:<programlisting><?dbfo keep-together="always"?>// SUPPORT: User passes a SET OF STRING and the output from the ALLNGrams attribute
+ML.Docs.CoLocation.Support(['MILK','BREAD','BUTTER'],dAllNGrams);
 
 // CONFIDENCE, LIFT and CONVICTION: User passes in two SETS OF STRING and the AllNGrams 
    output.
 // In each case, set 1 and set 2 are read as “1=&gt;2”.  Note that 1=&gt;2 DOES NOT EQUAL 2=&gt;1.
-Docs.CoLocation.Confidence(['MILK','BREAD'],['BUTTER'],AllNGrams);
-Docs.CoLocation.Lift(['MILK','BREAD'],['BUTTER'],AllNGrams);
-Docs.CoLocation.Conviction(['MILK','BREAD'],['BUTTER'],AllNGrams);
+ML.Docs.CoLocation.Confidence(['MILK','BREAD'],['BUTTER'],dAllNGrams);
+ML.Docs.CoLocation.Lift(['MILK','BREAD'],['BUTTER'],dAllNGrams);
+ML.Docs.CoLocation.Conviction(['MILK','BREAD'],['BUTTER'],dAllNGrams);
+</programlisting></para>
 
-</programlisting>To further distill the data the user may call NGrams, which
-      strips the document IDs and groups the table so that there is one row
-      per unique n-gram. Included in this output is aggregate information
-      including the number of documents in which the item appears, the
-      percentage of that compared to the document count, and the Inverse
-      Document Frequency (IDF).</para>
+        <para>To further distill the data the user may call NGrams. This
+        strips the document IDs and groups the table so that there is one row
+        per unique n-gram. Included in this output is aggregate information
+        including the number of documents in which the item appears, the
+        percentage of that compared to the document count, and the Inverse
+        Document Frequency (IDF).<programlisting>dNGrams:=Docs.CoLocation.NGrams(dAllNGrams);</programlisting></para>
 
-      <para><programlisting>NGrams:=Docs.CoLocation.NGrams(AllNGrams);</programlisting>With
-      the output from NGrams we have other attributes that we can call to
-      further analyze the data.</para>
+        <para>With the output from NGrams there are other attributes that can
+        be called to further analyze the data.</para>
 
-      <para>Calling SubGrams will produce a table of every n-gram where n&gt;1
-      along with a comparison of the document frequency of the n-gram to the
-      product of the frequencies of all of its constituent unigrams. This will
-      give an indication of whether the phrase or its parts may be more
-      significant in the context of the corpus.</para>
+        <para>Calling SubGrams produces a table of every n-gram where n&gt;1
+        along with a comparison of the document frequency of the n-gram to the
+        product of the frequencies of all of its constituent unigrams.</para>
 
-      <para><programlisting>Docs.CoLocation.SubGrams(NGrams);</programlisting>Another
-      measure of significance is SplitCompare. This splits every n-gram with
-      n&gt;1 into two rows with two parts: The initial unigram and the
-      remainder, and the final unigram and the remainder. The document
-      frequencies of all three items (the full n-gram, and the two constituent
-      parts) are then presented side-by-side so their relative values can be
-      evaluated. This would help to determine if a leading or trailing word
-      carries any weight in the encompassing phrase.</para>
+        <para>This gives an indication of whether the phrase or its parts may
+        be more significant in the context of the corpus.</para>
 
-      <para><programlisting>Docs.CoLocation.SplitCompare(NGrams);</programlisting></para>
+        <para><programlisting>ML.Docs.CoLocation.SubGrams(dNGrams);</programlisting></para>
 
-      <sect2>
-        <title id="Integer_Replacement">Integer replacement</title>
+        <para>Another measure of significance is SplitCompare. This splits
+        every n-gram with n&gt;1 into two rows with two parts which are the
+        initial unigram and the remainder, and the final unigram and the
+        remainder. The document frequencies of all three items (the full
+        n-gram, and the two constituent parts) are then presented side-by-side
+        so their relative values can be evaluated. This helps to determine if
+        a leading or trailing word carries any weight in the encompassing
+        phrase.<programlisting>ML.Docs.CoLocation.SplitCompare(dNGrams);</programlisting></para>
 
-        <para>In order to deal with very large data sets, the facility exists
-        to perform integer replacement of the words so that they take up less
-        space. This is done with a call to the Lexicon attribute, which uses
-        the Tokenize.Lexicon function to aggregate the n-grams and assign a
-        unique integer value to each unique item. The process will assign the
-        most frequent item the lowest number, so “The” or “A” will usually
-        take the first position in English.</para>
-
-        <para><programlisting>Lexicon:=Docs.CoLocation.Lexicon(Words);</programlisting>Here
-        is where the missing parameter from our AllNGrams call comes in. If we
-        specify a Lexicon as the second parameter, the output from AllNGrams
-        produces the n-grams after they have been substituted for their
-        integer equivalents. So phrases such as “Chocolate Chip Cookies” will
-        be converted to something like “14 13 4”, where “Chocolate” is
-        assigned the number 14, etc. Clearly, this saves a lot of space and
-        will also save processing time when subsequent attributes perform
-        string manipulation actions against it. Since the attributes are all
-        statistical in nature, the substitution has no bearing on the
-        outcomes.</para>
-
-        <para><programlisting>AllNGramsWithLexicon:=Docs.CoLocation.AllNGrams(Words,Lexicon,4);
-NGramsWithLexicon:=Docs.CoLocation.NGrams(AllNGramsWithLexicon);
-AllNGramsWithLexicon;
-</programlisting>Once any analysis has been done and the user has phrases of
+        <para>Once any analysis has been done and the user has phrases of
         significance, they can be re-constituted using a call to
-        ShowPhrase:</para>
-
-        <para><programlisting>Docs.CoLocation.ShowPhrase(Lexicon,’14 13 4’); // would return ‘CHOCOLATE CHIP COOKIES’</programlisting></para>
+        ShowPhrase:<programlisting>ML.Docs.CoLocation.ShowPhrase(dLexicon,’14 13 4’);  // would return ‘CHOCOLATE CHIP COOKIES’</programlisting></para>
       </sect2>
     </sect1>
 
     <sect1 id="Field_aggregates_walkthrough">
-      <title id="Field_aggregates_walkthrough">Field Aggregates
-      Walkthrough</title>
+      <title>Field Aggregates Walkthrough</title>
 
       <para><emphasis role="bold">Modules: FieldAggregates,
       Distribution</emphasis></para>
@@ -1129,7 +1795,7 @@ AllNGramsWithLexicon;
       module and then various properties of those fields can be queried, for
       example:</para>
 
-      <para><programlisting>IMPORT ML;
+      <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 // Generate random data for testing purposes
 TestSize := 10000000;
 a1 := ML.Distribution.Uniform(0,100,10000); 
@@ -1143,10 +1809,9 @@ Agg.Simple; // Compute some common statistics
 </programlisting>This example provides two rows. The ‘number’ column ties the
       result back to the column being passed in. There are columns for
       min-value, max-value, the sum, the number of rows (with values), the
-      mean, the variance and the standard deviation.</para>
-
-      <para>The ‘simple’ attribute is a very good one to use on huge data as
-      it is a simple linear process.</para>
+      mean, the variance and the standard deviation. The ‘simple’ attribute is
+      a very good one to use on huge data as it is a simple linear
+      process.</para>
 
       <para>The aggregate module is also able to ‘rank order’ a set of data;
       the SimpleRanked attribute allocates every value in every field a number
@@ -1159,7 +1824,7 @@ Agg.Simple; // Compute some common statistics
       same value a rank which is the average value of the ranks of the
       individual items, for example:</para>
 
-      <para><programlisting>IMPORT ML;
+      <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 TestSize := 50;
 a1 := ML.Distribution.Uniform(0,100,10000); 
 b1 := ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
@@ -1171,17 +1836,15 @@ Agg.SimpleRanked;
 Agg.Ranked;
 </programlisting></para>
 
-      <para>Note that ranking requires the data to be sorted; therefore
-      ranking is an ‘NlgN’ process.</para>
+      <para><emphasis role="bold">Note:</emphasis> Ranking requires the data
+      to be sorted; therefore ranking is an ‘NlgN’ process.</para>
 
       <para>When examining the results of the ‘Simple’ attribute you may be
       surprised that two of the common averages ‘median’ and ‘mode’ are
       missing. While the Aggregate module can return those values, they are
       not included in the ‘Simple’ attribute because they are NLgN processes
-      and we want to keep ‘Simple’ as cheap as possible.</para>
-
-      <para>The median values for each column can be obtained using the
-      following:</para>
+      and we want to keep ‘Simple’ as cheap as possible. The median values for
+      each column can be obtained using the following:</para>
 
       <para><programlisting>Agg.Medians;</programlisting>The modes are found
       by using:<programlisting>Agg.Modes;</programlisting></para>
@@ -1201,10 +1864,8 @@ Agg.Ranked;
       percentiles. NTile(1000) can be used if you want to be able to split
       populations to one tenth of a percent. Every group (or Tile) will have
       the same number of records within it (unless your data has a lot of
-      duplicate values because identical values land in the same tile).</para>
-
-      <para>The following example demonstrates the possible use of
-      NTiling:</para>
+      duplicate values because identical values land in the same tile). The
+      following example demonstrates the possible use of NTiling.</para>
 
       <para>Imagine you have a file with people and for each person you have
       two columns (height and weight). NTile that file with a number, such as
@@ -1220,9 +1881,11 @@ Agg.Ranked;
       the NTileRanges(4). Then you can note both the low value of the second
       quartiles and the high value of the third quartile and declare that “the
       middle 50% of the students attending that college score between X and
-      Y”. The following example demonstrates this:</para>
+      Y”.</para>
 
-      <para><programlisting>IMPORT ML;
+      <para>The following example demonstrates this:</para>
+
+      <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 TestSize := 100;
 a1 := ML.Distribution.Uniform(0,100,10000); 
 b1 := ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
@@ -1238,12 +1901,10 @@ Agg.NTileRanges(4)
       Suppose that you have a field with a MIN of 0 and MAX of 50 and you ask
       for 10 buckets, the first bucket will be 0 to (almost)5, the second 5 to
       (almost) 10 etc. The Buckets attribute assigns each field value to the
-      bucket.</para>
-
-      <para>The BucketRanges returns a table showing the range of each bucket
-      and also the number of elements in that bucket. If you wanted to plot a
-      histogram of value verses frequency, for example, buckets would be the
-      tool to use.</para>
+      bucket. The BucketRanges returns a table showing the range of each
+      bucket and also the number of elements in that bucket. If you wanted to
+      plot a histogram of value verses frequency, for example, buckets would
+      be the tool to use.</para>
 
       <para>The final point to mention is that many of the more sophisticated
       measures use the simpler measures and also share other more complex code
@@ -1252,19 +1913,14 @@ Agg.NTileRanges(4)
       optimizer does an excellent job of making sure code is only executed
       once however often it is used. If you are familiar with ECL at a lower
       level, you may wish to look at the graph for the following:
-      <programlisting>IMPORT ML;
-
+      <programlisting><?dbfo keep-together="always"?>IMPORT ML;
 TestSize := 10000000;
-
 a1 := ML.Distribution.Uniform(0,100,10000); 
 b1 := ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
 a2 := ML.Distribution.Poisson(3,100);
 b2 := ML.Distribution.GenData(TestSize,a2,2);
-
 D := b1+b2; // This is the test data
-
 Agg := ML.FieldAggregates(D);
-
 Agg.Simple;
 Agg.SimpleRanked;
 Agg.Ranked;
@@ -1274,14 +1930,11 @@ Agg.NTiles(4);
 Agg.NTileRanges(4);
 Agg.Buckets(4);
 Agg.BucketRanges(4)
-
 </programlisting></para>
-
-      <para></para>
     </sect1>
 
     <sect1 id="Regression_walkthrough">
-      <title id="Regression_walkthrough">Regression Walk-through</title>
+      <title>Regression Walk-through</title>
 
       <para><emphasis role="bold">Modules: Regression</emphasis></para>
 
@@ -1304,8 +1957,8 @@ Agg.BucketRanges(4)
       <para>This function represents a line with parameters β= (β0,
       β1).</para>
 
-      <sect2>
-        <title id="Polynomial">Polynomial</title>
+      <sect2 id="Polynomial">
+        <title>Polynomial</title>
 
         <para>The Polynomial regression expresses (ie models) relationship
         between dependent variable Y and a single independent variable X with
@@ -1328,7 +1981,7 @@ Agg.BucketRanges(4)
         function, (constant, Log, XLogX, …) contributes to the execution
         time.</para>
 
-        <para><programlisting>IMPORT ML;
+        <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 R := RECORD
        INTEGER        rid;
        INTEGER        Recs;
@@ -1356,8 +2009,8 @@ P.RSquared
         value ‘6’.</para>
       </sect2>
 
-      <sect2>
-        <title id="OLS">OLS</title>
+      <sect2 id="OLS">
+        <title>OLS</title>
 
         <para>The Ordinary Least Squares (OLS) regression is a linear
         regression model that calculates parameters β using the method of
@@ -1365,7 +2018,7 @@ P.RSquared
         values of the dependent variable Y. The following example,
         demonstrates how it might be used:</para>
 
-        <para><programlisting>IMPORT ML;
+        <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 
 value_record := RECORD
                 unsigned    rid;
@@ -1401,14 +2054,11 @@ Reg.Anova;
 
         <para>Height = β0 + 30* β1.</para>
 
-        <para>How well does this function (ie regression model) fit the
-        data?</para>
-
-        <para>One measure of goodness of fit is the R-squared. The range of
-        R-squared is [0,1], and values closer to 1 indicate better fit.</para>
-
-        <para>For Simple Linear regression the R-squared represents a square
-        of correlation between X and Y.</para>
+        <para>How well does this function (ie regression model) fit the data?
+        One measure of goodness of fit is the R-squared. The range of
+        R-squared is [0,1], and values closer to 1 indicate better fit. For
+        Simple Linear regression the R-squared represents a square of
+        correlation between X and Y.</para>
 
         <para>Analysis of Variance (ANOVA) provides information about the
         level of variability within a regression model, and that information
@@ -1441,7 +2091,7 @@ Reg.Anova;
   </chapter>
 
   <chapter id="ML_modules">
-    <title id="ML_modules">The ML Modules</title>
+    <title>The ML Modules</title>
 
     <para>Each ML module focuses on a specific type of algorithm and contains
     a number of routines. The functionality of each routine is also
@@ -1452,22 +2102,22 @@ Reg.Anova;
     only.</para>
 
     <sect1 id="Associations">
-      <title id="Associations">Associations (ML.Associate)</title>
+      <title>Associations (ML.Associate)</title>
 
       <para>Use this module to perform frequent pattern matching on the
-      underlying data, as follows:</para>
+      underlying data. The following routines are provided:</para>
 
-      <table>
-        <title></title>
-
+      <informaltable>
         <tgroup cols="2">
-          <colspec align="center" />
+          <colspec align="left" colwidth="190pt" />
+
+          <colspec align="left" colwidth="350pt" />
 
           <thead>
             <row>
-              <entry align="center">Routine</entry>
+              <entry align="left">Routine</entry>
 
-              <entry align="center">Description</entry>
+              <entry align="left">Description</entry>
             </row>
           </thead>
 
@@ -1483,15 +2133,15 @@ Reg.Anova;
             <row>
               <entry>AprioriN</entry>
 
-              <entry>Uses ‘new school’ techniques to find all patterns of up
-              to N items that appear together with a particular degree of
+              <entry>Uses ‘new school’ techniques finding all patterns of up
+              to N items, appearing together with a particular degree of
               support.</entry>
             </row>
 
             <row>
               <entry>EclatN</entry>
 
-              <entry>Uses the ‘eclat’ technique to construct a result
+              <entry>Uses the ‘eclat’ technique to construct a result which is
               identical to AprioriN.</entry>
             </row>
 
@@ -1504,24 +2154,32 @@ Reg.Anova;
             </row>
           </tbody>
         </tgroup>
-      </table>
+      </informaltable>
 
       <para>The following performance statistics of these routines were
       observed using a 10 node cluster:</para>
 
       <informaltable>
+        <?dbfo keep-together="always"?>
+
         <tgroup cols="4">
-          <colspec align="center" />
+          <colspec align="left" colwidth="60pt" />
+
+          <colspec align="left" colwidth="280pt" />
+
+          <colspec align="left" colwidth="60pt" />
+
+          <colspec align="left" colwidth="140pt" />
 
           <thead>
             <row>
-              <entry align="center">Routine</entry>
+              <entry align="left">Routine</entry>
 
-              <entry align="center">Description</entry>
+              <entry align="left">Description</entry>
 
-              <entry align="center">Result</entry>
+              <entry align="left">Result</entry>
 
-              <entry align="center">Expected Order</entry>
+              <entry align="left">Expected Order</entry>
             </row>
           </thead>
 
@@ -1531,7 +2189,7 @@ Reg.Anova;
 
               <entry>On 140M words</entry>
 
-              <entry>47 seconds</entry>
+              <entry>47 secs</entry>
 
               <entry>NlgN</entry>
             </row>
@@ -1541,7 +2199,7 @@ Reg.Anova;
 
               <entry>On 197M words</entry>
 
-              <entry>91 seconds</entry>
+              <entry>91 secs</entry>
 
               <entry>NlgN</entry>
             </row>
@@ -1551,19 +2209,19 @@ Reg.Anova;
 
               <entry>On 140M words, producing 2.6K pairs</entry>
 
-              <entry>325 seconds</entry>
+              <entry>325 secs</entry>
 
-              <entry>(N/k)^2.MLg(N) where k is proportion of ‘buckets’ average
-              item is in. (Using terms in 5-10% of buckets)</entry>
+              <entry>(N/k)^2.MLg(N) where k is the proportion of ‘buckets’ the
+              average item is in. (Using terms in 5-10% of buckets)</entry>
             </row>
 
             <row>
               <entry>Apiori2</entry>
 
-              <entry>On 193M words (using .1-&gt;1% buckets) – producing 4.4M
+              <entry>On 193M words (using .1-&gt;1% buckets) producing 4.4M
               pairs</entry>
 
-              <entry>21 minutes</entry>
+              <entry>21 mins</entry>
 
               <entry></entry>
             </row>
@@ -1571,9 +2229,9 @@ Reg.Anova;
             <row>
               <entry>Apiori2</entry>
 
-              <entry>On 19M words (10% sample) – producing 4.1M pairs</entry>
+              <entry>On 19M words (10% sample), producing 4.1M pairs</entry>
 
-              <entry>2 minutes</entry>
+              <entry>2 mins</entry>
 
               <entry></entry>
             </row>
@@ -1591,11 +2249,11 @@ Reg.Anova;
             <row>
               <entry>Apiori3</entry>
 
-              <entry>1.9M words (1% sample of .1-1 buckets) – (172K possible 3
-              groups) – 3.6B intermediate results – 22337 eventual
+              <entry>1.9M words (1% sample of .1-1 buckets), (172K possible 3
+              groups), 3.6B intermediate results, 22337 eventual
               results</entry>
 
-              <entry>73 minutes</entry>
+              <entry>73 mins</entry>
 
               <entry></entry>
             </row>
@@ -1603,9 +2261,9 @@ Reg.Anova;
             <row>
               <entry>Apiori3</entry>
 
-              <entry>On 1.9M words with new ,LOOKUP optimization</entry>
+              <entry>On 1.9M words with new LOOKUP optimization</entry>
 
-              <entry>42 minutes</entry>
+              <entry>42 mins</entry>
 
               <entry></entry>
             </row>
@@ -1613,10 +2271,10 @@ Reg.Anova;
             <row>
               <entry>EE3</entry>
 
-              <entry>On 1.9M words (1% sample of .1-1 buckets) – 22337
-              eventual results</entry>
+              <entry>On 1.9M words (1% sample of .1-1 buckets), 22337 eventual
+              results</entry>
 
-              <entry>3 minutes</entry>
+              <entry>3 mins</entry>
 
               <entry></entry>
             </row>
@@ -1634,15 +2292,35 @@ Reg.Anova;
         </tgroup>
       </informaltable>
 
-      <para>The following is an example of the use of the Apriori
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk"></para>
+
+      <para role="nobrk">This example shows how to use the Apriori
       routine:</para>
 
-      <para><programlisting>IMPORT ML;
+      <para><programlisting role="nobrk"><?dbfo keep-together="always"?>IMPORT ML;
 IMPORT ML.Docs AS Docs;
 
 d11 := DATASET([{'One of the wonderful things about tiggers is tiggers are wonderful 
                  things'},
-                {'It is a little scarey the drivel that enters one's mind when given the 
+                {'It is a little scary the drivel that enters ones mind when given the 
                  task of entering random text'},
                 {'I almost quoted Oscar Wilde; but I considered that I had gotten a little 
                  too silly already!'},
@@ -1685,21 +2363,25 @@ ML.Associate(ForAssoc,2).AprioriN(40);
     </sect1>
 
     <sect1 id="Classify">
-      <title id="Classify">Classify (ML.Classify)</title>
+      <title>Classify (ML.Classify)</title>
 
       <para>Use this module to tackle the problem, “can I predict this
       dependent variable based upon these independent ones?”. The following
       routines are provided:</para>
 
       <informaltable>
+        <?dbfo keep-together="always"?>
+
         <tgroup cols="2">
-          <colspec align="center" />
+          <colspec align="left" colwidth="130pt" />
+
+          <colspec align="left" colwidth="490pt" />
 
           <thead>
             <row>
-              <entry align="center">Routine</entry>
+              <entry align="left">Routine</entry>
 
-              <entry align="center">Description</entry>
+              <entry align="left">Description</entry>
             </row>
           </thead>
 
@@ -1741,20 +2423,26 @@ ML.Associate(ForAssoc,2).AprioriN(40);
     </sect1>
 
     <sect1 id="Cluster">
-      <title id="Cluster">Cluster (ML.Cluster)</title>
+      <title>Cluster (ML.Cluster)</title>
 
       <para>This module is used to perform the clustering of a collection of
-      records containing fields. The following routines are provided:</para>
+      records containing fields.</para>
+
+      <para>The following routines are provided:</para>
 
       <para><informaltable>
+          <?dbfo keep-together="always"?>
+
           <tgroup cols="2">
-            <colspec align="center" />
+            <colspec align="left" colwidth="70pt" />
+
+            <colspec align="left" colwidth="430pt" />
 
             <thead>
               <row>
-                <entry align="center">Routine</entry>
+                <entry align="left">Routine</entry>
 
-                <entry align="center">Description</entry>
+                <entry align="left">Description</entry>
               </row>
             </thead>
 
@@ -1762,9 +2450,9 @@ ML.Associate(ForAssoc,2).AprioriN(40);
               <row>
                 <entry>DF</entry>
 
-                <entry>A submodule used to perform various distance metrics
-                upon two records. Currently, the following are provided:
-                <itemizedlist>
+                <entry>A submodule which is used to perform various distance
+                metrics upon two records. Currently, the following are
+                provided: <itemizedlist>
                     <listitem>
                       <para>Euclidean</para>
                     </listitem>
@@ -1784,10 +2472,10 @@ ML.Associate(ForAssoc,2).AprioriN(40);
                     <listitem>
                       <para>Tanimoto</para>
                     </listitem>
-                  </itemizedlist>Quick variants exist for Euclidean and
+                  </itemizedlist>Quick variants exist for both Euclidean and
                 Euclidean Squared which are much faster on sparse data
-                PROVIDED you are willing to accept no distance if there are no
-                dimensions along which the vectors touch.</entry>
+                PROVIDED you are willing to accept no distance, if there are
+                no dimensions along which the vectors touch.</entry>
               </row>
 
               <row>
@@ -1815,7 +2503,7 @@ ML.Associate(ForAssoc,2).AprioriN(40);
                 <entry>AggloN</entry>
 
                 <entry>Performs Agglomerative (Hierarchical) clustering. The
-                results include the cluster assignments, remaining distances
+                results include cluster assignments, remaining distances
                 between clusters and even the dentrogram.</entry>
               </row>
             </tbody>
@@ -1823,35 +2511,55 @@ ML.Associate(ForAssoc,2).AprioriN(40);
         </informaltable></para>
 
       <sect2 id="KMeans">
-        <title id="kmeans_module">KMeans</title>
+        <title>KMeans</title>
 
         <para>The KMeans module performs K-Means clustering on a static
-        primary data set and a pre-determined set of centroids. This is an
-        iterative two-step process. For each iteration, every data entity is
-        assigned to the centroid that is closest to it, and then the centroid
-        locations are re-assigned to the mean position of all the data
-        entities assigned to them.</para>
+        primary data set and a pre-determined set of centroids.</para>
+
+        <para>This is an iterative two-step process. For each iteration, every
+        data entity is assigned to the centroid that is closest to it, and
+        then the centroid locations are re-assigned to the mean position of
+        all the data entities assigned to them.</para>
 
         <para>The user passes in the two datasets and the maximum number of
-        iterations to perform if convergence is not achieved. Optionally, the
-        user may also define a convergence threshold (default=0.0) and the
-        distance function to be used during calculations (default is
-        Euclidean).</para>
+        iterations to perform if convergence is not achieved.</para>
+
+        <para>Optionally, the user may also define a convergence threshold
+        (default=0.0) and the distance function to be used during calculations
+        (default is Euclidean).</para>
 
         <para>The primary output from the KMeans module is “Result()”, which
         returns the centroid dataset with their new locations. “Convergence”
         will indicate the number of iterations performed, which will never be
-        greater than the maximum number passed in to the function. There are
-        also a number other useful return values that enable the user to
-        analyze centroid movement, which are included in the following
-        example.</para>
+        greater than the maximum number passed in to the function.</para>
 
-        <para><programlisting>IMPORT ML;
+        <para></para>
+
+        <para></para>
+
+        <para></para>
+
+        <para></para>
+
+        <para></para>
+
+        <para></para>
+
+        <para></para>
+
+        <para></para>
+
+        <para>There are also a number other useful return values that enable
+        the user to analyze centroid movement. These are included in the
+        following example.</para>
+
+        <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 
 lMatrix:={UNSIGNED id;REAL x;REAL y;};
 
 // Simple two-dimensional set of numbers between 0-10
 dDocumentMatrix:=DATASET([
+
   {1,2.4639,7.8579},
   {2,0.5573,9.4681},
   {3,4.6054,8.4723},
@@ -1908,8 +2616,8 @@ KMeans.DistanceDelta();
 </programlisting></para>
       </sect2>
 
-      <sect2>
-        <title id="AggloN_function">AggloN</title>
+      <sect2 id="AggloN_function">
+        <title>AggloN</title>
 
         <para>The AggloN function performs Agglomerative clustering on a
         static document set. This is a bottom-up approach whereby close pairs
@@ -1923,7 +2631,7 @@ KMeans.DistanceDelta();
         following is an example using the AggloN routine (using the same
         dDocuments constructed in the above example):</para>
 
-        <para><programlisting>// Set up Agglomerative clustering with 4 iterations
+        <para><programlisting><?dbfo keep-together="always"?>// Set up Agglomerative clustering with 4 iterations
 AggloN:=ML.Cluster.AggloN(dDocuments,4);
 
 // Table with nested sets of numbers delineating the tree after the specified
@@ -1938,7 +2646,7 @@ AggloN.Clusters;
       </sect2>
 
       <sect2 id="Distances">
-        <title id="Distances">Distances</title>
+        <title>Distances</title>
 
         <para>This is the engine for calculating the distances between every
         entity in one dataset to every entity in a second dataset, which are
@@ -1953,58 +2661,75 @@ AggloN.Clusters;
         effort to facilitate both flexibility and efficiency. The user is able
         to calculate distances in three modes:</para>
 
-        <informaltable>
-          <tgroup cols="2">
-            <tbody>
-              <row>
-                <entry>Dense</entry>
+        <para><informaltable>
+            <?dbfo keep-together="always"?>
 
-                <entry>All calculations are performed, which for a self-join
-                is an N^2 problem.</entry>
-              </row>
+            <tgroup cols="2">
+              <colspec align="left" colwidth="100pt" />
 
-              <row>
-                <entry>Summary Join</entry>
+              <colspec align="left" colwidth="510pt" />
 
-                <entry>Highly efficient but not as accurate, this process only
-                calculates distance between entities that share at least one
-                dimension.</entry>
-              </row>
+              <thead>
+                <row>
+                  <entry align="left">Routine</entry>
 
-              <row>
-                <entry>Background</entry>
+                  <entry align="left">Description</entry>
+                </row>
+              </thead>
 
-                <entry>Fully accurate and highly efficient, assuming a sparse
-                matrix. This process takes advantage of the assumption that
-                only a small number of dimensions are shared between any two
-                pairs of entities.</entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable>
+              <tbody>
+                <row>
+                  <entry>Dense</entry>
 
-        <para>This is fully accurate and highly efficient, assuming a sparse
-        matrix. This process takes advantage of the assumption that only a
-        small number of dimensions are shared between any two pairs of
-        entities.</para>
+                  <entry>All calculations are performed, which for a self-join
+                  is an N^2 problem.</entry>
+                </row>
+
+                <row>
+                  <entry>Summary Join</entry>
+
+                  <entry>Highly efficient but not as accurate, this process
+                  only calculates distance between entities that share at
+                  least one dimension.</entry>
+                </row>
+
+                <row>
+                  <entry>Background</entry>
+
+                  <entry>Fully accurate and highly efficient, assuming a
+                  sparse matrix. This process takes advantage of the
+                  assumption that only a small number of dimensions are shared
+                  between any two pairs of entities.</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </informaltable>This is fully accurate and highly efficient,
+        assuming a sparse matrix. This process takes advantage of the
+        assumption that only a small number of dimensions are shared between
+        any two pairs of entities.</para>
       </sect2>
     </sect1>
 
     <sect1 id="Correlations">
-      <title id="Correlations">Correlations (ML.Correlate)</title>
+      <title>Correlations (ML.Correlate)</title>
 
       <para>Use this module to calculate the degree of correlation between
-      every pair of fields provided, using the following routines:</para>
+      every pair of fields provided. The following routines are
+      provided:</para>
 
       <para><informaltable>
+          <?dbfo keep-together="always"?>
+
           <tgroup cols="2">
-            <colspec align="center" />
+            <colspec align="left" colwidth="100pt" />
+
+            <colspec align="left" colwidth="470pt" />
 
             <thead>
               <row>
-                <entry align="center">Routine</entry>
+                <entry align="left">Routine</entry>
 
-                <entry align="center">Description</entry>
+                <entry align="left">Description</entry>
               </row>
             </thead>
 
@@ -2031,7 +2756,7 @@ AggloN.Clusters;
     </sect1>
 
     <sect1 id="Discretize">
-      <title id="Discretize">Discretize (ML.Discretize)</title>
+      <title>Discretize (ML.Discretize)</title>
 
       <para>This module provides a suite of routines which allow a datastream
       with continuous real elements to be turned into a stream with discrete
@@ -2045,17 +2770,22 @@ AggloN.Clusters;
       construct the meta-data fragment, which will then perform the
       discretization. This enables the automatic generation of strategies and
       even iterates over the modeling process with different discretization
-      strategies which can be programmatically generated.</para>
+      strategies which can be programmatically generated. The following
+      routines are provided:</para>
 
       <para><informaltable>
+          <?dbfo keep-together="always"?>
+
           <tgroup cols="2">
-            <colspec align="center" />
+            <colspec align="left" colwidth="100pt" />
+
+            <colspec align="left" colwidth="470pt" />
 
             <thead>
               <row>
-                <entry align="center">Routine</entry>
+                <entry align="left">Routine</entry>
 
-                <entry align="center">Description</entry>
+                <entry align="left">Description</entry>
               </row>
             </thead>
 
@@ -2086,22 +2816,6 @@ AggloN.Clusters;
                 <entry>Constructs a meta-data fragment which will then perform
                 the discretization.</entry>
               </row>
-
-              <row>
-                <entry>Mentioned in email but may not be implemented</entry>
-
-                <entry></entry>
-              </row>
-
-              <row>
-                <entry>Naive Bayes</entry>
-
-                <entry>Works on data that has been discretiized. Requires two
-                datasets, a set of independent variables and a set of classes.
-                It allows multiple classifiers to be built simultaneously.
-                First the classifier model is built then the model is executed
-                against a dataset and produces an outcome.</entry>
-              </row>
             </tbody>
           </tgroup>
         </informaltable></para>
@@ -2109,34 +2823,32 @@ AggloN.Clusters;
       <para>The following is an example of the use of the Naive Bayes
       routine:</para>
 
-      <para><programlisting>import ml;
+      <para><programlisting><?dbfo keep-together="always"?>import ml;
 
 value_record := RECORD
         unsigned rid;
-real height;
+        real height;
         real weight;
         real age;
         integer1 species;
         integer1 gender; // 0 = unknown, 1 = male, 2 = female
 END;
-
 d := dataset([{1,5*12+7,156*16,43,1,1},
-                                              {2,5*12+7,128*16,31,1,2},
-                                              {3,5*12+9,135*16,15,1,1},
-                                              {4,5*12+7,145*16,14,1,1},
-                                              {5,5*12-2,80*16,9,1,1},
-                                              {6,4*12+8,72*16,8,1,1},
-                                              {7,8,32,2.5,2,2},
-                                              {8,6.5,28,2,2,2},
-                                              {9,6.5,28,2,2,2},
-                                              {10,6.5,21,2,2,1},
-                                              {11,4,15,1,2,0},
-                                              {12,3,10.5,1,2,0},
-                                              {13,2.5,3,0.8,2,0},
-                                              {14,1,1,0.4,2,0}
-                                              ]
-                                              ,value_record);
-  
+              {2,5*12+7,128*16,31,1,2},
+              {3,5*12+9,135*16,15,1,1},
+              {4,5*12+7,145*16,14,1,1},
+              {5,5*12-2,80*16,9,1,1},
+              {6,4*12+8,72*16,8,1,1},
+              {7,8,32,2.5,2,2},
+              {8,6.5,28,2,2,2},
+              {9,6.5,28,2,2,2},
+              {10,6.5,21,2,2,1},
+              {11,4,15,1,2,0},
+              {12,3,10.5,1,2,0},
+              {13,2.5,3,0.8,2,0},
+              {14,1,1,0.4,2,0}
+              ]
+              ,value_record);
 // Turn into regular NumericField file (with continuous variables)
 ml.ToField(d,o);
 
@@ -2168,33 +2880,30 @@ Test.Headline;
       <para>The following is an example of the use of the discretize
       routines:</para>
 
-      <para><programlisting>import ml;
-
+      <para><programlisting><?dbfo keep-together="always"?>import ml;
 value_record := RECORD
                 unsigned rid;
-  real height;
+                real height;
                 real weight;
                 real age;
                 integer1 species;
-  END;
-
+END;
 d := dataset([{1,5*12+7,156*16,43,1},
-                                                            {2,5*12+7,128*16,31,1},
-                                                            {3,5*12+9,135*16,15,1},
-                                                            {4,5*12+7,145*16,14,1},
-                                                            {5,5*12-2,80*16,9,1},
-                                                            {6,4*12+8,72*16,8,1},
-                                                            {7,8,32,2.5,2},
-                                                            {8,6.5,28,2,2},
-                                                            {9,6.5,28,2,2},
-                                                            {10,6.5,21,2,2},
-                                                            {11,4,15,1,2},
-                                                            {12,3,10.5,1,2},
-                                                            {13,2.5,3,0.8,2},
-                                                            {14,1,1,0.4,2}             
-                                                                             ]
-                                                                             value_record);
-
+              {2,5*12+7,128*16,31,1},
+              {3,5*12+9,135*16,15,1},
+              {4,5*12+7,145*16,14,1},
+              {5,5*12-2,80*16,9,1},
+              {6,4*12+8,72*16,8,1},
+              {7,8,32,2.5,2},
+              {8,6.5,28,2,2},
+              {9,6.5,28,2,2},
+              {10,6.5,21,2,2},
+              {11,4,15,1,2},
+              {12,3,10.5,1,2},
+              {13,2.5,3,0.8,2},
+              {14,1,1,0.4,2}             
+              ]
+              value_record);
 // Turn into regular NumericField file (with continuous variables)
 ml.macPivot(d,o);
 
@@ -2214,11 +2923,12 @@ done;
     </sect1>
 
     <sect1 id="Distribution">
-      <title id="Distribution">Distribution (ML.Distribution)</title>
+      <title>Distribution (ML.Distribution)</title>
 
-      <para>The distribution module exists to provide code to generate
-      distribution tables and ‘random’ data according to a particular
-      distribution. Each distribution is a ‘module’ that takes a collection of
+      <para>This module exists to provide code to generate distribution tables
+      and ‘random’ data for a particular distribution.</para>
+
+      <para>Each distribution is a ‘module’ that takes a collection of
       parameters and then implements a common interface. Other than the
       ‘natural’ mathematics of each distribution the implementation adds the
       notion of ranges (or NRanges). Essentially this means that the codomain
@@ -2228,11 +2938,91 @@ done;
       distributions you should think of the distribution curve as being
       approximated by NRanges straight lines. The maximum granularity
       currently supported in 1M ranges (after that the numeric pain of
-      retaining precision is too nasty).</para>
+      retaining precision is too nasty). The following routines are
+      provided:</para>
+
+      <para><informaltable>
+          <?dbfo keep-together="always"?>
+
+          <tgroup cols="2">
+            <colspec align="left" colwidth="150pt" />
+
+            <colspec align="left" colwidth="470pt" />
+
+            <thead>
+              <row>
+                <entry align="left">Routine</entry>
+
+                <entry align="left">Description</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>Uniform (Low, High, NRanges.)</entry>
+
+                <entry>Specifies that any (continuous) value between Low and
+                High is equally likely to occur.</entry>
+              </row>
+
+              <row>
+                <entry>StudentT (degrees-of-freedon, NRanges)</entry>
+
+                <entry>Specifies the degrees of freedom for a Student-T
+                distribution. This module also exports InvDensity to provide
+                the ‘t’ value that gives a particular density value (can be
+                useful as the ‘tail’ of a t distribution is often
+                interesting).</entry>
+              </row>
+
+              <row>
+                <entry>Normal (Mean, Standard Deviation, NRanges)</entry>
+
+                <entry>Implements a normal distribution (bell curve), which
+                shows mean ‘mean’ and standard deviation as specified,
+                approximate by NRanges straight lines.</entry>
+              </row>
+
+              <row>
+                <entry>Exponential (Lamda, NRanges))</entry>
+
+                <entry>Implements the exponential (sometimes called negative
+                exponential) distribution.</entry>
+              </row>
+
+              <row>
+                <entry>Binomial (p, NRanges)</entry>
+
+                <entry>Gives the distribution showing the chances of getting
+                ‘k’ successful events in Nranges-1 trials where the chances of
+                success in one trial is ‘p’.</entry>
+              </row>
+
+              <row>
+                <entry>NegBinomial (p, failures, NRanges)</entry>
+
+                <entry>Gives the distribution showing the chances of getting
+                ‘k’ successful events before ‘failures’ number of failures
+                occurs (maximum total trials = nranges). The geometric
+                distribution can be obtained by setting failures = 1.</entry>
+              </row>
+
+              <row>
+                <entry>Poisson (Lamda, NRanges)</entry>
+
+                <entry>For a poisson distribution the mean and variance are
+                both provided by Lamda. It is a discrete distribution (will
+                only produce integral values). Thus if NRanges is (say) 100
+                then the probability function for Poisson will be computed for
+                values of 0 to NRanges-1.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable></para>
 
       <para>The interface to the distribution provides:</para>
 
-      <para><programlisting>  EXPORT t_FieldReal Density(t_FieldReal RH)
+      <para><programlisting><?dbfo keep-together="always"?>  EXPORT t_FieldReal Density(t_FieldReal RH)
 // The probability density function at point RH
 
 EXPORT t_FieldReal Cumulative(t_FieldReal RH)
@@ -2253,93 +3043,17 @@ EXPORT Ntile(Pcnt
   Thus .Ntile(99) gives the value beneath which 99% of all should observations will fall.
 </programlisting></para>
 
-      <para><informaltable>
-          <tgroup cols="2">
-            <colspec align="center" />
-
-            <thead>
-              <row>
-                <entry align="center">Routine</entry>
-
-                <entry align="center">Description</entry>
-              </row>
-            </thead>
-
-            <tbody>
-              <row>
-                <entry>Uniform (Low, High, NRanges.)</entry>
-
-                <entry>Specifies that any (continuous) value between Low and
-                High is equally likely to occur.</entry>
-              </row>
-
-              <row>
-                <entry>StudentT (degrees-of-freedon, NRanges)</entry>
-
-                <entry>Specifies the degrees of freedom for a Student-T
-                distribution. Note this module also exports InvDensity to
-                provide the ‘t’ value that gives a particular density value
-                (can be useful as the ‘tail’ of a t distribution is often
-                interesting).</entry>
-              </row>
-
-              <row>
-                <entry>Normal (Mean, Standard Deviation, NRanges)</entry>
-
-                <entry>Implements a normal distribution (bell curve) – with
-                mean ‘mean’ and standard deviation as specified – approximate
-                by NRanges straight lines.</entry>
-              </row>
-
-              <row>
-                <entry>Exponential (Lamda, NRanges))</entry>
-
-                <entry>Implements the exponential (sometimes called negative
-                exponential) distribution.</entry>
-              </row>
-
-              <row>
-                <entry>Binomial (p, NRanges)</entry>
-
-                <entry>Gives the distribution for the chances of getting ‘k’
-                successful events in Nranges-1 trials where the chances of
-                success in one trial is ‘p’.</entry>
-              </row>
-
-              <row>
-                <entry>NegBinomial (p, failures, NRanges)</entry>
-
-                <entry>Gives the distribution for the chances of getting ‘k’
-                successful events before ‘failures’ number of failures occurs
-                (maximum total trials = nranges). The geometric distribution
-                can be obtained by setting failures = 1.</entry>
-              </row>
-
-              <row>
-                <entry>Poisson (Lamda, NRanges)</entry>
-
-                <entry>For a poisson distribution the mean and variance are
-                both provided by Lamda. It is a discrete distribution (will
-                only produce integral values). Thus if NRanges is (say) 100
-                then the probability function for Poisson will be computed for
-                values of 0 to NRanges-1.</entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable></para>
-
       <para>Most people do not really encounter StudentT as a distribution,
       rather they encounter the t-test. You can perform a t-test using the t
       distribution using the NTile capability. Thus the value for a
       single-tailed t-test with 3 degrees of freedom at the 99% confidence
-      level can be obtained using:<programlisting>a := ML.Distribution.StudentT(3,10000);
+      level can be obtained using:<programlisting><?dbfo keep-together="always"?>a := ML.Distribution.StudentT(3,10000);
 a.NTile(99); // Single tail
 a.NTile(99.5); // Double tail
 </programlisting></para>
 
-      <note>
-        <para>The Cauchy distribution can be obtained by setting v = 1.</para>
-      </note>
+      <para><emphasis role="bold">Note:</emphasis> The Cauchy distribution can
+      be obtained by setting v = 1.</para>
 
       <para>This module also exports:</para>
 
@@ -2348,7 +3062,9 @@ a.NTile(99.5); // Double tail
       random values distributed according to the specified distribution. If a
       ‘single stream’ of random numbers is required then FieldNumber may be
       set to 1. It is provided to allow ‘random records’ with multiple fields
-      to be produced as in the following usage example:<programlisting>IMPORT * FROM ML;
+      to be produced.</para>
+
+      <para>For example:<programlisting><?dbfo keep-together="always"?>IMPORT * FROM ML;
 //a := ML.Distribution.Normal(4,5,10000);
 a := ML.Distribution.Poisson(40,100);
 //a := ML.Distribution.Uniform(0,100,10000);
@@ -2364,8 +3080,12 @@ variance(b,value)
       two normal and one poisson:</para>
 
       <informaltable>
+        <?dbfo keep-together="always"?>
+
         <tgroup cols="2">
-          <colspec align="center" />
+          <colspec align="center" colwidth="130pt" />
+
+          <colspec align="center" colwidth="130pt" />
 
           <thead>
             <row>
@@ -2418,22 +3138,26 @@ variance(b,value)
       <para></para>
     </sect1>
 
-    <sect1 id="Field_Aggregates_Module">
-      <title id="Field_Aggregates_Module">FieldAggregates
-      (ML.FieldAggregates)</title>
+    <sect1 id="FieldAggregates_Module">
+      <title>FieldAggregates (ML.FieldAggregates)</title>
 
       <para>This module works on the field elements provided. It performs the
-      tasks shown below for ALL the fields at once:</para>
+      tasks shown below for ALL the fields at once. The following routines are
+      provided:</para>
 
       <para><informaltable>
+          <?dbfo keep-together="always"?>
+
           <tgroup cols="2">
-            <colspec align="center" />
+            <colspec align="left" colwidth="130pt" />
+
+            <colspec align="left" colwidth="470pt" />
 
             <thead>
               <row>
-                <entry align="center">Routine</entry>
+                <entry align="left">Routine</entry>
 
-                <entry align="center">Description</entry>
+                <entry align="left">Description</entry>
               </row>
             </thead>
 
@@ -2490,7 +3214,7 @@ variance(b,value)
                 <entry>NTiles/NTileRanges</entry>
 
                 <entry>Think of this as giving the percentile rank of each
-                element – except you get to pick if it is percentiles (N=100)
+                element, except you get to pick if it is percentiles (N=100)
                 or some other gradation</entry>
               </row>
             </tbody>
@@ -2499,17 +3223,23 @@ variance(b,value)
     </sect1>
 
     <sect1 id="Regression">
-      <title id="Regression">Regression (ML.Regression)</title>
+      <title>Regression (ML.Regression)</title>
+
+      <para>The Regression module provides the following routines:</para>
 
       <para><informaltable>
+          <?dbfo keep-together="always"?>
+
           <tgroup cols="2">
-            <colspec align="center" />
+            <colspec align="left" colwidth="80pt" />
+
+            <colspec align="left" colwidth="510pt" />
 
             <thead>
               <row>
-                <entry align="center">Routine</entry>
+                <entry align="left">Routine</entry>
 
-                <entry align="center">Description</entry>
+                <entry align="left">Description</entry>
               </row>
             </thead>
 
@@ -2518,7 +3248,7 @@ variance(b,value)
                 <entry>OLS</entry>
 
                 <entry>Takes a set of independent and dependent variables and
-                exports a module that publishes an ordinary least squares
+                exports a module which publishes an ordinary least squares
                 linear regression of the independent variables to produce the
                 dependent ones (it can perform multiple regressions at
                 once).</entry>
@@ -2566,26 +3296,25 @@ P.RSquared
   </chapter>
 
   <chapter id="ML_with_documents">
-    <title id="ML_with_documents">Using ML with documents</title>
+    <title>Using ML with documents (ML.Docs)</title>
 
-    <sect1 id="Docs_module">
-      <title id="ML.Doc">The Docs Module (ML.Doc)</title>
-
-      <para>The ML.Docs module provides a number of routines which can be used
-      to pre-process text and make it more suitable for further processing.
-      The following routines are provided:</para>
-
-      <informaltable>
+    <para>The ML.Docs module provides a number of routines which can be used
+    to pre-process text and make it more suitable for further processing. The
+    following routines are provided:<informaltable>
         <tgroup cols="3">
-          <colspec align="center" />
+          <colspec align="left" colwidth="80pt" />
+
+          <colspec align="left" colwidth="90pt" />
+
+          <colspec align="left" colwidth="430pt" />
 
           <thead>
             <row>
-              <entry align="center">Routine</entry>
+              <entry align="left">Routine</entry>
 
-              <entry align="center">Sub-Routine</entry>
+              <entry align="left">Sub-Routine</entry>
 
-              <entry align="center">Description</entry>
+              <entry align="left">Description</entry>
             </row>
           </thead>
 
@@ -2668,7 +3397,7 @@ P.RSquared
               <entry>WordsCounted</entry>
 
               <entry>Annotates every word in a document with the total number
-              of times that word occurs in the document, distributing tfdi
+              of times that word occurs in the document and distributes tfdi
               information for further (faster) processing.</entry>
             </row>
 
@@ -2704,7 +3433,7 @@ P.RSquared
 
               <entry>Support</entry>
 
-              <entry>The ratio of the number of documents that contain all of
+              <entry>The ratio of the number of documents which contain all of
               the n-grams in the parameter set compared to the corpus
               count.</entry>
             </row>
@@ -2714,9 +3443,9 @@ P.RSquared
 
               <entry>Confidence</entry>
 
-              <entry>The ratio of the number of documents that contain all of
-              the n-grams in both parameter sets compared to the number of
-              documents that only contain the n-grams in the first
+              <entry>The ratio of the number of documents which contain all of
+              the n-grams in both parameter sets, compared to the number of
+              documents which only contain the n-grams in the first
               set.</entry>
             </row>
 
@@ -2785,22 +3514,19 @@ P.RSquared
             </row>
           </tbody>
         </tgroup>
-      </informaltable>
+      </informaltable></para>
 
-      <para></para>
-    </sect1>
-
-    <sect1>
-      <title id="Doc_module_usage">Typical usage of the Docs module</title>
+    <sect1 id="Doc_module_usage">
+      <title>Typical usage of the Docs module</title>
 
       <para>The following code demonstrates how the docs module may be used
       and show the result at each stage:</para>
 
-      <para><programlisting>IMPORT ML;
+      <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 IMPORT ML.Docs AS Docs;
 
 d := DATASET([{'One of the wonderful things about tiggers is tiggers are wonderful things'},
-                                  {'It is a little scary the drivel that enters one's mind 
+                                  {'It is a little scary the drivel that enters ones mind 
                                     when given the task of entering random text'},
                                   {'I almost quoted Oscar Wilde; but I considered that I 
                                     had gotten a little too silly already!'},
@@ -2840,25 +3566,33 @@ o2;
 </programlisting></para>
     </sect1>
 
-    <sect1>
-      <title id="Performance_statistics">Performance Statistics</title>
+    <sect1 id="Performance_statistics">
+      <title>Performance Statistics</title>
 
       <para>The following performance statistics of these routines were
       observed using a 10 node cluster:</para>
 
       <informaltable>
+        <?dbfo keep-together="always"?>
+
         <tgroup cols="4">
-          <colspec align="center" />
+          <colspec align="left" colwidth="120pt" />
+
+          <colspec align="left" colwidth="280pt" />
+
+          <colspec align="left" colwidth="80pt" />
+
+          <colspec align="left" colwidth="120pt" />
 
           <thead>
             <row>
-              <entry align="center">Routine</entry>
+              <entry align="left">Routine</entry>
 
-              <entry align="center">Description</entry>
+              <entry align="left">Description</entry>
 
-              <entry align="center">Result</entry>
+              <entry align="left">Result</entry>
 
-              <entry align="center">Expected Order</entry>
+              <entry align="left">Expected Order</entry>
             </row>
           </thead>
 
@@ -2866,7 +3600,7 @@ o2;
             <row>
               <entry>Clean and Split</entry>
 
-              <entry>22m documents producing 1.5B words</entry>
+              <entry>22m documents producing 1.5B words.</entry>
 
               <entry>60 minutes</entry>
 
@@ -2876,7 +3610,7 @@ o2;
             <row>
               <entry>Lexicon</entry>
 
-              <entry>1.5B words producing 6.4M entries</entry>
+              <entry>1.5B words producing 6.4M entries.</entry>
 
               <entry>40 minutes</entry>
 
@@ -2898,7 +3632,7 @@ o2;
               <entry>Lexicon</entry>
 
               <entry>Creating ‘working’ entries from 1.5B words and the
-              ‘keyword’ lexicon, produces 140M words</entry>
+              ‘keyword’ lexicon, produces 140M words.</entry>
 
               <entry>37 minutes</entry>
 
@@ -2909,7 +3643,7 @@ o2;
               <entry>Lexicon</entry>
 
               <entry>Creating ‘working’ entries from 1.5B words and the
-              ‘keyword MkII’ lexicon, produces 240M words</entry>
+              ‘keyword MkII’ lexicon, produces 240M words.</entry>
 
               <entry>40 minutes</entry>
 
@@ -2921,7 +3655,7 @@ o2;
 
               <entry>Creating ‘working’ entries from 1.5B words and the
               ‘keyword MkII’ lexicon, produces 240M words, using the ‘small
-              lexicon’ feature</entry>
+              lexicon’ feature.</entry>
 
               <entry>7 minutes</entry>
 
@@ -2931,7 +3665,7 @@ o2;
             <row>
               <entry>Wordbag</entry>
 
-              <entry>Create WordBags from 140M words</entry>
+              <entry>Create WordBags from 140M words.</entry>
 
               <entry>114 seconds</entry>
 
@@ -2941,7 +3675,7 @@ o2;
             <row>
               <entry>Wordbag</entry>
 
-              <entry>Create WordBags from 240M-&gt;193M words</entry>
+              <entry>Create WordBags from 240M-&gt;193M words.</entry>
 
               <entry>297 seconds</entry>
 
@@ -2953,9 +3687,8 @@ o2;
     </sect1>
   </chapter>
 
-  <chapter>
-    <title id="ML_implementation">Useful routines for ML
-    implementation</title>
+  <chapter id="ML_implementation">
+    <title>Useful routines for ML implementation</title>
 
     <para>The following modules are provided to help with ML
     implementation:</para>
@@ -2972,20 +3705,24 @@ o2;
         </listitem>
       </itemizedlist></para>
 
-    <sect1 id="Roxie-Data-Backup">
-      <title id="Utility">Utility</title>
+    <sect1 id="Utility">
+      <title>Utility</title>
 
-      <para>This module includes the following:</para>
+      <para>The Utility module provides the following routines:</para>
 
       <para><informaltable>
+          <?dbfo keep-together="always"?>
+
           <tgroup cols="2">
-            <colspec align="center" />
+            <colspec align="left" colwidth="250pt" />
+
+            <colspec align="left" colwidth="350pt" />
 
             <thead>
               <row>
-                <entry align="center">Routine</entry>
+                <entry align="left">Routine</entry>
 
-                <entry align="center">Description</entry>
+                <entry align="left">Description</entry>
               </row>
             </thead>
 
@@ -3003,44 +3740,30 @@ o2;
                 <entry>Translates from field elements to and from
                 matrices.</entry>
               </row>
-
-              <row>
-                <entry>In the email but may not be implemented...</entry>
-
-                <entry></entry>
-              </row>
-
-              <row>
-                <entry>Model comparison</entry>
-
-                <entry></entry>
-              </row>
-
-              <row>
-                <entry></entry>
-
-                <entry></entry>
-              </row>
             </tbody>
           </tgroup>
         </informaltable></para>
     </sect1>
 
     <sect1 id="Matrix_Library">
-      <title id="Matrix_Library">The Matrix Library (Mat)</title>
+      <title>The Matrix Library (Mat)</title>
 
       <para>This library is in addition to and subservient to the ML library
-      modules.</para>
+      modules. The following routines are provided:</para>
 
       <para><informaltable>
+          <?dbfo keep-together="always"?>
+
           <tgroup cols="2">
-            <colspec align="center" />
+            <colspec align="left" colwidth="110pt" />
+
+            <colspec align="left" colwidth="490pt" />
 
             <thead>
               <row>
-                <entry align="center">Routine</entry>
+                <entry align="left">Routine</entry>
 
-                <entry align="center">Description</entry>
+                <entry align="left">Description</entry>
               </row>
             </thead>
 
@@ -3115,9 +3838,9 @@ o2;
               <row>
                 <entry>MU</entry>
 
-                <entry>Matrix Universe – a number of routines to allow
-                multiple matrices to exist within the same ‘file’ (or
-                dataflow). Useful for iterating around loops etc.</entry>
+                <entry>Matrix Universe. A number of routines to allow multiple
+                matrices to exist within the same ‘file’ (or dataflow). Useful
+                for iterating around loops etc.</entry>
               </row>
 
               <row>
@@ -3175,7 +3898,7 @@ o2;
               <row>
                 <entry>Vec</entry>
 
-                <entry>A vector library – to create vectors from matrices and
+                <entry>A vector library, to create vectors from matrices and
                 assign vectors into matrices.</entry>
               </row>
             </tbody>
@@ -3184,7 +3907,7 @@ o2;
 
       <para>The following examples demonstrate some of these routines:</para>
 
-      <para><programlisting>IMPORT ML;
+      <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 IMPORT ML.Mat AS Mat;
 d := dataset([{1,1,1.0},{1,2,2.0},{2,1,3.0},{2,2,4.0}],Mat.Types.Element);
 
