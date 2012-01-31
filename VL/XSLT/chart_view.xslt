@@ -20,6 +20,9 @@
             @import url("http://mbostock.github.com/d3/syntax.css?1.6.0");
           </xsl:text>
         </style>
+        <style type="text/css">
+            <xsl:apply-templates select="Dataset" mode="generate_styles"/>
+        </style>
 
         <script type="text/javascript" src="http://www.google.com/jsapi"> </script>
         <script type="text/javascript"><xsl:text>

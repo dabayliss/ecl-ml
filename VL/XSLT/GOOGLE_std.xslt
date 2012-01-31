@@ -3,7 +3,14 @@
   <xsl:template match="Dataset[starts-with(@name,'GOOGLEStd')]" mode="generate_body">
   <div>
     <xsl:attribute name="id"><xsl:value-of select="@name"/></xsl:attribute>
+    <xsl:attribute name="class"><xsl:value-of select="@name"/></xsl:attribute>
   </div>
+  </xsl:template>
+
+  <xsl:template match="Dataset[starts-with(@name,'GOOGLEStd')]" mode="generate_styles">
+    <xsl:for-each select="Row[chartelementtype='STYLES']">
+     <xsl:value-of select="s"/>
+    </xsl:for-each>
   </xsl:template>
 
   <xsl:template match="Dataset[starts-with(@name,'GOOGLEStd')]" mode="generate_script">

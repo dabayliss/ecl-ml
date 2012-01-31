@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Macro to produce a Google chart.  Parameters are:
 //   d          : Name of the dataset containing the data to chart.
 //   sChartType : [OPTIONAL] The type of chart to display.  Default is 'Line'
@@ -16,13 +16,14 @@
 //   http://code.google.com/apis/chart/interactive/docs/gallery/barchart.html#Configuration_Options
 //---------------------------------------------------------------------------
 IMPORT VL;
-EXPORT GoogleStd(d,sChartType='Bar',sOpt='\'\''):=FUNCTIONMACRO
+EXPORT GoogleStd(d,sChartType='Bar',sOpt='\'\'', sDivStyles='\'\''):=FUNCTIONMACRO
   dData:=PROJECT(VL.ToGoogleTable(d),TRANSFORM(VL.Types.ChartInterface,SELF.CHARTELEMENTTYPE:='DATA';SELF:=LEFT;));
   dOptions:=DATASET([{'OPTIONS','var options={'+sOpt+'};'}],VL.Types.ChartInterface);
   #UNIQUENAME(c)
+  dDivStyles:=DATASET([{'STYLES', 'div.GOOGLEStd_' +sChartType+%'c'%+' {' + sDivStyles + '}'}], VL.Types.ChartInterface);
   dChart:=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'Chart(document.getElementById(\'GOOGLEStd_'+sChartType+%'c'%+'\'));chart.draw(data,options);'}],VL.Types.ChartInterface);
 
-  dOutput:=dData+dOptions+dChart;
+  dOutput:=dDivStyles+dData+dOptions+dChart;
 
   RETURN OUTPUT(dOutput,NAMED('GOOGLEStd_'+sChartType+%'c'%));
 ENDMACRO;
