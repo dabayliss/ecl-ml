@@ -193,7 +193,42 @@ EXPORT Fat(DATASET(Types.NumericField) d0,Types.t_FieldReal v=0) := FUNCTION
 	n1 := JOIN(n,dn,LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,TRANSFORM(LEFT),LEFT ONLY,LOCAL);
 	RETURN n1+dn;
 END;
-	
+
+// Same function for discrete fields	
+EXPORT FatD(DATASET(Types.DiscreteField) d0,Types.t_Discrete v=0) := FUNCTION
+  dn := DISTRIBUTE(d0,HASH(id)); // all the values for a given ID now on one node
+  seeds := TABLE(dn,{id,m := MAX(GROUP,number)},id,LOCAL); // get the list of ids on each node (and get 'max' number for free
+	mn := MAX(seeds,m); // The number of fields to fill in
+	Types.DiscreteField bv(seeds le,UNSIGNED C) := TRANSFORM
+	  SELF.value := v;
+		SELF.id := le.id;
+		SELF.number := c;
+	END;
+	// turn n into a fully 'blank' matrix - distributed along with the 'real' data
+	n := NORMALIZE(seeds,mn,bv(LEFT,COUNTER),LOCAL); 
+	// subtract from 'n' those values that already exist
+	n1 := JOIN(n,dn,LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,TRANSFORM(LEFT),LEFT ONLY,LOCAL);
+	RETURN n1+dn;
+END;
+
+// Creates a file of pivot/target pairs with a Gini impurity value
+EXPORT Gini(infile,pivot,target) := FUNCTIONMACRO
+	// First count up the values of each target for each pivot
+		agg := TABLE(infile,{pivot,target,Cnt := COUNT(GROUP)},pivot,target,MERGE);
+	// Now compute the total number for each pivot
+		aggc := TABLE(agg,{pivot,TCnt := SUM(GROUP,Cnt)},pivot,MERGE);
+		r := RECORD
+		  agg;
+			REAL4 Prop; // Proportion pertaining to this dependant value
+		END;
+		// Now on each row we have the proportion of the node that is that dependant value
+		prop := JOIN(agg,aggc,LEFT.pivot=RIGHT.pivot,
+		             TRANSFORM(r, SELF.Prop := LEFT.Cnt/RIGHT.Tcnt, SELF := LEFT),HASH);
+		// Compute 1-gini coefficient for each node for each field for each value
+		RETURN TABLE(prop,{pivot,TotalCnt := SUM(GROUP,Cnt),Gini := 1-SUM(GROUP,Prop*Prop)},pivot);
+  ENDMACRO;
+
+
 // Given a file which is sorted by INFIELD (and possibly other values), add sequence numbers within the range of each infield
 // Slighly elaborate code is to avoid having to partition the data to one value of infield per node
 EXPORT mac_SequenceInField(infile,infield,seq,outfile) := MACRO
