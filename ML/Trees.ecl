@@ -66,7 +66,7 @@ EXPORT Trees := MODULE
 	END;
 
 /*
-	The decision tree is designed to split a dataset such that the dependant variables are concentrated by value inside the nodes
+	The decision tree is designed to split a dataset such that the dependent variables are concentrated by value inside the nodes
 	Put a different way; we are aiming for a node to have one value for the dependant variable
   It is possible to construct a decision tree with continuous data; for now we are tackling the discrete case
 	Assume raw-data distributed by record-id
@@ -81,7 +81,7 @@ EXPORT Trees := MODULE
 		ML.Types.t_Discrete depend; // Actually copies the dependant value to EVERY node - paying memory to avoid downstream cycles
     ML.Types.DiscreteField;
   END;
-	ind0 := ML.Utils.FatD(ind); // Ensure no sparsity in independants
+	ind0 := ML.Utils.FatD(ind); // Ensure no sparsity in independents
 	wNode init(ind0 le,dep ri) := TRANSFORM
 	  SELF.node_id := 1;
 		SELF.level := 1;
