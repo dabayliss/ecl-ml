@@ -56,4 +56,6 @@ EXPORT Dot(DATASET(Types.VecElement) X,DATASET(Types.VecElement) Y) := FUNCTION
 	RETURN SUM(J,value);
 END; 
 
+EXPORT Norm(DATASET(Types.VecElement) X) := SQRT(Dot(X,X));
+
 END;

@@ -97,4 +97,33 @@ END;
 EXPORT LComp(DATASET(Types.Element) l_u) := PROJECT(l_u,TRANSFORM(Types.Element, SELF.Value := IF(LEFT.x=LEFT.y, 1, IF(LEFT.x>LEFT.y, LEFT.value, 0));SELF := LEFT));
 EXPORT UComp(DATASET(Types.Element) l_u) := UpperTriangle(l_u);
 
+
+/*
+	In linear algebra, a QR decomposition of a matrix is a decomposition of a matrix A into a product
+	A=QR of an orthonormal matrix Q (ie Q*Q' = I) and an upper triangular matrix R.
+
+	This decomposition is often used to solve a system of linear equations Ax=b, and it is basis for 
+	a particular eigenvalue problem
+*/
+SHARED qr_comp := ENUM ( Q = 1,  R = 2 );
+EXPORT DATASET(Types.Element) QR(DATASET(Types.Element) matrix) := FUNCTION
+
+	n := Has(matrix).Stats.XMax;
+	loopBody(DATASET( Types.MUElement) ds, UNSIGNED4 k) := FUNCTION
+		Q := Mat.MU.From(ds, qr_comp.Q);
+		R := Mat.MU.from(ds, qr_comp.R);
+		hM := Householder.Reflection(Vec.FromCol(R,k),k);
+		R1 := Mat.Mu.To(Mul(hM,R), qr_comp.R);
+		Q1 := Mat.Mu.To(Mul(Q, hM), qr_comp.Q);
+	RETURN R1+Q1;
+  END;
+	
+
+	RETURN LOOP(Mat.Mu.To(matrix, qr_comp.R)+Mat.Mu.To(Identity(n), qr_comp.Q), n-1, loopBody(ROWS(LEFT),COUNTER));
+END;
+
+EXPORT QComp(DATASET(Types.Element) matrix) := Mat.MU.From(QR(matrix), qr_comp.Q);
+EXPORT RComp(DATASET(Types.Element) matrix) := Mat.MU.From(QR(matrix), qr_comp.R);;
+
+
 END;
