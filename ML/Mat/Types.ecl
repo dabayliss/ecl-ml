@@ -1,4 +1,4 @@
-EXPORT Types := MODULE
+﻿EXPORT Types := MODULE
 
 // Note - indices will start at 1; 0 is going to be used as a null
 EXPORT t_Index := UNSIGNED4; // Supports matrices with up to 9B as the largest dimension
@@ -12,7 +12,8 @@ EXPORT Element := RECORD
 END;
 
 EXPORT VecElement := RECORD
-  t_Index i; // a vector does not necessarily lay upon any given dimension
+  t_Index x; // a vector does not necessarily lay upon any given dimension
+	t_Index y; // y will always be 1
 	t_value value;
   END;
 
