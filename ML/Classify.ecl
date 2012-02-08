@@ -53,7 +53,8 @@ EXPORT BuildNaiveBayes(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteFie
 		Types.t_Count support := COUNT(GROUP);
 	END;
 // This is the raw table - how many of each value 'f' for each field 'number' appear for each value 'c' of each classifier 'class_number'
-	Cnts := TABLE(Vals,AggregatedTriple,c,f,number,class_number,FEW);
+	//Cnts := TABLE(Vals,AggregatedTriple,c,f,number,class_number,FEW);
+	Cnts := TABLE(Vals,AggregatedTriple,c,f,number,class_number,MERGE);
 
 // Compute P(C)
   CTots := TABLE(cl,{value,number,Support := COUNT(GROUP)},value,number,FEW);
@@ -71,10 +72,10 @@ EXPORT BuildNaiveBayes(DATASET(Types.DiscreteField) dd,DATASET(Types.DiscreteFie
 		SELF.support := le.Support;
 		SELF.P := le.Support/ri.TSupport;
 	END;
-	PC := JOIN(CTots,CLTots,LEFT.number=RIGHT.number,pct(LEFT,RIGHT),FEW);
+	PC := JOIN(CTots,CLTots,LEFT.number=RIGHT.number,pct(LEFT,RIGHT),LOOKUP);
 	
 	// We do NOT want to assume every value exists for every field - so we will count the number of class values by field
-	TotalFs := TABLE(Cnts,{c,number,class_number,Types.t_Count Support := SUM(GROUP,Support),GC := COUNT(GROUP)},c,number,class_number,FEW);
+	TotalFs := TABLE(Cnts,{c,number,class_number,Types.t_Count Support := SUM(GROUP,Support),GC := COUNT(GROUP)},c,number,class_number,MERGE);
 	F_Given_C_Rec := RECORD
 	  Cnts.c;
 		Cnts.f;
