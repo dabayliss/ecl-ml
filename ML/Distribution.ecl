@@ -1,4 +1,4 @@
-IMPORT * FROM ML;
+﻿IMPORT * FROM ML;
 IMPORT * FROM ML.Types;
 IMPORT ML.Mat;
 IMPORT ML.Mat.Vec AS Vec;
@@ -17,9 +17,9 @@ EXPORT Layout := RECORD
 // A quick way to get a density vector with everything but the density filled in
 // Cannot really move into the base class as the point to pass into the density function can vary from distribution to distribution
 SHARED DVec(UNSIGNED Ranges,t_FieldReal low,t_FieldReal width) :=
-		PROJECT(Vec.From(Ranges),TRANSFORM(Layout,SELF.RangeNumber:=LEFT.i,
-		  																	      SELF.RangeLow := low+width*(LEFT.i-1),
-																							SELF.RangeHigh := low+width*LEFT.i,
+		PROJECT(Vec.From(Ranges),TRANSFORM(Layout,SELF.RangeNumber:=LEFT.x,
+		  																	      SELF.RangeLow := low+width*(LEFT.x-1),
+																							SELF.RangeHigh := low+width*LEFT.x,
 																							SELF.P := 0));
 
 // NRanges is the number of divisions to split the distribution into	
@@ -239,7 +239,7 @@ EXPORT GenData(t_RecordID N,Default dist,t_FieldNumber fld = 1) := FUNCTION
 	No := NORMALIZE(I,1+(UNSIGNED)(LEFT.P*Buckets)-(UNSIGNED)(LEFT.LowP*Buckets),Bulk(LEFT,COUNTER-1));
 	// Now construct the result vector - first just create the random vector uniformly distributed in the 0-<1 range
 	B1 := 1000000;
-	V := PROJECT( Vec.From(N),TRANSFORM(NumericField,SELF.Id := LEFT.i, SELF.Value := (RANDOM()%B1) / (REAL8)B1,SELF.number:=fld));
+	V := PROJECT( Vec.From(N),TRANSFORM(NumericField,SELF.Id := LEFT.x, SELF.Value := (RANDOM()%B1) / (REAL8)B1,SELF.number:=fld));
 	// Now join to the distribution; interpolating between the specified ranges
 	NumericField Trans(NumericField le,No ri) := TRANSFORM
 	  SELF.value := IF ( Dist.Discrete OR ri.P=ri.LowP, ri.RangeHigh, ri.RangeLow+(ri.RangeHigh-ri.RangeLow)*(le.value-ri.LowP)/(ri.P-ri.LowP) );
