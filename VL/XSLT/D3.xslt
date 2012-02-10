@@ -1,5 +1,5 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:template match="Dataset[starts-with(@name,'D3')]" mode="generate_body">
+  <xsl:template match="Dataset[starts-with(@name,'D3CHART')]" mode="generate_body">
 
   <div class="body">
     <div class="content">
@@ -41,6 +41,6 @@ var margin=3;
   </div>
 
   </xsl:template>
-  <xsl:template match="Dataset[starts-with(@name,'D3Voronoi')]" mode="generate_script">
+  <xsl:template match="Dataset[starts-with(@name,'D3CHART')]" mode="generate_script">
   </xsl:template>
 </xsl:stylesheet>

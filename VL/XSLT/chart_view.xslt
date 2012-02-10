@@ -1,8 +1,8 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <xsl:output method="html"/>
-  <xsl:include href="D3_std.xslt"/>
-  <xsl:include href="GOOGLE_std.xslt"/>
+  <xsl:include href="D3.xslt"/>
+  <xsl:include href="GOOGLE.xslt"/>
 
   <xsl:template match="/">
     <xsl:apply-templates select="*/Results/Result"/>

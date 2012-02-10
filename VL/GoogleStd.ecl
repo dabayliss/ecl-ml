@@ -20,10 +20,10 @@ EXPORT GoogleStd(d,sChartType='Bar',sOpt='\'\'', sDivStyles='\'\''):=FUNCTIONMAC
   dData:=PROJECT(VL.ToGoogleTable(d),TRANSFORM(VL.Types.ChartInterface,SELF.CHARTELEMENTTYPE:='DATA';SELF:=LEFT;));
   dOptions:=DATASET([{'OPTIONS','var options={'+sOpt+'};'}],VL.Types.ChartInterface);
   #UNIQUENAME(c)
-  dDivStyles:=DATASET([{'STYLES', 'div.GOOGLEStd_' +sChartType+%'c'%+' {' + sDivStyles + '}'}], VL.Types.ChartInterface);
-  dChart:=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'Chart(document.getElementById(\'GOOGLEStd_'+sChartType+%'c'%+'\'));chart.draw(data,options);'}],VL.Types.ChartInterface);
+  dDivStyles:=DATASET([{'STYLES', 'div.GOOGLECHART_' +sChartType+%'c'%+' {' + sDivStyles + '}'}], VL.Types.ChartInterface);
+  dChart:=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'Chart(document.getElementById(\'GOOGLECHART_'+sChartType+%'c'%+'\'));chart.draw(data,options);'}],VL.Types.ChartInterface);
 
   dOutput:=dDivStyles+dData+dOptions+dChart;
 
-  RETURN OUTPUT(dOutput,NAMED('GOOGLEStd_'+sChartType+%'c'%));
+  RETURN OUTPUT(dOutput,NAMED('GOOGLECHART_'+sChartType+%'c'%));
 ENDMACRO;
