@@ -1,4 +1,4 @@
-IMPORT ML;
+﻿IMPORT ML;
 IMPORT VL;
 
 // Cartesian data
@@ -23,3 +23,7 @@ VL.GoogleStd(TABLE(dGrid,{x;y;}),'Scatter','title:"Simple scatter plot",width:40
 
 // D3 Voronoi Tesselation
 VL.D3Voronoi(TABLE(dGrid,{x;y;}),'w=600;h=400;');
+
+
+
+VL.Google(VL.Chart(dCartesian,Month),VL.Styles.Small).Line;

@@ -3,4 +3,11 @@ EXPORT Types:=MODULE
     STRING CHARTELEMENTTYPE;
     STRING s;
   END;
+
+  EXPORT ChartData:=RECORD
+    STRING series;
+    STRING segment;
+    REAL8 val;
+  END;
+  
 END;
