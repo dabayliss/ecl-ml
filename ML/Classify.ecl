@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 IMPORT * FROM $;
 IMPORT $.Mat;
 /*
@@ -10,7 +10,7 @@ IMPORT $.Mat;
 EXPORT Classify := MODULE
 
 SHARED l_result := RECORD(Types.DiscreteField)
-  REAL8 conf;  // Confidense - high is good
+  REAL8 conf;  // Confidence - high is good
 	REAL8 closest_conf;
   END;
 // Function to compute the efficacy of a given classification process
@@ -19,9 +19,9 @@ SHARED l_result := RECORD(Types.DiscreteField)
 // Computeds - classification tags created by the classifier
 EXPORT CompareD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep,DATASET(l_result) Computed) := MODULE
 	DiffRec := RECORD
-		Types.t_FieldNumber classifier; // The classifier in question (value of 'number' on outcome data)
+		Types.t_FieldNumber classifier;  // The classifier in question (value of 'number' on outcome data)
 		Types.t_Discrete  c_actual;      // The value of c provided
-		Types.t_Discrete  c_modeled;			// The value produced by the classifier
+		Types.t_Discrete  c_modeled;		 // The value produced by the classifier
 		Types.t_FieldReal score;         // Score allocated by classifier
 		Types.t_FieldReal score_delta;   // Difference to next best
 		BOOLEAN           sole_result;   // Did the classifier only have one option
@@ -78,8 +78,8 @@ END;
 			Types.t_discrete f := 0;
 			Types.t_FieldNumber number := 0; // Number of the field in question - 0 for the case of a P(C)
 			Types.t_FieldNumber class_number;
-			REAL8 P; // Either P(F|C) or P(C) if number = 0. Stored in -Log2(P) - so small is good :)
-			Types.t_Count Support; // Number of cases
+			REAL8 P;                         // Either P(F|C) or P(C) if number = 0. Stored in -Log2(P) - so small is good :)
+			Types.t_Count Support;           // Number of cases
 		END;
 
 /*
@@ -119,10 +119,10 @@ END;
 			CLTots := TABLE(CTots,{number,TSupport := SUM(GROUP,Support)},number,FEW);
 	
 			P_C_Rec := RECORD
-				Types.t_Discrete c; // The value within the class
+				Types.t_Discrete c;            // The value within the class
 				Types.t_Discrete class_number; // Used when multiple classifiers being produced at once
-				Types.t_FieldReal support;  // Used to store total number of C
-				REAL8 P; // P(C)
+				Types.t_FieldReal support;     // Used to store total number of C
+				REAL8 P;                       // P(C)
 			END;
 			P_C_Rec pct(CTots le,CLTots ri) := TRANSFORM
 				SELF.c := le.value;
@@ -285,7 +285,7 @@ END;
 	// The learn step for a perceptrom
 			Learn(DATASET(WR) le,DATASET(VR) ri,Types.t_FieldNumber fn,Types.t_Discrete va) := FUNCTION
 				let := le(class_number=fn);
-				letn := let(number<>fn); // all of the regular weights
+				letn := let(number<>fn);     // all of the regular weights
 				lep := le(class_number<>fn); // Pass-thru
 	  // Compute the 'predicted' value for this iteration as Sum WiXi
 				iv := RECORD
@@ -330,7 +330,7 @@ END;
 																	ri.ThisRecord);
 					SELF.Processed := ri.Processed + IF( le.number = LastClassNo, 1, 0 );
 				END;
-		// Effectively merges two perceptrons (generally 'learnt' on different nodes)
+		  // Effectively merges two perceptrons (generally 'learnt' on different nodes)
 			// For the errors - simply add them
 			// For the weights themselves perform a weighted mean (weighting by the number of records used to train)
 				Blend(DATASET(WR) l,UNSIGNED lscale, DATASET(WR) r,UNSIGNED rscale) := FUNCTION
