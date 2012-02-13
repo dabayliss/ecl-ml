@@ -20,17 +20,17 @@ SHARED l_result := RECORD(Types.DiscreteField)
 EXPORT CompareD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep,DATASET(l_result) Computed) := MODULE
 	DiffRec := RECORD
 		Types.t_FieldNumber classifier; // The classifier in question (value of 'number' on outcome data)
-		Types.t_Discrete c_actual;      // The value of c provided
-		Types.t_Discrete c_modeled;			// The value produced by the classifier
-		Types.t_Discrete score;         // Score allocated by classifier
-		Types.t_Discrete score_delta;   // Difference to next best
-		BOOLEAN          sole_result;   // Did the classifier only have one option
+		Types.t_Discrete  c_actual;      // The value of c provided
+		Types.t_Discrete  c_modeled;			// The value produced by the classifier
+		Types.t_FieldReal score;         // Score allocated by classifier
+		Types.t_FieldReal score_delta;   // Difference to next best
+		BOOLEAN           sole_result;   // Did the classifier only have one option
 	END;
 	DiffRec  notediff(Computed le,Dep ri) := TRANSFORM
 	  SELF.c_actual := ri.value;
 		SELF.c_modeled := le.value;
-		SELF.score := 1+ROUND(le.conf);
-		SELF.score_delta := IF ( le.closest_conf>0, 1+ROUND(le.closest_conf-le.conf),0 );
+		SELF.score := le.conf;
+		SELF.score_delta := IF ( le.closest_conf>0, le.closest_conf-le.conf,0 );
 		SELF.sole_result := le.closest_conf=0;
 		SELF.classifier := ri.number;
 	END;
@@ -369,14 +369,23 @@ END;
 				SELF.value := 0;
 				SELF.id := le.id;
 			END;
+			// Compute the score for each component of the linear equation
 			j := JOIN(Ind,mo,LEFT.number=RIGHT.number,note(LEFT,RIGHT),MANY LOOKUP); // MUST be lookup! Or distribution goes
 			l_result ac(l_result le, l_result ri) := TRANSFORM
 			  SELF.conf := le.conf+ri.conf;
-				SELF.value := IF( SELF.Conf > Thresh, 1, 0 );
 			  SELF := le;
 			END;
+			// Rollup so there is one score for every id for every 'number' (original class_number)
 			t := ROLLUP(SORT(j,id,number,LOCAL),LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,ac(LEFT,RIGHT),LOCAL);
-			RETURN t;
+			// Now we have to add on the 'constant' offset
+			l_result add_c(l_result le,mo ri) := TRANSFORM
+			  SELF.conf := le.conf+ri.w;
+				SELF.value := IF(SELF.Conf>Thresh,1,0);
+				SELF := le;
+			END;
+			t1 := JOIN(t,mo(number=0),LEFT.number=RIGHT.class_number,add_c(LEFT,RIGHT),LEFT OUTER);
+			t2 := PROJECT(t1,TRANSFORM(l_Result,SELF.conf := ABS(LEFT.Conf-Thresh), SELF := LEFT));
+			RETURN t2;
 		END;
 	END;
 
