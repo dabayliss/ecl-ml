@@ -1,4 +1,4 @@
-IMPORT ML;
+﻿IMPORT ML;
 IMPORT * FROM $;
 IMPORT $.Mat;
 /*
@@ -238,6 +238,7 @@ END;
 */
 
   EXPORT Perceptron(UNSIGNED Passes,REAL8 Alpha = 0.1) := MODULE(DEFAULT)
+		SHARED Thresh := 0.5; // The threshold to apply for the cut-off function
 
 		SHARED l_perceptron := RECORD
 		  Types.t_RecordId    id;
@@ -248,7 +249,6 @@ END;
 	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := FUNCTION
 			dd := Indep;
 			cl := Dep;
-			Thresh := 0.5; // The threshold to apply for the cut-off function
 			MaxFieldNumber := MAX(dd,number);
 			FirstClassNo := MaxFieldNumber+1;
 			clb := Utils.RebaseDiscrete(cl,FirstClassNo);
@@ -355,10 +355,29 @@ END;
 			ML.ToField(L1,o);
 			RETURN o;
 		END;
-   EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
-	   ML.FromField(mod,l_perceptron,o);
-		 RETURN o;
-	 END;
+    EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
+	    ML.FromField(mod,l_perceptron,o);
+		  RETURN o;
+	  END;
+	  EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+		  mo := Model(mod);
+			Ind := DISTRIBUTE(Indep,HASH(id));
+			l_result note(Ind le,mo ri) := TRANSFORM
+			  SELF.conf := le.value*ri.w;
+				SELF.closest_conf := 0;
+				SELF.number := ri.class_number;
+				SELF.value := 0;
+				SELF.id := le.id;
+			END;
+			j := JOIN(Ind,mo,LEFT.number=RIGHT.number,note(LEFT,RIGHT),MANY LOOKUP); // MUST be lookup! Or distribution goes
+			l_result ac(l_result le, l_result ri) := TRANSFORM
+			  SELF.conf := le.conf+ri.conf;
+				SELF.value := IF( SELF.Conf > Thresh, 1, 0 );
+			  SELF := le;
+			END;
+			t := ROLLUP(SORT(j,id,number,LOCAL),LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,ac(LEFT,RIGHT),LOCAL);
+			RETURN t;
+		END;
 	END;
 
 /*
