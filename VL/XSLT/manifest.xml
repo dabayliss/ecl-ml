@@ -1,7 +1,7 @@
 <Manifest>
   <Resource type="XSLT" filename="chart_view.xslt" name="Chart_Results"/>
-  <Resource type="XSLT" filename="D3_std.xslt"/>
-  <Resource type="XSLT" filename="GOOGLE_std.xslt"/>
+  <Resource type="XSLT" filename="D3.xslt"/>
+  <Resource type="XSLT" filename="GOOGLE.xslt"/>
 
   <Views>
     <Results type="XSLT" resource="Chart_Results" name="View Chart" />
