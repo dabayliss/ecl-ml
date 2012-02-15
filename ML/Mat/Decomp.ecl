@@ -1,4 +1,4 @@
-IMPORT * FROM $;
+﻿IMPORT * FROM $;
 EXPORT Decomp := MODULE
 
 // Back substitution algorithm for solving an upper-triangular system of linear 
@@ -110,20 +110,20 @@ EXPORT DATASET(Types.Element) QR(DATASET(Types.Element) matrix) := FUNCTION
 
 	n := Has(matrix).Stats.XMax;
 	loopBody(DATASET( Types.MUElement) ds, UNSIGNED4 k) := FUNCTION
-		Q := Mat.MU.From(ds, qr_comp.Q);
-		R := Mat.MU.from(ds, qr_comp.R);
+		Q := MU.From(ds, qr_comp.Q);
+		R := MU.from(ds, qr_comp.R);
 		hM := Householder.Reflection(Vec.FromCol(R,k),k);
-		R1 := Mat.Mu.To(Mul(hM,R), qr_comp.R);
-		Q1 := Mat.Mu.To(Mul(Q, hM), qr_comp.Q);
+		R1 := Mu.To(Mul(hM,R), qr_comp.R);
+		Q1 := Mu.To(Mul(Q, hM), qr_comp.Q);
 	RETURN R1+Q1;
   END;
 	
 
-	RETURN LOOP(Mat.Mu.To(matrix, qr_comp.R)+Mat.Mu.To(Identity(n), qr_comp.Q), n-1, loopBody(ROWS(LEFT),COUNTER));
+	RETURN LOOP(Mu.To(matrix, qr_comp.R)+Mu.To(Identity(n), qr_comp.Q), n-1, loopBody(ROWS(LEFT),COUNTER));
 END;
 
-EXPORT QComp(DATASET(Types.Element) matrix) := Mat.MU.From(QR(matrix), qr_comp.Q);
-EXPORT RComp(DATASET(Types.Element) matrix) := Mat.MU.From(QR(matrix), qr_comp.R);;
+EXPORT QComp(DATASET(Types.Element) matrix) := MU.From(QR(matrix), qr_comp.Q);
+EXPORT RComp(DATASET(Types.Element) matrix) := MU.From(QR(matrix), qr_comp.R);;
 
 
 END;
