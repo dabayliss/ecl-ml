@@ -1,4 +1,4 @@
-// Various tests to see if a matrix is a particular type
+﻿// Various tests to see if a matrix is a particular type
 IMPORT * FROM $;
 EXPORT Is(DATASET(Types.Element) d) := MODULE
 
@@ -6,6 +6,15 @@ SHARED dn := Thin(d);
 
 // Matrix with only zeroes
 EXPORT Zero := ~EXISTS(dn);
+
+// Matrix has at most one column
+EXPORT SingleColumn := COUNT(TABLE(dn,{COUNT(GROUP)}, y, FEW))<=1;
+
+// Matrix only has entries along diagonal - note - zero matrix is diagonal by this definition
+EXPORT Square := Has(dn).Stats.XMax = Has(dn).Stats.YMax;
+
+// Matrix only has entries along diagonal - note - zero matrix is diagonal by this definition
+EXPORT TriDiagonal := ~EXISTS(dn(x>y+1)+dn(y>x+1));
 
 // Matrix only has entries along diagonal - note - zero matrix is diagonal by this definition
 EXPORT Diagonal := ~EXISTS(dn(x<>y));
