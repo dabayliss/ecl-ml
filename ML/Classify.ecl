@@ -1,4 +1,4 @@
-IMPORT ML;
+﻿IMPORT ML;
 IMPORT * FROM $;
 IMPORT $.Mat;
 /*
@@ -65,6 +65,24 @@ END;
 		  a := LearnC(Indep,Dep);
 			res := ClassifyC(Indep,a);
 			RETURN Compare(Dep,res);
+		END;
+		EXPORT LearnDConcat(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep, LearnD fnc) := FUNCTION
+		  // Call fnc once for each dependency; concatenate the results
+			// First get all the dependant numbers
+			dn := DEDUP(Dep,number,ALL);
+			Types.NumericField loopBody(DATASET(Types.NumericField) sf,UNSIGNED c) := FUNCTION
+			  RETURN sf+fnc(Indep,Dep(number=dn[c].number));
+			END;
+			RETURN LOOP(DATASET([],Types.NumericField),COUNT(dn),loopBody(ROWS(LEFT),COUNTER));
+		END;
+		EXPORT LearnCConcat(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep, LearnC fnc) := FUNCTION
+		  // Call fnc once for each dependency; concatenate the results
+			// First get all the dependant numbers
+			dn := DEDUP(Dep,number,ALL);
+			Types.NumericField loopBody(DATASET(Types.NumericField) sf,UNSIGNED c) := FUNCTION
+			  RETURN sf+fnc(Indep,Dep(number=dn[c].number));
+			END;
+			RETURN LOOP(DATASET([],Types.NumericField),COUNT(dn),loopBody(ROWS(LEFT),COUNTER));
 		END;
 	END;
 
@@ -455,8 +473,8 @@ EXPORT Logistic(REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIte
 		modelY_NF := Types.FromMatrix(modelY_M);
 		EXPORT modelY := RebaseY.ToOld(modelY_NF, Y_Map);
 	END;
-  EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := Logis(Indep,PROJECT(Dep,Types.NumericField)).Beta;
-
+  EXPORT LearnCS(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := Logis(Indep,PROJECT(Dep,Types.NumericField)).Beta;
+	EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := LearnCConcat(Indep,Dep,LearnCS);
   EXPORT ClassifyC(DATASET(Types.NumericField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
 		Beta0 := PROJECT(mod,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1;SELF:=LEFT;));
 	  mBeta := Types.ToMatrix(Beta0);

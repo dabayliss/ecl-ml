@@ -18,10 +18,12 @@ d := DATASET([{1,35,149,0},{2,11,138,0},{3,12,148,1},{4,16,156,0},
                       ,value_record);
                                                                                                                 
 ML.ToField(d,flds0);
-flds := ML.Discretize.ByRounding(flds0);
+f4 := PROJECT(flds0(Number=3),TRANSFORM(ML.Types.NumericField,SELF.Number := 4,SELF.Value := 1-LEFT.Value,SELF := LEFT));
+flds1 := flds0+f4;
+flds := ML.Discretize.ByRounding(flds1);
 LogisticModule := ML.Classify.Logistic();
-
-TestModule := LogisticModule.TestD(flds(Number<=2),flds(Number=3));
+LogisticModule.LearnD(flds(Number<=2),flds(Number>=3));
+TestModule := LogisticModule.TestD(flds(Number<=2),flds(Number>=3));
 TestModule.Raw;
 TestModule.CrossAssignments;
 TestModule.PrecisionByClass;
