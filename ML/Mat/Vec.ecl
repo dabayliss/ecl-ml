@@ -51,11 +51,12 @@ EXPORT RepCol(DATASET(Types.Element) M,DATASET(Types.VecElement) v,Types.t_index
 EXPORT RepRow(DATASET(Types.Element) M,DATASET(Types.VecElement) v,Types.t_index N) := M(X<>N)+ToRow(v, N);
 
 // The 'From' routines - extract a vector from part of a matrix
-EXPORT FromDiag(DATASET(Types.Element) M) := PROJECT( M(x=y), TRANSFORM(Types.VecElement,SELF.x:=LEFT.x,SELF := LEFT));
+// FromDiag returns a vector formed from the elements of the Kth diagonal of M
+EXPORT FromDiag(DATASET(Types.Element) M, INTEGER4 K=0) := PROJECT( M(x=y-k), TRANSFORM(Types.VecElement,SELF.x:=IF(K<0,LEFT.y,LEFT.x),SELF.y:=1,SELF := LEFT));
 
-EXPORT FromCol(DATASET(Types.Element) M,Types.t_index N) := PROJECT( M(Y=N), TRANSFORM(Types.VecElement,SELF.x:=LEFT.x,SELF := LEFT));
+EXPORT FromCol(DATASET(Types.Element) M,Types.t_index N) := PROJECT( M(Y=N), TRANSFORM(Types.VecElement,SELF.x:=LEFT.x,SELF.y:=1,SELF := LEFT));
 
-EXPORT FromRow(DATASET(Types.Element) M,Types.t_index N) := PROJECT( M(X=N), TRANSFORM(Types.VecElement,SELF.x:=LEFT.y,SELF := LEFT));
+EXPORT FromRow(DATASET(Types.Element) M,Types.t_index N) := PROJECT( M(X=N), TRANSFORM(Types.VecElement,SELF.x:=LEFT.y,SELF.y:=1,SELF := LEFT));
 
 // Vector math
 // Compute the dot product of two vectors
@@ -65,5 +66,7 @@ EXPORT Dot(DATASET(Types.VecElement) X,DATASET(Types.VecElement) Y) := FUNCTION
 END; 
 
 EXPORT Norm(DATASET(Types.VecElement) X) := SQRT(Dot(X,X));
+
+EXPORT Length(DATASET(Types.VecElement) X) := Has(X).Dimension;
 
 END;
