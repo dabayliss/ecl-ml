@@ -17,7 +17,7 @@ SHARED l_result := RECORD(Types.DiscreteField)
 // Expects the independents (features used to classify)
 // The dependents (classification tags deemed to be true)
 // Computeds - classification tags created by the classifier
-EXPORT CompareD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep,DATASET(l_result) Computed) := MODULE
+EXPORT Compare(DATASET(Types.DiscreteField) Dep,DATASET(l_result) Computed) := MODULE
 	DiffRec := RECORD
 		Types.t_FieldNumber classifier;  // The classifier in question (value of 'number' on outcome data)
 		Types.t_Discrete  c_actual;      // The value of c provided
@@ -48,18 +48,23 @@ END;
   classifiers
 */
   EXPORT Default := MODULE,VIRTUAL
-	  // Learn from discrete data
-	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := DATASET([],Types.NumericField); // All classifiers serialized to numeric field format
 	  // Learn from continuous data
-	  EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.NumericField) Dep) := DATASET([],Types.NumericField); // All classifiers serialized to numeric field format
-	  // Classify discrete data - using a prebuilt model
-	  EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := DATASET([],l_result); 
+	  EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := DATASET([],Types.NumericField); // All classifiers serialized to numeric field format
+	  // Learn from discrete data - worst case - convert to continuous
+	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := LearnC(PROJECT(Indep,Types.NumericField),Dep);
 	  // Learn from continuous data - using a prebuilt model
-	  EXPORT ClassifyC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) mod) := DATASET([],l_result);
+	  EXPORT ClassifyC(DATASET(Types.NumericField) Indep,DATASET(Types.NumericField) mod) := DATASET([],l_result);
+	  // Classify discrete data - using a prebuilt model
+	  EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := ClassifyC(PROJECT(Indep,Types.NumericField),mod);
 		EXPORT TestD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := FUNCTION
 		  a := LearnD(Indep,Dep);
 			res := ClassifyD(Indep,a);
-			RETURN CompareD(Indep,Dep,res);
+			RETURN Compare(Dep,res);
+		END;
+		EXPORT TestC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := FUNCTION
+		  a := LearnC(Indep,Dep);
+			res := ClassifyC(Indep,a);
+			RETURN Compare(Dep,res);
 		END;
 	END;
 
@@ -400,66 +405,76 @@ END;
 	Output: A regression coefficients dataset Beta including the intercept Beta0. 
           A dataset modelY = 1 ./ (1+exp(-X*Beta))
 */
-EXPORT Logistic(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y, 
-                        REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIter=200) := MODULE
 
-  SHARED mu_comp := ENUM ( Beta = 1,  Y = 2 );
-	SHARED RebaseY := Utils.RebaseNumericField(Y);
-	SHARED Y_Map := RebaseY.Mapping(1);
-	Y_0 := RebaseY.ToNew(Y_Map);
-	mY := Types.ToMatrix(Y_0);
-	mX_0 := Types.ToMatrix(X);
-	mX := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
+EXPORT Logistic(REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIter=200) := MODULE(DEFAULT)
+	Logis(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODULE
+		SHARED mu_comp := ENUM ( Beta = 1,  Y = 2 );
+		SHARED RebaseY := Utils.RebaseNumericField(Y);
+		SHARED Y_Map := RebaseY.Mapping(1);
+		Y_0 := RebaseY.ToNew(Y_Map);
+		mY := Types.ToMatrix(Y_0);
+		mX_0 := Types.ToMatrix(X);
+		mX := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
 	
-	mXstats := Mat.Has(mX).Stats;
-	mX_n := mXstats.XMax;
-	mX_m := mXstats.YMax;
+		mXstats := Mat.Has(mX).Stats;
+		mX_n := mXstats.XMax;
+		mX_m := mXstats.YMax;
 
-	mW := Mat.Vec.ToCol(Mat.Vec.From(mX_n,1.0),1);
-	mRidge := Mat.Vec.ToDiag(Mat.Vec.From(mX_m,ridge));
-	mBeta0 := Mat.Vec.ToCol(Mat.Vec.From(mX_m,0.0),1);	
-	mBeta00 := Mat.MU.To(mBeta0, mu_comp.Beta);
-	OldExpY_0 := Mat.Vec.ToCol(Mat.Vec.From(mX_n,-1.0),1); // -ones(size(mY))
-	OldExpY_00 := Mat.MU.To(OldExpY_0, mu_comp.Y);
+		mW := Mat.Vec.ToCol(Mat.Vec.From(mX_n,1.0),1);
+		mRidge := Mat.Vec.ToDiag(Mat.Vec.From(mX_m,ridge));
+		mBeta0 := Mat.Vec.ToCol(Mat.Vec.From(mX_m,0.0),1);	
+		mBeta00 := Mat.MU.To(mBeta0, mu_comp.Beta);
+		OldExpY_0 := Mat.Vec.ToCol(Mat.Vec.From(mX_n,-1.0),1); // -ones(size(mY))
+		OldExpY_00 := Mat.MU.To(OldExpY_0, mu_comp.Y);
 
-  Step(DATASET(Mat.Types.MUElement) BetaPlusY) := FUNCTION
-	  OldExpY := Mat.MU.From(BetaPlusY, mu_comp.Y);
-		AdjY := Mat.Mul(mX, Mat.MU.From(BetaPlusY, mu_comp.Beta));
+		Step(DATASET(Mat.Types.MUElement) BetaPlusY) := FUNCTION
+			OldExpY := Mat.MU.From(BetaPlusY, mu_comp.Y);
+			AdjY := Mat.Mul(mX, Mat.MU.From(BetaPlusY, mu_comp.Beta));
 		// expy =  1./(1+exp(-adjy))
-		ExpY := Mat.Each.Reciprocal(Mat.Each.Add(Mat.Each.Exp(Mat.Scale(AdjY, -1)),1));
+			ExpY := Mat.Each.Reciprocal(Mat.Each.Add(Mat.Each.Exp(Mat.Scale(AdjY, -1)),1));
 		// deriv := expy .* (1-expy)
-		Deriv := Mat.Each.Mul(expy,Mat.Each.Add(Mat.Scale(ExpY, -1),1));
+			Deriv := Mat.Each.Mul(expy,Mat.Each.Add(Mat.Scale(ExpY, -1),1));
 		// wadjy := w .* (deriv .* adjy + (y-expy))
-		W_AdjY := Mat.Each.Mul(mW,Mat.Add(Mat.Each.Mul(Deriv,AdjY),Mat.Sub(mY, ExpY)));
+			W_AdjY := Mat.Each.Mul(mW,Mat.Add(Mat.Each.Mul(Deriv,AdjY),Mat.Sub(mY, ExpY)));
 		// weights := spdiags(deriv .* w, 0, n, n)
-		Weights := Mat.Vec.ToDiag(Mat.Vec.FromCol(Mat.Each.Mul(Deriv, mW),1));
+			Weights := Mat.Vec.ToDiag(Mat.Vec.FromCol(Mat.Each.Mul(Deriv, mW),1));
 		// mBeta := Inv(x' * weights * x + mRidge) * x' * wadjy
-		mBeta :=  Mat.Mul(Mat.Mul(Mat.Inv(Mat.Add(Mat.Mul(Mat.Mul(Mat.Trans(mX), weights), mX), mRidge)), Mat.Trans(mX)), W_AdjY);
-		err := SUM(Mat.Each.Abs(Mat.Sub(ExpY, OldExpY)),value);	
+			mBeta :=  Mat.Mul(Mat.Mul(Mat.Inv(Mat.Add(Mat.Mul(Mat.Mul(Mat.Trans(mX), weights), mX), mRidge)), Mat.Trans(mX)), W_AdjY);
+			err := SUM(Mat.Each.Abs(Mat.Sub(ExpY, OldExpY)),value);	
 			RETURN IF(err < mX_n*Epsilon, BetaPlusY, Mat.MU.To(mBeta, mu_comp.Beta)+Mat.MU.To(ExpY, mu_comp.Y));
 		END;
 
-	SHARED BetaPair := LOOP(mBeta00+OldExpY_00, MaxIter, Step(ROWS(LEFT)));	
-	BetaM := Mat.MU.From(BetaPair, mu_comp.Beta);
-	rebasedBetaNF := RebaseY.ToOld(Types.FromMatrix(BetaM), Y_Map);
-	BetaNF := Types.FromMatrix(Mat.Trans(Types.ToMatrix(rebasedBetaNF)));
+		SHARED BetaPair := LOOP(mBeta00+OldExpY_00, MaxIter, Step(ROWS(LEFT)));	
+		BetaM := Mat.MU.From(BetaPair, mu_comp.Beta);
+		rebasedBetaNF := RebaseY.ToOld(Types.FromMatrix(BetaM), Y_Map);
+		BetaNF := Types.FromMatrix(Mat.Trans(Types.ToMatrix(rebasedBetaNF)));
 	// convert Beta into NumericField dataset, and shift Number down by one to ensure the intercept Beta0 has id=0
-	EXPORT Beta := PROJECT(BetaNF,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number-1;SELF:=LEFT;));
+		EXPORT Beta := PROJECT(BetaNF,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number-1;SELF:=LEFT;));
 
-  modelY_M := Mat.MU.From(BetaPair, mu_comp.Y);
-	modelY_NF := Types.FromMatrix(modelY_M);
-	EXPORT modelY := RebaseY.ToOld(modelY_NF, Y_Map);
+		modelY_M := Mat.MU.From(BetaPair, mu_comp.Y);
+		modelY_NF := Types.FromMatrix(modelY_M);
+		EXPORT modelY := RebaseY.ToOld(modelY_NF, Y_Map);
+	END;
+  EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := Logis(Indep,PROJECT(Dep,Types.NumericField)).Beta;
 
-  EXPORT Extrapolate(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Beta) := FUNCTION
-		Beta0 := PROJECT(Beta,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1;SELF:=LEFT;));
+  EXPORT ClassifyC(DATASET(Types.NumericField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+		Beta0 := PROJECT(mod,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1;SELF:=LEFT;));
 	  mBeta := Types.ToMatrix(Beta0);
-	  mX_0 := Types.ToMatrix(X);
+	  mX_0 := Types.ToMatrix(Indep);
 		mXloc := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
 		
 		AdjY := $.Mat.Mul(mXloc, $.Mat.Trans(mBeta)) ;
 		// expy =  1./(1+exp(-adjy))
 		sigmoid := $.Mat.Each.Reciprocal($.Mat.Each.Add($.Mat.Each.Exp($.Mat.Scale(AdjY, -1)),1));
-		RETURN sigmoid;
+		// Now convert to classify return format
+		l_result tr(sigmoid le) := TRANSFORM
+		  SELF.value := IF ( le.value > 0.5,1,0);
+		  SELF.id := le.x;
+			SELF.number := le.y;
+			SELF.conf := ABS(le.value-0.5);
+			SELF.closest_conf := 0;
+		END;
+		RETURN PROJECT(sigmoid,tr(LEFT));
 	END;
 		
 	END; // Logistic Module
