@@ -28,10 +28,8 @@ EXPORT DATASET(Types.Element) QRalgorithm(DATASET(Types.Element) A, INTEGER iter
 		
 		QComp := Decomp.QComp(T);
 		Q1 := Thin(Mul(Q,QComp));
-		//Q1 := Mul(Q,QComp);
 		RComp := Decomp.RComp(T);
 		T1 := Thin(Mul(RComp, QComp));
-	  //T1 := Mul(RComp, QComp);		
 		Conv1 :=  PROJECT(Conv,TRANSFORM(Types.Element,SELF.value:=k, SELF := LEFT));
 
 	RETURN IF(bConverged, ds, MU.To(T1, eig_comp.T)+MU.To(Q1, eig_comp.Q)+MU.To(Conv1, eig_comp.conv));

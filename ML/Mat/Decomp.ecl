@@ -111,13 +111,13 @@ EXPORT DATASET(Types.Element) QR(DATASET(Types.Element) matrix) := FUNCTION
 	n := Has(matrix).Stats.XMax;
 	loopBody(DATASET( Types.MUElement) ds, UNSIGNED4 k) := FUNCTION
 
-		Q := Mat.MU.From(ds, qr_comp.Q);
-		R := Mat.MU.from(ds, qr_comp.R);
+		Q := MU.From(ds, qr_comp.Q);
+		R := MU.from(ds, qr_comp.R);
 		hModule := Householder(Vec.FromCol(R,k),k,n);	
 		//hM := hModule.Reflection(hModule.HTA.Atkinson);	
 		hM := hModule.Reflection();		
-		R1 := Mat.Mu.To(Mul(hM,R), qr_comp.R);		
-		Q1 := Mat.Mu.To(Mul(Q, hM), qr_comp.Q);
+		R1 := Mu.To(Mul(hM,R), qr_comp.R);		
+		Q1 := Mu.To(Mul(Q, hM), qr_comp.Q);
 
 	RETURN R1+Q1;
   END;

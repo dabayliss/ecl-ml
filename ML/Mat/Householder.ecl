@@ -11,7 +11,7 @@ EXPORT Householder(DATASET(Types.VecElement) X, Types.t_Index k, Types.t_Index D
   EXPORT HTA := MODULE
 	   EXPORT Default := MODULE,VIRTUAL
 		  EXPORT IdentityM := IF(Dim>Vec.Length(X), Identity(Dim), Identity(Vec.Length(X)));
-			EXPORT DATASET(Mat.Types.Element) hReflection := DATASET([],Mat.Types.Element);
+			EXPORT DATASET(Types.Element) hReflection := DATASET([],Types.Element);
 			
 		 END;
 		 
@@ -28,7 +28,7 @@ EXPORT Householder(DATASET(Types.VecElement) X, Types.t_Index k, Types.t_Index D
 		 EXPORT Atkinson := MODULE(Default)
 				hV := HouseV(X(x>=k),k);
 				houseVec := Vec.ToCol(hV, 1);
-				EXPORT DATASET(Mat.Types.Element) hReflection := Sub(IdentityM, Scale(Mul(houseVec,Trans(houseVec)),2));
+				EXPORT DATASET(Types.Element) hReflection := Sub(IdentityM, Scale(Mul(houseVec,Trans(houseVec)),2));
 		 END;
 		 
 		 // Source: Golub and Van Loan, "Matrix Computations" p. 210
@@ -45,7 +45,7 @@ EXPORT Householder(DATASET(Types.VecElement) X, Types.t_Index k, Types.t_Index D
 				newVkElem := PROJECT(newVkElem0,TRANSFORM(Types.Element,SELF.x:=k,SELF.y:=1,SELF.value := newVkValue));
 
 				hV := PROJECT(newVkElem + VkPlus,TRANSFORM(Types.Element,SELF.value:=LEFT.value/newVkValue, SELF := LEFT));
-				EXPORT DATASET(Mat.Types.Element) hReflection := Sub(IdentityM, Scale(Mul(hV,Trans(hV)),Beta));
+				EXPORT DATASET(Types.Element) hReflection := Sub(IdentityM, Scale(Mul(hV,Trans(hV)),Beta));
 		 END;
 	
 	END;
