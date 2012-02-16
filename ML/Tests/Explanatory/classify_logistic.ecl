@@ -22,7 +22,7 @@ f4 := PROJECT(flds0(Number=3),TRANSFORM(ML.Types.NumericField,SELF.Number := 4,S
 flds1 := flds0+f4;
 flds := ML.Discretize.ByRounding(flds1);
 LogisticModule := ML.Classify.Logistic();
-LogisticModule.LearnD(flds(Number<=2),flds(Number>=3));
+LogisticModule.Model(LogisticModule.LearnD(flds(Number<=2),flds(Number>=3)));
 TestModule := LogisticModule.TestD(flds(Number<=2),flds(Number>=3));
 TestModule.Raw;
 TestModule.CrossAssignments;

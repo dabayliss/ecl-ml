@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 IMPORT * FROM $;
 IMPORT $.Mat;
 /*
@@ -13,6 +13,14 @@ SHARED l_result := RECORD(Types.DiscreteField)
   REAL8 conf;  // Confidence - high is good
 	REAL8 closest_conf;
   END;
+
+SHARED l_model := RECORD
+  Types.t_RecordId    id := 0; 			// A record-id - allows a model to have an ordered sequence of results
+	Types.t_FieldNumber number;				// A reference to a feature (or field) in the independants
+	Types.t_Discrete    class_number; // The field number of the dependant variable
+	REAL8 w;
+END;
+
 // Function to compute the efficacy of a given classification process
 // Expects the independents (features used to classify)
 // The dependents (classification tags deemed to be true)
@@ -48,6 +56,15 @@ END;
   classifiers
 */
   EXPORT Default := MODULE,VIRTUAL
+	  EXPORT Base := 1000; // ID Base - all ids should be higher than this
+		// Premise - two models can be combined by concatenating (in terms of ID number) the under-base and over-base parts
+		SHARED CombineModels(DATASET(Types.NumericField) sofar,DATASET(Types.NumericField) new) := FUNCTION
+			UBaseHigh := MAX(sofar(id<Base),id);
+			High := IF(EXISTS(sofar),MAX(sofar,id),Base);
+			UB := PROJECT(new(id<Base),TRANSFORM(Types.NumericField,SELF.id := LEFT.id+UBaseHigh,SELF := LEFT));
+			UO := PROJECT(new(id>=Base),TRANSFORM(Types.NumericField,SELF.id := LEFT.id+High-Base,SELF := LEFT));
+			RETURN sofar+UB+UO;
+		END;
 	  // Learn from continuous data
 	  EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := DATASET([],Types.NumericField); // All classifiers serialized to numeric field format
 	  // Learn from discrete data - worst case - convert to continuous
@@ -71,7 +88,7 @@ END;
 			// First get all the dependant numbers
 			dn := DEDUP(Dep,number,ALL);
 			Types.NumericField loopBody(DATASET(Types.NumericField) sf,UNSIGNED c) := FUNCTION
-			  RETURN sf+fnc(Indep,Dep(number=dn[c].number));
+			  RETURN CombineModels(sf,fnc(Indep,Dep(number=dn[c].number)));
 			END;
 			RETURN LOOP(DATASET([],Types.NumericField),COUNT(dn),loopBody(ROWS(LEFT),COUNTER));
 		END;
@@ -80,7 +97,7 @@ END;
 			// First get all the dependant numbers
 			dn := DEDUP(Dep,number,ALL);
 			Types.NumericField loopBody(DATASET(Types.NumericField) sf,UNSIGNED c) := FUNCTION
-			  RETURN sf+fnc(Indep,Dep(number=dn[c].number));
+			  RETURN CombineModels(sf,fnc(Indep,Dep(number=dn[c].number)));
 			END;
 			RETURN LOOP(DATASET([],Types.NumericField),COUNT(dn),loopBody(ROWS(LEFT),COUNTER));
 		END;
@@ -95,13 +112,10 @@ END;
 	 Note the presumption that the result (a weight for each value of each field) can fit in memory at once
 */
 
-		SHARED BayesResult := RECORD
-		  Types.t_RecordId id := 0;
-			Types.t_discrete c;
-			Types.t_discrete f := 0;
-			Types.t_FieldNumber number := 0; // Number of the field in question - 0 for the case of a P(C)
-			Types.t_FieldNumber class_number;
-			REAL8 P;                         // Either P(F|C) or P(C) if number = 0. Stored in -Log2(P) - so small is good :)
+		SHARED BayesResult := RECORD(l_model)
+			Types.t_discrete c; 						 // Independant value
+			Types.t_discrete f := 0;				 // Dependant result
+//			REAL8 P;                         // Either P(F|C) or P(C) if number = 0. Stored in -Log2(P) - so small is good :)
 			Types.t_Count Support;           // Number of cases
 		END;
 
@@ -145,13 +159,13 @@ END;
 				Types.t_Discrete c;            // The value within the class
 				Types.t_Discrete class_number; // Used when multiple classifiers being produced at once
 				Types.t_FieldReal support;     // Used to store total number of C
-				REAL8 P;                       // P(C)
+				REAL8 w;                       // P(C)
 			END;
 			P_C_Rec pct(CTots le,CLTots ri) := TRANSFORM
 				SELF.c := le.value;
 				SELF.class_number := ri.number;
 				SELF.support := le.Support;
-				SELF.P := le.Support/ri.TSupport;
+				SELF.w := le.Support/ri.TSupport;
 			END;
 			PC := JOIN(CTots,CLTots,LEFT.number=RIGHT.number,pct(LEFT,RIGHT),FEW);
 	
@@ -163,16 +177,16 @@ END;
 				Cnts.number;
 				Cnts.class_number;
 				Cnts.support;
-				REAL8 P;	
+				REAL8 w;	
 			END;
 			F_Given_C_Rec mp(Cnts le,TotalFs ri) := TRANSFORM
-				SELF.P := (le.Support+SampleCorrection) / (ri.Support+ri.GC*SampleCorrection);
+				SELF.w := (le.Support+SampleCorrection) / (ri.Support+ri.GC*SampleCorrection);
 				SELF := le;
 			END;
 			FC := JOIN(Cnts,TotalFs,LEFT.C = RIGHT.C AND LEFT.number=RIGHT.number AND LEFT.class_number=RIGHT.class_number,mp(LEFT,RIGHT),LOOKUP);
 
-			Pret := PROJECT(FC,TRANSFORM(BayesResult,SELF := LEFT))+PROJECT(PC,TRANSFORM(BayesResult,SELF:=LEFT));
-			Pret1 := PROJECT(Pret,TRANSFORM(BayesResult,SELF.P := LogScale(LEFT.P),SELF.id := COUNTER,SELF := LEFT));
+			Pret := PROJECT(FC,TRANSFORM(BayesResult,SELF := LEFT))+PROJECT(PC,TRANSFORM(BayesResult,SELF.number := 0,SELF:=LEFT));
+			Pret1 := PROJECT(Pret,TRANSFORM(BayesResult,SELF.w := LogScale(LEFT.w),SELF.id := Base+COUNTER,SELF := LEFT));
 			ToField(Pret1,o);
 			RETURN o;
 		END;
@@ -193,13 +207,13 @@ END;
 				Types.t_discrete c;
 				Types.t_discrete class_number;
 				Types.t_RecordId Id;
-				REAL8  P;
+				REAL8  w;
 			END;
 			Inter note(dd le,mo ri) := TRANSFORM
 				SELF.c := ri.c;
 				SELF.class_number := ri.class_number;
 				SELF.id := le.id;
-				SELF.P := ri.p;
+				SELF.w := ri.w;
 			END;
 	// RHS is small so ,ALL join should work ok
 	// Ignore the "explicitly distributed" compiler warning - the many lookup is preserving the distribution
@@ -208,7 +222,7 @@ END;
 				J.c;
 				J.class_number;
 				J.id;
-				REAL8 P := SUM(GROUP,J.P);
+				REAL8 P := SUM(GROUP,J.W);
 				Types.t_FieldNumber Missing := COUNT(GROUP); // not really missing just yet :)
 			END;
 			TSum := TABLE(J,InterCounted,c,class_number,id,LOCAL);
@@ -223,7 +237,7 @@ END;
 			END;
 			MissingNoted := JOIN(Tsum,FTots,LEFT.id=RIGHT.id,NoteMissing(LEFT,RIGHT),LOOKUP);
 			InterCounted NoteC(MissingNoted le,mo ri) := TRANSFORM
-				SELF.P := le.P+ri.P+le.Missing*LogScale(SampleCorrection/ri.support);
+				SELF.P := le.P+ri.w+le.Missing*LogScale(SampleCorrection/ri.support);
 				SELF := le;
 			END;
 			CNoted := JOIN(MissingNoted,mo(number=0),LEFT.c=RIGHT.c,NoteC(LEFT,RIGHT),LOOKUP);
@@ -263,12 +277,6 @@ END;
   EXPORT Perceptron(UNSIGNED Passes,REAL8 Alpha = 0.1) := MODULE(DEFAULT)
 		SHARED Thresh := 0.5; // The threshold to apply for the cut-off function
 
-		SHARED l_perceptron := RECORD
-		  Types.t_RecordId    id;
-			REAL8 w;
-			Types.t_FieldNumber number;
-			Types.t_Discrete    class_number;
-		END;
 	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := FUNCTION
 			dd := Indep;
 			cl := Dep;
@@ -374,12 +382,12 @@ END;
 				RETURN A.Weights(class_number<>number)+PROJECT(A.Weights(class_number=number),TRANSFORM(WR,SELF.w := LEFT.w / A.Processed,SELF := LEFT));
 			END;
 			L := LOOP(InitWeights,Passes,PASS(ROWS(LEFT)));
-			L1 := PROJECT(L,TRANSFORM(l_perceptron,SELF.id := COUNTER,SELF := LEFT));
+			L1 := PROJECT(L,TRANSFORM(l_model,SELF.id := COUNTER+Base,SELF := LEFT));
 			ML.ToField(L1,o);
 			RETURN o;
 		END;
     EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
-	    ML.FromField(mod,l_perceptron,o);
+	    ML.FromField(mod,l_model,o);
 		  RETURN o;
 	  END;
 	  EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
@@ -468,15 +476,22 @@ EXPORT Logistic(REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIte
 		BetaNF := Types.FromMatrix(Mat.Trans(Types.ToMatrix(rebasedBetaNF)));
 	// convert Beta into NumericField dataset, and shift Number down by one to ensure the intercept Beta0 has id=0
 		EXPORT Beta := PROJECT(BetaNF,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number-1;SELF:=LEFT;));
-
+			Res := PROJECT(Beta,TRANSFORM(l_model,SELF.Id := COUNTER+Base,SELF.number := LEFT.number, SELF.class_number := LEFT.id, SELF.w := LEFT.value));
+			ToField(Res,o);
+		EXPORT Mod := o;
 		modelY_M := Mat.MU.From(BetaPair, mu_comp.Y);
 		modelY_NF := Types.FromMatrix(modelY_M);
 		EXPORT modelY := RebaseY.ToOld(modelY_NF, Y_Map);
 	END;
-  EXPORT LearnCS(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := Logis(Indep,PROJECT(Dep,Types.NumericField)).Beta;
+  EXPORT LearnCS(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := Logis(Indep,PROJECT(Dep,Types.NumericField)).mod;
 	EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := LearnCConcat(Indep,Dep,LearnCS);
+	EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
+	  FromField(mod,l_model,o);
+		RETURN o;
+	END;
   EXPORT ClassifyC(DATASET(Types.NumericField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
-		Beta0 := PROJECT(mod,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1;SELF:=LEFT;));
+	  mod0 := Model(mod);
+		Beta0 := PROJECT(mod0,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1,SELF.id := LEFT.class_number, SELF.value := LEFT.w;SELF:=LEFT;));
 	  mBeta := Types.ToMatrix(Beta0);
 	  mX_0 := Types.ToMatrix(Indep);
 		mXloc := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
