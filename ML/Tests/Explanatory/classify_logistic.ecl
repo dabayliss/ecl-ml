@@ -1,4 +1,4 @@
-IMPORT ML;
+﻿IMPORT ML;
 
 value_record := RECORD
       unsigned 	rid;
@@ -17,9 +17,14 @@ d := DATASET([{1,35,149,0},{2,11,138,0},{3,12,148,1},{4,16,156,0},
 	        {29,20,162,0},{30,25,180,1},{31,22,173,1},{32,25,171,1}]
                       ,value_record);
                                                                                                                 
-ML.ToField(d,flds);
-logistic := ML.Classify.Logistic(flds(Number=2),flds(Number=3));
-b := logistic.Beta;
-b;
-logistic.modelY;
-logistic.Extrapolate(flds(Number=2),b);
+ML.ToField(d,flds0);
+f4 := PROJECT(flds0(Number=3),TRANSFORM(ML.Types.NumericField,SELF.Number := 4,SELF.Value := 1-LEFT.Value,SELF := LEFT));
+flds1 := flds0+f4;
+flds := ML.Discretize.ByRounding(flds1);
+LogisticModule := ML.Classify.Logistic();
+LogisticModule.Model(LogisticModule.LearnD(flds(Number<=2),flds(Number>=3)));
+TestModule := LogisticModule.TestD(flds(Number<=2),flds(Number>=3));
+TestModule.Raw;
+TestModule.CrossAssignments;
+TestModule.PrecisionByClass;
+TestModule.Headline;

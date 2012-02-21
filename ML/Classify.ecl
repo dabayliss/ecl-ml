@@ -13,11 +13,19 @@ SHARED l_result := RECORD(Types.DiscreteField)
   REAL8 conf;  // Confidence - high is good
 	REAL8 closest_conf;
   END;
+
+SHARED l_model := RECORD
+  Types.t_RecordId    id := 0; 			// A record-id - allows a model to have an ordered sequence of results
+	Types.t_FieldNumber number;				// A reference to a feature (or field) in the independants
+	Types.t_Discrete    class_number; // The field number of the dependant variable
+	REAL8 w;
+END;
+
 // Function to compute the efficacy of a given classification process
 // Expects the independents (features used to classify)
 // The dependents (classification tags deemed to be true)
 // Computeds - classification tags created by the classifier
-EXPORT CompareD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep,DATASET(l_result) Computed) := MODULE
+EXPORT Compare(DATASET(Types.DiscreteField) Dep,DATASET(l_result) Computed) := MODULE
 	DiffRec := RECORD
 		Types.t_FieldNumber classifier;  // The classifier in question (value of 'number' on outcome data)
 		Types.t_Discrete  c_actual;      // The value of c provided
@@ -48,18 +56,50 @@ END;
   classifiers
 */
   EXPORT Default := MODULE,VIRTUAL
-	  // Learn from discrete data
-	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := DATASET([],Types.NumericField); // All classifiers serialized to numeric field format
+	  EXPORT Base := 1000; // ID Base - all ids should be higher than this
+		// Premise - two models can be combined by concatenating (in terms of ID number) the under-base and over-base parts
+		SHARED CombineModels(DATASET(Types.NumericField) sofar,DATASET(Types.NumericField) new) := FUNCTION
+			UBaseHigh := MAX(sofar(id<Base),id);
+			High := IF(EXISTS(sofar),MAX(sofar,id),Base);
+			UB := PROJECT(new(id<Base),TRANSFORM(Types.NumericField,SELF.id := LEFT.id+UBaseHigh,SELF := LEFT));
+			UO := PROJECT(new(id>=Base),TRANSFORM(Types.NumericField,SELF.id := LEFT.id+High-Base,SELF := LEFT));
+			RETURN sofar+UB+UO;
+		END;
 	  // Learn from continuous data
-	  EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.NumericField) Dep) := DATASET([],Types.NumericField); // All classifiers serialized to numeric field format
-	  // Classify discrete data - using a prebuilt model
-	  EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := DATASET([],l_result); 
+	  EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := DATASET([],Types.NumericField); // All classifiers serialized to numeric field format
+	  // Learn from discrete data - worst case - convert to continuous
+	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := LearnC(PROJECT(Indep,Types.NumericField),Dep);
 	  // Learn from continuous data - using a prebuilt model
-	  EXPORT ClassifyC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) mod) := DATASET([],l_result);
+	  EXPORT ClassifyC(DATASET(Types.NumericField) Indep,DATASET(Types.NumericField) mod) := DATASET([],l_result);
+	  // Classify discrete data - using a prebuilt model
+	  EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := ClassifyC(PROJECT(Indep,Types.NumericField),mod);
 		EXPORT TestD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := FUNCTION
 		  a := LearnD(Indep,Dep);
 			res := ClassifyD(Indep,a);
-			RETURN CompareD(Indep,Dep,res);
+			RETURN Compare(Dep,res);
+		END;
+		EXPORT TestC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := FUNCTION
+		  a := LearnC(Indep,Dep);
+			res := ClassifyC(Indep,a);
+			RETURN Compare(Dep,res);
+		END;
+		EXPORT LearnDConcat(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep, LearnD fnc) := FUNCTION
+		  // Call fnc once for each dependency; concatenate the results
+			// First get all the dependant numbers
+			dn := DEDUP(Dep,number,ALL);
+			Types.NumericField loopBody(DATASET(Types.NumericField) sf,UNSIGNED c) := FUNCTION
+			  RETURN CombineModels(sf,fnc(Indep,Dep(number=dn[c].number)));
+			END;
+			RETURN LOOP(DATASET([],Types.NumericField),COUNT(dn),loopBody(ROWS(LEFT),COUNTER));
+		END;
+		EXPORT LearnCConcat(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep, LearnC fnc) := FUNCTION
+		  // Call fnc once for each dependency; concatenate the results
+			// First get all the dependant numbers
+			dn := DEDUP(Dep,number,ALL);
+			Types.NumericField loopBody(DATASET(Types.NumericField) sf,UNSIGNED c) := FUNCTION
+			  RETURN CombineModels(sf,fnc(Indep,Dep(number=dn[c].number)));
+			END;
+			RETURN LOOP(DATASET([],Types.NumericField),COUNT(dn),loopBody(ROWS(LEFT),COUNTER));
 		END;
 	END;
 
@@ -72,13 +112,10 @@ END;
 	 Note the presumption that the result (a weight for each value of each field) can fit in memory at once
 */
 
-		SHARED BayesResult := RECORD
-		  Types.t_RecordId id := 0;
-			Types.t_discrete c;
-			Types.t_discrete f := 0;
-			Types.t_FieldNumber number := 0; // Number of the field in question - 0 for the case of a P(C)
-			Types.t_FieldNumber class_number;
-			REAL8 P;                         // Either P(F|C) or P(C) if number = 0. Stored in -Log2(P) - so small is good :)
+		SHARED BayesResult := RECORD(l_model)
+			Types.t_discrete c; 						 // Independant value
+			Types.t_discrete f := 0;				 // Dependant result
+//			REAL8 P;                         // Either P(F|C) or P(C) if number = 0. Stored in -Log2(P) - so small is good :)
 			Types.t_Count Support;           // Number of cases
 		END;
 
@@ -122,13 +159,13 @@ END;
 				Types.t_Discrete c;            // The value within the class
 				Types.t_Discrete class_number; // Used when multiple classifiers being produced at once
 				Types.t_FieldReal support;     // Used to store total number of C
-				REAL8 P;                       // P(C)
+				REAL8 w;                       // P(C)
 			END;
 			P_C_Rec pct(CTots le,CLTots ri) := TRANSFORM
 				SELF.c := le.value;
 				SELF.class_number := ri.number;
 				SELF.support := le.Support;
-				SELF.P := le.Support/ri.TSupport;
+				SELF.w := le.Support/ri.TSupport;
 			END;
 			PC := JOIN(CTots,CLTots,LEFT.number=RIGHT.number,pct(LEFT,RIGHT),FEW);
 	
@@ -140,16 +177,16 @@ END;
 				Cnts.number;
 				Cnts.class_number;
 				Cnts.support;
-				REAL8 P;	
+				REAL8 w;	
 			END;
 			F_Given_C_Rec mp(Cnts le,TotalFs ri) := TRANSFORM
-				SELF.P := (le.Support+SampleCorrection) / (ri.Support+ri.GC*SampleCorrection);
+				SELF.w := (le.Support+SampleCorrection) / (ri.Support+ri.GC*SampleCorrection);
 				SELF := le;
 			END;
 			FC := JOIN(Cnts,TotalFs,LEFT.C = RIGHT.C AND LEFT.number=RIGHT.number AND LEFT.class_number=RIGHT.class_number,mp(LEFT,RIGHT),LOOKUP);
 
-			Pret := PROJECT(FC,TRANSFORM(BayesResult,SELF := LEFT))+PROJECT(PC,TRANSFORM(BayesResult,SELF:=LEFT));
-			Pret1 := PROJECT(Pret,TRANSFORM(BayesResult,SELF.P := LogScale(LEFT.P),SELF.id := COUNTER,SELF := LEFT));
+			Pret := PROJECT(FC,TRANSFORM(BayesResult,SELF := LEFT))+PROJECT(PC,TRANSFORM(BayesResult,SELF.number := 0,SELF:=LEFT));
+			Pret1 := PROJECT(Pret,TRANSFORM(BayesResult,SELF.w := LogScale(LEFT.w),SELF.id := Base+COUNTER,SELF := LEFT));
 			ToField(Pret1,o);
 			RETURN o;
 		END;
@@ -170,13 +207,13 @@ END;
 				Types.t_discrete c;
 				Types.t_discrete class_number;
 				Types.t_RecordId Id;
-				REAL8  P;
+				REAL8  w;
 			END;
 			Inter note(dd le,mo ri) := TRANSFORM
 				SELF.c := ri.c;
 				SELF.class_number := ri.class_number;
 				SELF.id := le.id;
-				SELF.P := ri.p;
+				SELF.w := ri.w;
 			END;
 	// RHS is small so ,ALL join should work ok
 	// Ignore the "explicitly distributed" compiler warning - the many lookup is preserving the distribution
@@ -185,7 +222,7 @@ END;
 				J.c;
 				J.class_number;
 				J.id;
-				REAL8 P := SUM(GROUP,J.P);
+				REAL8 P := SUM(GROUP,J.W);
 				Types.t_FieldNumber Missing := COUNT(GROUP); // not really missing just yet :)
 			END;
 			TSum := TABLE(J,InterCounted,c,class_number,id,LOCAL);
@@ -200,7 +237,7 @@ END;
 			END;
 			MissingNoted := JOIN(Tsum,FTots,LEFT.id=RIGHT.id,NoteMissing(LEFT,RIGHT),LOOKUP);
 			InterCounted NoteC(MissingNoted le,mo ri) := TRANSFORM
-				SELF.P := le.P+ri.P+le.Missing*LogScale(SampleCorrection/ri.support);
+				SELF.P := le.P+ri.w+le.Missing*LogScale(SampleCorrection/ri.support);
 				SELF := le;
 			END;
 			CNoted := JOIN(MissingNoted,mo(number=0),LEFT.c=RIGHT.c,NoteC(LEFT,RIGHT),LOOKUP);
@@ -240,12 +277,6 @@ END;
   EXPORT Perceptron(UNSIGNED Passes,REAL8 Alpha = 0.1) := MODULE(DEFAULT)
 		SHARED Thresh := 0.5; // The threshold to apply for the cut-off function
 
-		SHARED l_perceptron := RECORD
-		  Types.t_RecordId    id;
-			REAL8 w;
-			Types.t_FieldNumber number;
-			Types.t_Discrete    class_number;
-		END;
 	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep,DATASET(Types.DiscreteField) Dep) := FUNCTION
 			dd := Indep;
 			cl := Dep;
@@ -351,12 +382,12 @@ END;
 				RETURN A.Weights(class_number<>number)+PROJECT(A.Weights(class_number=number),TRANSFORM(WR,SELF.w := LEFT.w / A.Processed,SELF := LEFT));
 			END;
 			L := LOOP(InitWeights,Passes,PASS(ROWS(LEFT)));
-			L1 := PROJECT(L,TRANSFORM(l_perceptron,SELF.id := COUNTER,SELF := LEFT));
+			L1 := PROJECT(L,TRANSFORM(l_model,SELF.id := COUNTER+Base,SELF := LEFT));
 			ML.ToField(L1,o);
 			RETURN o;
 		END;
     EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
-	    ML.FromField(mod,l_perceptron,o);
+	    ML.FromField(mod,l_model,o);
 		  RETURN o;
 	  END;
 	  EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
@@ -400,66 +431,83 @@ END;
 	Output: A regression coefficients dataset Beta including the intercept Beta0. 
           A dataset modelY = 1 ./ (1+exp(-X*Beta))
 */
-EXPORT Logistic(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y, 
-                        REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIter=200) := MODULE
 
-  SHARED mu_comp := ENUM ( Beta = 1,  Y = 2 );
-	SHARED RebaseY := Utils.RebaseNumericField(Y);
-	SHARED Y_Map := RebaseY.Mapping(1);
-	Y_0 := RebaseY.ToNew(Y_Map);
-	mY := Types.ToMatrix(Y_0);
-	mX_0 := Types.ToMatrix(X);
-	mX := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
+EXPORT Logistic(REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIter=200) := MODULE(DEFAULT)
+	Logis(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODULE
+		SHARED mu_comp := ENUM ( Beta = 1,  Y = 2 );
+		SHARED RebaseY := Utils.RebaseNumericField(Y);
+		SHARED Y_Map := RebaseY.Mapping(1);
+		Y_0 := RebaseY.ToNew(Y_Map);
+		mY := Types.ToMatrix(Y_0);
+		mX_0 := Types.ToMatrix(X);
+		mX := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
 	
-	mXstats := Mat.Has(mX).Stats;
-	mX_n := mXstats.XMax;
-	mX_m := mXstats.YMax;
+		mXstats := Mat.Has(mX).Stats;
+		mX_n := mXstats.XMax;
+		mX_m := mXstats.YMax;
 
-	mW := Mat.Vec.ToCol(Mat.Vec.From(mX_n,1.0),1);
-	mRidge := Mat.Vec.ToDiag(Mat.Vec.From(mX_m,ridge));
-	mBeta0 := Mat.Vec.ToCol(Mat.Vec.From(mX_m,0.0),1);	
-	mBeta00 := Mat.MU.To(mBeta0, mu_comp.Beta);
-	OldExpY_0 := Mat.Vec.ToCol(Mat.Vec.From(mX_n,-1.0),1); // -ones(size(mY))
-	OldExpY_00 := Mat.MU.To(OldExpY_0, mu_comp.Y);
+		mW := Mat.Vec.ToCol(Mat.Vec.From(mX_n,1.0),1);
+		mRidge := Mat.Vec.ToDiag(Mat.Vec.From(mX_m,ridge));
+		mBeta0 := Mat.Vec.ToCol(Mat.Vec.From(mX_m,0.0),1);	
+		mBeta00 := Mat.MU.To(mBeta0, mu_comp.Beta);
+		OldExpY_0 := Mat.Vec.ToCol(Mat.Vec.From(mX_n,-1.0),1); // -ones(size(mY))
+		OldExpY_00 := Mat.MU.To(OldExpY_0, mu_comp.Y);
 
-  Step(DATASET(Mat.Types.MUElement) BetaPlusY) := FUNCTION
-	  OldExpY := Mat.MU.From(BetaPlusY, mu_comp.Y);
-		AdjY := Mat.Mul(mX, Mat.MU.From(BetaPlusY, mu_comp.Beta));
+		Step(DATASET(Mat.Types.MUElement) BetaPlusY) := FUNCTION
+			OldExpY := Mat.MU.From(BetaPlusY, mu_comp.Y);
+			AdjY := Mat.Mul(mX, Mat.MU.From(BetaPlusY, mu_comp.Beta));
 		// expy =  1./(1+exp(-adjy))
-		ExpY := Mat.Each.Reciprocal(Mat.Each.Add(Mat.Each.Exp(Mat.Scale(AdjY, -1)),1));
+			ExpY := Mat.Each.Reciprocal(Mat.Each.Add(Mat.Each.Exp(Mat.Scale(AdjY, -1)),1));
 		// deriv := expy .* (1-expy)
-		Deriv := Mat.Each.Mul(expy,Mat.Each.Add(Mat.Scale(ExpY, -1),1));
+			Deriv := Mat.Each.Mul(expy,Mat.Each.Add(Mat.Scale(ExpY, -1),1));
 		// wadjy := w .* (deriv .* adjy + (y-expy))
-		W_AdjY := Mat.Each.Mul(mW,Mat.Add(Mat.Each.Mul(Deriv,AdjY),Mat.Sub(mY, ExpY)));
+			W_AdjY := Mat.Each.Mul(mW,Mat.Add(Mat.Each.Mul(Deriv,AdjY),Mat.Sub(mY, ExpY)));
 		// weights := spdiags(deriv .* w, 0, n, n)
-		Weights := Mat.Vec.ToDiag(Mat.Vec.FromCol(Mat.Each.Mul(Deriv, mW),1));
+			Weights := Mat.Vec.ToDiag(Mat.Vec.FromCol(Mat.Each.Mul(Deriv, mW),1));
 		// mBeta := Inv(x' * weights * x + mRidge) * x' * wadjy
-		mBeta :=  Mat.Mul(Mat.Mul(Mat.Inv(Mat.Add(Mat.Mul(Mat.Mul(Mat.Trans(mX), weights), mX), mRidge)), Mat.Trans(mX)), W_AdjY);
-		err := SUM(Mat.Each.Abs(Mat.Sub(ExpY, OldExpY)),value);	
+			mBeta :=  Mat.Mul(Mat.Mul(Mat.Inv(Mat.Add(Mat.Mul(Mat.Mul(Mat.Trans(mX), weights), mX), mRidge)), Mat.Trans(mX)), W_AdjY);
+			err := SUM(Mat.Each.Abs(Mat.Sub(ExpY, OldExpY)),value);	
 			RETURN IF(err < mX_n*Epsilon, BetaPlusY, Mat.MU.To(mBeta, mu_comp.Beta)+Mat.MU.To(ExpY, mu_comp.Y));
 		END;
 
-	SHARED BetaPair := LOOP(mBeta00+OldExpY_00, MaxIter, Step(ROWS(LEFT)));	
-	BetaM := Mat.MU.From(BetaPair, mu_comp.Beta);
-	rebasedBetaNF := RebaseY.ToOld(Types.FromMatrix(BetaM), Y_Map);
-	BetaNF := Types.FromMatrix(Mat.Trans(Types.ToMatrix(rebasedBetaNF)));
+		SHARED BetaPair := LOOP(mBeta00+OldExpY_00, MaxIter, Step(ROWS(LEFT)));	
+		BetaM := Mat.MU.From(BetaPair, mu_comp.Beta);
+		rebasedBetaNF := RebaseY.ToOld(Types.FromMatrix(BetaM), Y_Map);
+		BetaNF := Types.FromMatrix(Mat.Trans(Types.ToMatrix(rebasedBetaNF)));
 	// convert Beta into NumericField dataset, and shift Number down by one to ensure the intercept Beta0 has id=0
-	EXPORT Beta := PROJECT(BetaNF,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number-1;SELF:=LEFT;));
-
-  modelY_M := Mat.MU.From(BetaPair, mu_comp.Y);
-	modelY_NF := Types.FromMatrix(modelY_M);
-	EXPORT modelY := RebaseY.ToOld(modelY_NF, Y_Map);
-
-  EXPORT Extrapolate(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Beta) := FUNCTION
-		Beta0 := PROJECT(Beta,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1;SELF:=LEFT;));
+		EXPORT Beta := PROJECT(BetaNF,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number-1;SELF:=LEFT;));
+			Res := PROJECT(Beta,TRANSFORM(l_model,SELF.Id := COUNTER+Base,SELF.number := LEFT.number, SELF.class_number := LEFT.id, SELF.w := LEFT.value));
+			ToField(Res,o);
+		EXPORT Mod := o;
+		modelY_M := Mat.MU.From(BetaPair, mu_comp.Y);
+		modelY_NF := Types.FromMatrix(modelY_M);
+		EXPORT modelY := RebaseY.ToOld(modelY_NF, Y_Map);
+	END;
+  EXPORT LearnCS(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := Logis(Indep,PROJECT(Dep,Types.NumericField)).mod;
+	EXPORT LearnC(DATASET(Types.NumericField) Indep,DATASET(Types.DiscreteField) Dep) := LearnCConcat(Indep,Dep,LearnCS);
+	EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
+	  FromField(mod,l_model,o);
+		RETURN o;
+	END;
+  EXPORT ClassifyC(DATASET(Types.NumericField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+	  mod0 := Model(mod);
+		Beta0 := PROJECT(mod0,TRANSFORM(Types.NumericField,SELF.Number := LEFT.Number+1,SELF.id := LEFT.class_number, SELF.value := LEFT.w;SELF:=LEFT;));
 	  mBeta := Types.ToMatrix(Beta0);
-	  mX_0 := Types.ToMatrix(X);
+	  mX_0 := Types.ToMatrix(Indep);
 		mXloc := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column 
 		
 		AdjY := $.Mat.Mul(mXloc, $.Mat.Trans(mBeta)) ;
 		// expy =  1./(1+exp(-adjy))
 		sigmoid := $.Mat.Each.Reciprocal($.Mat.Each.Add($.Mat.Each.Exp($.Mat.Scale(AdjY, -1)),1));
-		RETURN sigmoid;
+		// Now convert to classify return format
+		l_result tr(sigmoid le) := TRANSFORM
+		  SELF.value := IF ( le.value > 0.5,1,0);
+		  SELF.id := le.x;
+			SELF.number := le.y;
+			SELF.conf := ABS(le.value-0.5);
+			SELF.closest_conf := 0;
+		END;
+		RETURN PROJECT(sigmoid,tr(LEFT));
 	END;
 		
 	END; // Logistic Module
