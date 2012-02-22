@@ -1,6 +1,6 @@
 ﻿IMPORT * FROM $;
 IMPORT Config FROM ML;
-EXPORT eig := MODULE
+
 /*
 	http://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix
   A (non-zero) vector v of dimension N is an eigenvector of a square (N×N) matrix A if and only 
@@ -10,8 +10,9 @@ EXPORT eig := MODULE
 	The above equation is called the eigenvalue equation or the eigenvalue problem.
 
 */
+EXPORT eig(DATASET(Types.Element) A, UNSIGNED4 iter=200) := MODULE
 SHARED eig_comp := ENUM ( T = 1, Q = 2, conv = 3 );
-EXPORT DATASET(Types.Element) QRalgorithm(DATASET(Types.Element) A, INTEGER iter) := FUNCTION
+EXPORT DATASET(Types.Element) QRalgorithm() := FUNCTION
 
 		Q0 := Decomp.QComp(A);
 		R0 := Decomp.RComp(A);
@@ -38,9 +39,9 @@ EXPORT DATASET(Types.Element) QRalgorithm(DATASET(Types.Element) A, INTEGER iter
 	RETURN LOOP(Mu.To(T0, eig_comp.T)+Mu.To(Q0, eig_comp.Q)+Mu.To(Conv0, eig_comp.conv), iter, loopBody(ROWS(LEFT),COUNTER));
 END;
 
-EXPORT valuesM(DATASET(Types.Element) matrix, INTEGER iter=200) := MU.From(QRalgorithm(matrix, iter), eig_comp.T);
-EXPORT valuesV(DATASET(Types.Element) matrix, INTEGER iter=200) := Vec.FromDiag(valuesM(matrix, iter));
-EXPORT vectors(DATASET(Types.Element) matrix, INTEGER iter=200) := MU.From(QRalgorithm(matrix, iter), eig_comp.Q);
-EXPORT convergence(DATASET(Types.Element) matrix, INTEGER iter=200) := MU.From(QRalgorithm(matrix, iter), eig_comp.conv)[1].value;
+EXPORT valuesM := MU.From(QRalgorithm(), eig_comp.T);
+EXPORT valuesV := Vec.FromDiag(valuesM());
+EXPORT vectors := MU.From(QRalgorithm(), eig_comp.Q);
+EXPORT convergence := MU.From(QRalgorithm(), eig_comp.conv)[1].value;
 
 END;
