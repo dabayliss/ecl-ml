@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // Module used to cluster perform clustering on data in the NumericField
 // format.  Includes functions for calculating distance using many different
 // algorithms, determining centroid allegiance based on those distances, and
@@ -294,6 +294,11 @@ EXPORT Cluster := MODULE
     EXPORT Types.NumericField Result(UNSIGNED n=Convergence,DATASET(lIterations) d=dIterations):=dResult(MIN(Convergence,n),d);
     EXPORT Types.NumericField Delta(UNSIGNED n01=Convergence-1,UNSIGNED n02=Convergence,DATASET(lIterations) d=dIterations):=dDelta(MIN(Convergence-1,n01),MIN(Convergence,n02),d);
     EXPORT DistanceDelta(UNSIGNED n01=Convergence-1,UNSIGNED n02=Convergence,DATASET(lIterations) d=dIterations):=dDistanceDelta(MIN(Convergence-1,n01),MIN(Convergence,n02),d);
+
+    // Quick re-directs to the Closest attribute specific to this module's
+    // parameters
+    EXPORT Allegiances(UNSIGNED n=Convergence):=Closest(Distances(d01,Result(n),fDist));
+    EXPORT UNSIGNED Allegiance(UNSIGNED id,UNSIGNED n=Convergence):=Allegiances(n)(x=id)[1].y;
   END;
 
 // When combining clusters how to compute the distances of the new clusters to each other
