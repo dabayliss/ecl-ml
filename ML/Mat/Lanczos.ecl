@@ -1,5 +1,5 @@
 ﻿IMPORT * FROM $;
-EXPORT Lanczos := MODULE
+
 /*
 	Lanczos method is a technique that can be used to solve eigenproblems (Ax = lambda*x)
 	for a large, sparse, square, symmetric matrix. This method involves tridiagonalization of
@@ -11,14 +11,16 @@ EXPORT Lanczos := MODULE
 
 	Implementation based on: http://bickson.blogspot.com/search/label/Lanczos
 */
-SHARED l_comp := ENUM ( V = 1, alpha = 2, beta = 3, T = 4 );
-EXPORT DATASET(Types.Element) TV(DATASET(Types.Element) A) := FUNCTION
+EXPORT Lanczos(DATASET(Types.Element) A, UNSIGNED eig_cnt) := MODULE
 
-  // input matrix is square matrix
-	N := Has(A).Dimension;
+	SHARED l_comp := ENUM ( V = 1, alpha = 2, beta = 3, T = 4 );
+	Stats := Has(A).Stats;
+	
+EXPORT DATASET(Types.Element) TV() := FUNCTION
+
 	// V(:,2)=V(:,2)/norm(V(:,2),2);
 	B1 := 1000000;
-	V00 := PROJECT( Vec.From(N),TRANSFORM(Types.Element,SELF.x := LEFT.x, SELF.Value := (RANDOM()%B1) / (REAL8)B1,SELF.y:=2));	
+	V00 := PROJECT( Vec.From(Stats.YMax),TRANSFORM(Types.Element,SELF.x := LEFT.x, SELF.Value := (RANDOM()%B1) / (REAL8)B1,SELF.y:=2));	
 	V0 := Scale(V00, 1/Vec.Norm(V00));
 	Alpha0 := DATASET([],Types.Element);	
 	Beta0 := DATASET([],Types.Element);	
@@ -36,6 +38,15 @@ EXPORT DATASET(Types.Element) TV(DATASET(Types.Element) A) := FUNCTION
 		Alpha1 := Alpha + newAlphaElem;
 		//w1 = w - alpha(j)*V(:,j);
 		W1 := Sub(W, Scale(Vec.FromCol(V(y=j),j),newAlphaElem[1].value));
+		
+		/*
+		// ToDo: Orthogonalize
+    for k=2:j-1
+      tmpalpha = w'*V(:,k);
+      w = w -tmpalpha*V(:,k);
+    end
+		*/
+		
 		// beta(j+1) = norm(W1)
 		newBetaElem := PROJECT(Each.SQRT(Mul(Trans(W1), W1)),TRANSFORM(Types.Element,SELF.x:=1,SELF.y:=j+1,SELF := LEFT));
 		Beta1 := Beta + newBetaElem;	
@@ -47,14 +58,14 @@ EXPORT DATASET(Types.Element) TV(DATASET(Types.Element) A) := FUNCTION
 	
 
 	V_Alpha_Beta := LOOP(Mu.To(V0, l_comp.V)+	Mu.To(Alpha0, l_comp.alpha)+
-		          				 Mu.To(Beta0, l_comp.beta), n+1, loopBody(ROWS(LEFT),COUNTER));
+		          				 Mu.To(Beta0, l_comp.beta), eig_cnt, loopBody(ROWS(LEFT),COUNTER));
 							
   // At this point, Alpha and Beta represent diagonal elements of the tri-diagonal 
 	// symetric matrix T. 
-	V := MU.From(V_Alpha_Beta, l_comp.V)(y<=n+2);
+	V := MU.From(V_Alpha_Beta, l_comp.V)(y<=eig_cnt+1);
 	Vshift := PROJECT(V,TRANSFORM(Types.Element,SELF.y:=LEFT.y-1, SELF := LEFT));
 	Alpha := Thin(MU.From(V_Alpha_Beta, l_comp.alpha));
-	Beta := Thin(MU.From(V_Alpha_Beta, l_comp.beta)(y<=n+2));
+	Beta := Thin(MU.From(V_Alpha_Beta, l_comp.beta)(y<=eig_cnt+1));
   T1 := Vec.ToDiag(Trans(Alpha), 2);
 	T2 := Vec.ToUpperDiag(Trans(Beta),3);
 	T3 := Vec.ToLowerDiag(Trans(Beta),3);
@@ -62,8 +73,7 @@ EXPORT DATASET(Types.Element) TV(DATASET(Types.Element) A) := FUNCTION
 	
 END;
 
-EXPORT TComp(DATASET(Types.Element) matrix) := IF(Is(matrix).Square AND Is(matrix).Symmetric,MU.From(TV(matrix), l_comp.T),DATASET([],Types.Element));
-EXPORT VComp(DATASET(Types.Element) matrix) := IF(Is(matrix).Square AND Is(matrix).Symmetric,MU.From(TV(matrix), l_comp.V),DATASET([],Types.Element));
-
+EXPORT TComp := MU.From(TV(), l_comp.T);
+EXPORT VComp := MU.From(TV(), l_comp.V);
 
 END;
