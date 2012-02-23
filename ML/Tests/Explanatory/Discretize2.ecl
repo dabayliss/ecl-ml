@@ -1,4 +1,4 @@
-import ml;
+﻿import ml;
 value_record := RECORD
 unsigned rid;
 real height;
@@ -20,10 +20,9 @@ d := dataset([{1,5*12+7,156*16,43,1},
 {12,3,10.5,1,2},
 {13,2.5,3,0.8,2},
 {14,1,1,0.4,2}
-]
-value_record);
+],value_record);
 // Turn into regular NumericField file (with continuous variables)
-ml.macPivot(d,o);
+ml.ToField(d,o);
 // Hand-code the discretization of some of the variables
 disc := ML.Discretize.ByBucketing(o(Number = 3),4)+ML.Discretize.ByTiling(o
 (Number IN [1,2]),4)+ML.Discretize.ByRounding(o(Number=4));
