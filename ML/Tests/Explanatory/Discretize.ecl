@@ -1,4 +1,4 @@
-import ml;
+﻿import ml;
 value_record := RECORD
 unsigned rid;
 real height;
@@ -34,12 +34,15 @@ ML.Discretize.i_ByBucketing([2,3],4)+ML.Discretize.i_ByTiling([1],6)+
 ML.Discretize.i_ByRounding([4,5]);
 // Execute the instructions
 done := ML.Discretize.Do(o,inst);
-//m1 := ML.Classify.BuildPerceptron(done(Number<=3),done(Number>=4));
-//m1
-m1 := ML.Classify.BuildNaiveBayes(done(Number<=3),done(Number>=4));
-m1;
-Test := ML.Classify.TestNaiveBayes(done(Number<=3),done(Number>=4),m1);
-Test.Raw;
-Test.CrossAssignments;
-Test.PrecisionByClass;
-Test.Headline;
+
+BayesModule := ML.Classify.NaiveBayes;
+
+TestModule := BayesModule.TestD(done(Number<=3),done(Number=4));
+TestModule.Raw;
+TestModule.CrossAssignments;
+TestModule.PrecisionByClass;
+TestModule.Headline;
+
+Model := BayesModule.LearnD(done(Number<=3),done(Number=4));
+Results := BayesModule.ClassifyD(done(Number<=3),Model);
+Results
