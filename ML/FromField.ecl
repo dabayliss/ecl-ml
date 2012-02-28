@@ -7,16 +7,17 @@
 //   dIn  : The name of the input dataset in NumericField format
 //   lOut : The name of the resulting layout the data should be in
 //   dOut : The name of the resulting dataset
-//   dMap : [OPTIONAL] If the user specified a mapping table when forming
-//          this data using the ToField macro, specifying the name of that
-//          map table here will reconstitute the table based on it, rather
-//          than simple field order.
+//   dMap : [OPTIONAL] If the user customized the fields used in the ToField
+//          process, they should include the mapping table that was created
+//          automatically by ToField here so the fields map back properly.
+//          This will be named NF_map, where NF is the name of the
+//          NumericField table that was created by ToField.
 //  Examples (used to reconstitute the ToField examples):
 //    ML.FromField(dMatrix,lOrig,dResults);
-//    ML.FromField(dMatrix,lOrig,dResults,dMap);
+//    ML.FromField(dMatrix,lOrig,dResults,dOrigData_Map);
 //
-// IMPORTANT NOTE: If the user used the mapping capabilities of the ToField
-// macro, and fields were disregarded at that time, those fields WILL NOT be
+// IMPORTANT NOTE: If fields in lOut were disregarded by the ToField macro
+// during the creation of the NumericField table, those fields WILL NOT be
 // reconstituted by this macro.  They will be left blank or zero.
 //---------------------------------------------------------------------------
 EXPORT FromField(dIn,lOut,dOut,dMap=''):=MACRO
@@ -57,6 +58,6 @@ EXPORT FromField(dIn,lOut,dOut,dMap=''):=MACRO
   #END
   // Denormalize the data using the #EXPAND string constructed above.
   #UNIQUENAME(dIDs)
-  %dIDs%:=PROJECT(TABLE(%dInPrep%,{TYPEOF(%dInPrep%.id) %id%:=id},id,LOCAL),TRANSFORM({lOut;TYPEOF(%dInPrep%.id) %id%;},SELF:=LEFT;SELF:=[];));
+  %dIDs%:=PROJECT(TABLE(%dInPrep%,{TYPEOF(%dInPrep%.id) %id%:=id},id,MERGE),TRANSFORM({lOut;TYPEOF(%dInPrep%.id) %id%;},SELF:=LEFT;SELF:=[];));
   dOut:=PROJECT(DENORMALIZE(%dIDs%,%dInPrep%,LEFT.%id%=RIGHT.%id%,TRANSFORM(RECORDOF(%dIDs%),#EXPAND(%'assignments'%)SELF:=LEFT;)),lOut);
 ENDMACRO;
