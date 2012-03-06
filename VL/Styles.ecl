@@ -31,5 +31,9 @@ EXPORT Styles:=MODULE
     EXPORT UNSIGNED2 Height:=600;
     EXPORT UNSIGNED2 Width:=900;
   END;
+  
+  EXPORT FloatRight:=MODULE(Default),VIRTUAL
+    EXPORT Float:=FloatStyles.Right;
+  END;
 END;
 

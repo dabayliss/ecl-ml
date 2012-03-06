@@ -1,4 +1,11 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+  <xsl:template match="Dataset[starts-with(@name,'D3CHART')]" mode="generate_styles">
+    <xsl:for-each select="Row[chartelementtype='STYLES']">
+     <xsl:value-of select="s"/>
+    </xsl:for-each>
+  </xsl:template>
+
   <xsl:template match="Dataset[starts-with(@name,'D3CHART')]" mode="generate_body">
 
   <div class="body">
@@ -41,6 +48,8 @@ var margin=3;
   </div>
 
   </xsl:template>
+  
   <xsl:template match="Dataset[starts-with(@name,'D3CHART')]" mode="generate_script">
   </xsl:template>
+
 </xsl:stylesheet>
