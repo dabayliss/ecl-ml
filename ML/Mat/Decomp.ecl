@@ -53,7 +53,7 @@ EXPORT DATASET(Types.Element) Cholesky(DATASET(Types.Element) matrix) := FUNCTIO
 				akk := ds(x=k AND y=k);
 				lkk := Each.Sqrt(akk);
 				col_k := Scale(ds(y=k, x>k), 1/lkk[1].value);
-				l_lt := Mul(col_k,Trans(col_k));
+				l_lt := Mul(col_k,Trans(col_k),2);
 				sub_m := Sub(ds(y>k AND x>=y),l_lt);
 								
 	RETURN Substitute(ds, sub_m+col_k+lkk);

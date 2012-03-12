@@ -22,7 +22,7 @@
 */
 EXPORT Svd(DATASET(Types.Element) A) := MODULE
 
-		AAt := Mul(A,Trans(A));
+		AAt := Mul(A,Trans(A),2);
 		
 		SHARED Lanczos_AAt := Lanczos(AAt, Has(AAt).Dimension);
 		SHARED AAt_T := Lanczos_AAt.TComp;
@@ -32,9 +32,10 @@ EXPORT Svd(DATASET(Types.Element) A) := MODULE
 		EXPORT UComp := eigAAt_vec;		
 		
 		eigAAt_T_val := Eig(AAt_T).valuesM;		
-		EXPORT SComp := Each.SQRT(eigAAt_T_val);
+		EXPORT S2Comp := eigAAt_T_val;
+		EXPORT SComp := Each.SQRT(S2Comp);
 		
-		AtA := Mul(Trans(A),A);
+		AtA := Mul(Trans(A),A,2);
 		SHARED Lanczos_AtA := Lanczos(AtA, Has(AtA).Dimension);
 		SHARED AtA_T := Lanczos_AtA.TComp;
 		AtA_V := Lanczos_AtA.VComp;
