@@ -11,5 +11,5 @@ EXPORT Cov(DATASET(Types.Element) A) :=  FUNCTION
 	ZeroMeanA := Sub(A, Repmat(Has(A).MeanCol, Has(A).Stats.XMax, 1));
 
 	SF := 1/(Has(A).Stats.XMax-1);
-	RETURN Scale(Mul(Trans(ZeroMeanA),ZeroMeanA), SF);
+	RETURN Scale(Mul(Trans(ZeroMeanA),ZeroMeanA, 2), SF);
 END;
