@@ -34,7 +34,7 @@
 
     <releaseinfo>© 2012 HPCC Systems. All rights reserved</releaseinfo>
 
-    <date>January 2012 Version 1.0.0A</date>
+    <date>January 2012 Version 1.2.0A</date>
 
     <corpname>HPCC Systems</corpname>
 
@@ -277,13 +277,43 @@
           </listitem>
 
           <listitem>
-            <para>Download and install the ECL IDE and Client Tools (<ulink
+            <para>Download and install the ECL IDE and Client Tools. (<ulink
             url="http://hpccsystems.com/download/free-community-edition/ecl-ide-and-client-tools">http://hpccsystems.com/download/free-community-edition/ecl-ide-and-client-tools</ulink>)</para>
           </listitem>
         </itemizedlist>
 
-        <para>The HPCC Systems website provides more information, about the
-        HPCC and ECL IDE.</para>
+        <para>The ML Libraries can also be used on an HPCC Systems
+        One-Click<superscript>TM</superscript> Thor, which is available to
+        anyone with an Amazon AWS account.</para>
+
+        <para>An example of how to use the
+        One-Click<superscript>TM</superscript> Thor with the Machine Learning
+        Libraries is provided at the end of this section.</para>
+
+        <para>To setup a One-Click<superscript>TM</superscript> Thor
+        cluster:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Setup an Amazon AWS account (<ulink
+            url="http://aws.amazon.com/account/">http://aws.amazon.com/account/</ulink>)</para>
+          </listitem>
+
+          <listitem>
+            <para>Login and Launch your Thor cluster. The <emphasis
+            role="bold">Login</emphasis> button on the HPCC Systems website
+            (<ulink url="???"><ulink
+            url="https://aws.hpccsystems.com/aws/getting_started/">https://aws.hpccsystems.com/aws/getting_started/</ulink></ulink>),
+            provides an automated setup process which is quick and easy to
+            use.</para>
+          </listitem>
+
+          <listitem>
+            <para>Download the ECL IDE and Client Tools onto your computer
+            ((<ulink
+            url="http://hpccsystems.com/download/free-community-edition/ecl-ide-and-client-tools">http://hpccsystems.com/download/free-community-edition/ecl-ide-and-client-tools</ulink>))</para>
+          </listitem>
+        </itemizedlist>
 
         <para>If you are new to the ECL Language, take a look at the a
         programmers guide and language reference guides, <ulink
@@ -335,11 +365,23 @@
       <sect2>
         <title>Using the ML Libraries</title>
 
-        <para>ML module walk-throughs are provided in this manual, which are
-        designed to get you started using ML with the HPCC System.</para>
+        <para>A walk-through is provided for all Machine Learning Libraries
+        supported, which are designed to get you started using ML with the
+        HPCC System. Each module is also covered in this manual in a separate
+        section which contains more detailed information about the
+        functionality of the routines included.</para>
 
-        <para>Now that the ML Libraries are installed, you can use ECL IDE to
-        write queries to analyze your data:</para>
+        <para>To use the ML Libraries, you also need to upload some data onto
+        the <emphasis role="bold">Dropzone</emphasis> of your cluster. If you
+        already have a file on your computer, you can upload it onto the
+        <emphasis role="bold">Dropzone</emphasis> using <emphasis
+        role="bold">ECL Watch</emphasis>. Simply, use the <emphasis
+        role="bold">DFU Files/Upload/download</emphasis> menu item, locate the
+        file(s), select and upload.</para>
+
+        <para>Now that the ML Libraries are installed and you have uploaded
+        your data, you can use ECL IDE to write queries to analyze your
+        data:</para>
 
         <orderedlist>
           <listitem>
@@ -357,16 +399,14 @@
           </listitem>
 
           <listitem>
-            <para>Open a new builder window and start writing your
-            query.</para>
-
-            <para>To reference the ML libraries in your ECL source code, use
-            an import statement.</para>
+            <para>Open a new builder window and start writing your query. To
+            reference the ML libraries in your ECL source code, use an import
+            statement.</para>
 
             <para>For example:<programlisting><?dbfo keep-together="always"?>IMPORT * FROM ML;
- 
+
 IMPORT * FROM ML.Cluster;
- 
+
 IMPORT * FROM ML.Types;
  
 x2 := DATASET([
@@ -384,37 +424,384 @@ c := DATASET([
 {3, 1, 9}, {3, 2, 4}],NumericField);
  
 x3 := Kmeans(x2,c);
- 
-OUTPUT(x3);</programlisting></para>
+
+OUTPUT(x3);
+</programlisting></para>
           </listitem>
         </orderedlist>
-
-        <para></para>
       </sect2>
-    </sect1>
 
-    <sect1 id="Contributing_Sources">
-      <title>Contributing to the sources</title>
+      <sect2>
+        <title id="Contributing_Sources">Contributing to the sources</title>
 
-      <para>Both HPCC and ECL-ML are open source projects and contributions to
-      the sources are welcome. If you are interested in contributing to these
-      projects, simply download the GitHub client and go to the relevant
-      GitHub pages.</para>
+        <para>Both HPCC and ECL-ML are open source projects and contributions
+        to the sources are welcome. If you are interested in contributing to
+        these projects, simply download the GitHub client and go to the
+        relevant GitHub pages.</para>
 
-      <itemizedlist>
-        <listitem>
-          <para>To contribute to the HPCC open source project, go to <ulink
-          url="https://github.com/hpcc-systems/HPCC-Platform">https://github.com/hpcc-systems/HPCC-Platform</ulink>.</para>
-        </listitem>
+        <itemizedlist>
+          <listitem>
+            <para>To contribute to the HPCC open source project, go to <ulink
+            url="https://github.com/hpcc-systems/HPCC-Platform">https://github.com/hpcc-systems/HPCC-Platform</ulink>.</para>
+          </listitem>
 
-        <listitem>
-          <para>To contribute to the ECL-ML open source project, go to <ulink
-          url="https://github.com/hpcc-systems/ecl-ml">https://github.com/hpcc-systems/ecl-ml</ulink>.</para>
-        </listitem>
-      </itemizedlist>
+          <listitem>
+            <para>To contribute to the ECL-ML open source project, go to
+            <ulink
+            url="https://github.com/hpcc-systems/ecl-ml">https://github.com/hpcc-systems/ecl-ml</ulink>.</para>
+          </listitem>
+        </itemizedlist>
 
-      <para>You are required to sign a contribution agreement to become a
-      contributor.</para>
+        <para>You are required to sign a contribution agreement to become a
+        contributor.</para>
+      </sect2>
+
+      <sect2>
+        <title id="Example_One_Click">Example - Using ML on a
+        One-Click<superscript>TM</superscript> Thor</title>
+
+        <para>The HPCC One-Click<superscript>TM</superscript> Thor system is
+        very quick and easy to setup and provides the perfect test environment
+        for starting to use the HPCC ML Libraries. It is assumed that you have
+        already installed the ECL IDE and the ML Module (which includes the
+        example code needed). The data used is based on character information
+        from Marvel comics and is taken from the Amazon Web Service Public
+        Data area. It is available for immediate use by simply adding it to
+        your One-Click<superscript>TM</superscript> Thor as a snapshot on
+        launching the cluster.</para>
+
+        <sect3>
+          <title id="Settingup_One_Click">Setting up the
+          One-Click<superscript>TM</superscript> Thor</title>
+
+          <para>To be able to setup a One-Click<superscript>TM</superscript>
+          Thor cluster, you must have an Amazon AWS account. To setup your
+          One-Click<superscript>TM</superscript> Thor cluster:</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Go to the One-Click<superscript>TM</superscript> Thor
+              <emphasis role="bold">Getting Started</emphasis> page on the
+              HPCC Systems website: <ulink
+              url="https://aws.hpccsystems.com/aws/getting_started/">https://aws.hpccsystems.com/aws/getting_started/</ulink>
+              and following the <emphasis role="bold">Logging In</emphasis>
+              instructions.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click <emphasis role="bold">Launch
+              Cluster</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Select the <emphasis role="bold">Region</emphasis>, which
+              for the example data is <emphasis
+              role="bold">Virginia</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter the number of <emphasis role="bold">Thor
+              Nodes</emphasis> you want (1 node is sufficient for this
+              example).</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold"><emphasis>Enter the number of
+              </emphasis>Support Nodes</emphasis> (optional).</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter the <emphasis role="bold">Snapshot ID</emphasis> for
+              the example data as <emphasis
+              role="bold">snap-7766d116</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Press <emphasis role="bold">Launch
+              Cluster</emphasis>.</para>
+            </listitem>
+          </orderedlist>
+
+          <para><emphasis role="bold">Note:</emphasis> To add a snapshot of
+          data from the Amazon Public Data Set , you need to know which
+          <emphasis role="bold">Region</emphasis> it is linked with.</para>
+
+          <para>The <emphasis role="bold">Launch Log</emphasis> shows the
+          status of your One-Click<superscript>TM</superscript> Thor. When the
+          configuration process is complete, the IP address of the ESP is
+          shown in a link at the bottom of the page (xx.xx.xx.xxx.8010). Click
+          on this link to access the <emphasis role="bold">ECL
+          Watch</emphasis> page.</para>
+
+          <para>Using <emphasis role="bold">ECL Watch</emphasis>, click on the
+          <emphasis role="bold">DFU Files</emphasis>/<emphasis
+          role="bold">Upload/download File</emphasis> menu option to view the
+          contents of the <emphasis role="bold">Dropzone</emphasis>. The
+          snapshot we attached to the One-Click<superscript>TM</superscript>
+          Thor system is shown in the list and is ready to be used:</para>
+
+          <graphic fileref="images/ML014.jpg" />
+
+          <para><emphasis role="bold">Note:</emphasis> You can use any data
+          that is available on Amazon as well as any data that you have made
+          and published as part of the Amazon Public Data Set. (If you want to
+          know more about how to do this see, <ulink
+          url="??http://aws.amazon.com/publicdatasets/">http://aws.amazon.com/publicdatasets/</ulink>.)
+          You can also upload your own data from your own machine using the
+          <emphasis role="bold">DFU Files/Upload/download File</emphasis> menu
+          option in <emphasis role="bold">ECL Watch</emphasis> shown
+          above.</para>
+        </sect3>
+
+        <sect3>
+          <title id="Running_One_Click_Example">Running the example using ECL
+          IDE</title>
+
+          <para>The ESP IP address changes every time you launch a new
+          One-Click<superscript>TM</superscript> Thor cluster which means that
+          you need to add a new ECL IDE configuration. On starting ECL IDE,
+          click the <emphasis role="bold">Preferences</emphasis> button and
+          enter the public ESP IP address in the <emphasis
+          role="bold">Server</emphasis> field. This information is available
+          on the One-Click<superscript>TM</superscript> Thor <emphasis
+          role="bold">Launch Log</emphasis>. Click <emphasis
+          role="bold">OK</emphasis> to return to the login window, where you
+          can select your new configuration and login.</para>
+
+          <para>The example ECL file is called <emphasis
+          role="bold">Association_Marvel_Comics.ecl</emphasis> and is located
+          by expanding the tree in the <emphasis role="bold">Repository
+          Window</emphasis> as follows: <emphasis role="bold">My
+          Files</emphasis>/<emphasis
+          role="bold">ML/Tests/Explanatory</emphasis>. Open this file either
+          by double-clicking on it or by using the <emphasis role="bold">Open
+          in Builder Window</emphasis> right-click option. This file uses the
+          Apriori3 and EclatN routines from the Associations Machine Learning
+          Module to create character associations using the snapshot data
+          (Marvel Universe Social Graph). There are some changes that need to
+          be made to this ECL file:</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Change the <emphasis role="bold">Dropzone_IP</emphasis>
+              address to use the private IP address. This information is
+              available either from the One-Click<superscript>TM</superscript>
+              Thor <emphasis role="bold">Launch Log</emphasis> or by using the
+              <emphasis role="bold">System Servers</emphasis> menu item in
+              <emphasis role="bold">ECL Watch</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Change the <emphasis
+              role="bold">Folder_Location</emphasis> to the location of the
+              snapshot, (e.g.<emphasis role="bold"> <emphasis><emphasis
+              role="bold">mnt::dropzone::snap-7766d116</emphasis></emphasis></emphasis><emphasis
+              role="bold"><emphasis>)</emphasis><emphasis>.</emphasis></emphasis></para>
+            </listitem>
+
+            <listitem>
+              <para>Change the <emphasis
+              role="bold">Marvel_Inputfile</emphasis> name to the exact name
+              of the file on the <emphasis role="bold">Dropzone</emphasis>.
+              (e.g. <emphasis role="bold">labeled_edges.tsv</emphasis>)</para>
+            </listitem>
+          </orderedlist>
+
+          <para>Select <emphasis role="bold">thor</emphasis> as the <emphasis
+          role="bold">Target</emphasis>, and <emphasis
+          role="bold">Submit</emphasis>. A green tick indicates that the job
+          has completed. View the results by clicking on the completed
+          workunit.</para>
+
+          <graphic fileref="images/ML015.jpg" />
+        </sect3>
+
+        <sect3>
+          <title id="Interpreting_One_Click_Results">Interpreting the
+          results</title>
+
+          <para>Using ECL Watch you can also view the progress, details and
+          results of a workunit. It is a matter of preference whether you
+          choose to use ECL IDE or ECL Watch. For the purposes of this
+          example, results are shown using ECL Watch:</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Click on the <emphasis role="bold">ECL
+              Workunits/Browse</emphasis> menu item and locate your workunit
+              in the list.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click on the <emphasis role="bold">WUID</emphasis> link to
+              display the <emphasis role="bold">Workunit Details</emphasis>
+              page.</para>
+            </listitem>
+
+            <listitem>
+              <para>Expand the <emphasis role="bold">Results</emphasis> link.
+              Click on the rows link for any result to see the values.</para>
+
+              <graphic fileref="images/ML016.jpg" />
+            </listitem>
+          </orderedlist>
+
+          <para>The results produced reflect the Apriori3 and Eclat(N) example
+          build process and are interpreted as follows:</para>
+
+          <informaltable>
+            <tgroup cols="2">
+              <colspec align="left" colwidth="120pt" />
+
+              <colspec align="left" colwidth="500" />
+
+              <thead>
+                <row>
+                  <entry align="left">Result</entry>
+
+                  <entry align="left">Description</entry>
+                </row>
+              </thead>
+
+              <tbody>
+                <row>
+                  <entry>Transform File</entry>
+
+                  <entry>Initial layout adding ID field to enumerate
+                  rows.</entry>
+                </row>
+
+                <row>
+                  <entry>Enumerate</entry>
+
+                  <entry>Rows are numbered in sequential order.</entry>
+                </row>
+
+                <row>
+                  <entry>Split Fields</entry>
+
+                  <entry>Normalize and number the position of "word" in each
+                  row.</entry>
+                </row>
+
+                <row>
+                  <entry>Lexicon</entry>
+
+                  <entry>Uses the Split Fields results to generate the total
+                  for each "word" and in how many "docs".</entry>
+                </row>
+
+                <row>
+                  <entry>Tokenize Fields</entry>
+
+                  <entry>Adds new Lexicon fields to the Split Fields
+                  result.</entry>
+                </row>
+
+                <row>
+                  <entry>WordBag</entry>
+
+                  <entry>Finds the maximum amount of words and docs and counts
+                  the words in each doc.</entry>
+                </row>
+
+                <row>
+                  <entry>Transform for Association</entry>
+
+                  <entry>Transform into layout that is usable for creating the
+                  associations.</entry>
+                </row>
+
+                <row>
+                  <entry>Apriori3</entry>
+
+                  <entry>ML.Associate([input dataset],[minimum
+                  supports]).Apriori3; Uses ‘old school’ brute force and speed
+                  approach to produce patterns of up to 3 items which appear
+                  together with a particular degree of support.</entry>
+                </row>
+
+                <row>
+                  <entry>EclatN(3)</entry>
+
+                  <entry>ML.Associate([input dataset],[minimum
+                  supports]).EclatN([max item patterns]) Uses the ‘eclat’
+                  technique for finding all patterns of up to N items,
+                  appearing together with a particular degree of support.
+                  Gives the exact same results as AprioriN.</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </informaltable>
+        </sect3>
+
+        <sect3>
+          <title id="Example_One_Click_Results">Apriori3 and EclatN(3) example
+          results</title>
+
+          <para>The Marvel Comics Social Graph data uses vertices that have
+          numeric codes to represent names and comic books. The Find Captain
+          America results contains both the code and code translations. The
+          results shown include the top 10 results only.</para>
+
+          <para><emphasis role="bold">Apriori 3 Association
+          Results</emphasis></para>
+
+          <para>On the results page, click on the rows link for the <emphasis
+          role="bold">Apriori 3 Results</emphasis> to view the
+          following:</para>
+
+          <para></para>
+
+          <graphic fileref="images/ML017.jpg" />
+
+          <para><emphasis role="bold">Values 1</emphasis>, <emphasis
+          role="bold">2</emphasis> and <emphasis role="bold">3</emphasis>
+          contain the codes given in the input file. <emphasis
+          role="bold"></emphasis></para>
+
+          <para><emphasis role="bold">Support</emphasis> shows the number of
+          occurances where the association relationship was found.</para>
+
+          <para><emphasis role="bold">Apriori3 Find Captain America
+          Results</emphasis></para>
+
+          <para>On the results page, click on the rows link for the <emphasis
+          role="bold">Captain America References Apriori3</emphasis> to view
+          the following:</para>
+
+          <para></para>
+
+          <graphic fileref="images/ML018.jpg" />
+
+          <para><emphasis role="bold">EclatN(3) Association
+          Results</emphasis></para>
+
+          <para>On the results page, click on the rows link for the <emphasis
+          role="bold">Eclat N Results</emphasis> to view the following:</para>
+
+          <para></para>
+
+          <graphic fileref="images/ML019.jpg" />
+
+          <para><emphasis role="bold">Pat</emphasis> contains the codes given
+          in the input file. <emphasis role="bold"></emphasis></para>
+
+          <para><emphasis role="bold">Support</emphasis> shows the number of
+          occurances where the association relationship was found.</para>
+
+          <para><emphasis role="bold">EclatN(3) Find Captain America
+          Results</emphasis></para>
+
+          <para>On the results page, click on the rows link for the <emphasis
+          role="bold">Captain America References Eclat </emphasis>results to
+          view the following:</para>
+
+          <para></para>
+
+          <graphic fileref="images/ML020.jpg" />
+        </sect3>
+      </sect2>
     </sect1>
   </chapter>
 
@@ -432,47 +819,37 @@ OUTPUT(x3);</programlisting></para>
       <listitem>
         <para>Associations (ML.Associate)</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist>
       <listitem>
         <para>Classify (ML.Classify)</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist>
       <listitem>
         <para>Cluster (ML.Cluster)</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist>
       <listitem>
         <para>Correlations (ML.Correlate)</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist>
       <listitem>
         <para>Discretize (ML.Discretize)</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist>
       <listitem>
         <para>Distribution (ML.Distribution)</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist>
       <listitem>
         <para>Field Aggregates (ML.FieldAggregates)</para>
       </listitem>
-    </itemizedlist>
 
-    <itemizedlist>
       <listitem>
         <para>Regression (ML.Regression)</para>
+      </listitem>
+
+      <listitem>
+        <para>Visualization (ML.VL)</para>
       </listitem>
     </itemizedlist>
 
@@ -559,14 +936,18 @@ OUTPUT(x3);</programlisting></para>
         <para>This is perhaps visualized by comparison to a traditional ECL
         record. Here is a simple example showing some height, weight and age
         facts for certain individuals:<programlisting>IMPORT ml;
+
 value_record := RECORD
                 UNSIGNED rid;
+
   REAL height;
                 REAL weight;
                 REAL age;
                 INTEGER1 species; // 1 = human, 2 = tortoise
                 INTEGER1 gender; // 0 = unknown, 1 = male, 2 = female
   END;
+
+
 d := dataset([{1,5*12+7,156*16,43,1,1},
               {2,5*12+7,128*16,31,1,2},
               {3,5*12+9,135*16,15,1,1},
@@ -583,15 +964,18 @@ d := dataset([{1,5*12+7,156*16,43,1,1},
               {14,1,1,0.4,2,0}
               ]
               ,value_record);
+
+
 d;
 </programlisting></para>
 
         <para>It has 14 rows of data. Each row has 5 interesting data fields
-        and a ‘record id’ that is prepended to uniquely identify the record
-        (the ECL record has to have the record-id prepended – so a ’10 field’
-        ECL record actually has 11 fields). ML provides the ToField operation
-        that converts a record in this general format to the NumericField
-        format. Thus:</para>
+        and a <emphasis>record id</emphasis> that is prepended to uniquely
+        identify the record (the ECL record has to have the record-id
+        prepended (so a 10 field ECL record actually has 11 fields).</para>
+
+        <para>ML provides the ToField operation that converts a record in this
+        general format to the NumericField format. Thus:</para>
 
         <programlisting>ml.ToField(d,o);
 d;
@@ -618,12 +1002,9 @@ Will leave d1 = d </programlisting></para>
           a field number in the resulting table. However, additional
           parameters may be specified to ToField that facilitates the ability
           to specify the name of the id column in the original table as well
-          as the columns to be used as data fields.</para>
-
-          <para>For example:</para>
+          as the columns to be used as data fields. For example:</para>
 
           <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
-
 value_record := RECORD
 STRING first_name;
 STRING last_name;
@@ -634,7 +1015,6 @@ REAL age;
 STRING eye_color;
 INTEGER1 species; // 1 = human, 2 = tortoise
 INTEGER1 gender; // 0 = unknown, 1 = male, 2 = female
-
 END;
 
 dOrig := dataset([
@@ -893,72 +1273,31 @@ ML.FieldAggregates(D).Simple;  // Perform some statistics on the test data to en
     module. The walk-throughs explain how the modules work and demonstrate how
     they can be used to generate the results you require.</para>
 
-    <sect1 id="Classify_walkthrough">
-      <title>Classification walk-through</title>
+    <sect1>
+      <title id="Association_Walkthrough">Association walk-through</title>
 
-      <para><emphasis role="bold">Modules: Classify, Regression,
-      Doc</emphasis></para>
+      <para>Association mining is one of the most wide-spread, if not widely
+      known forms of machine learning. If you have ever entered a few items
+      into an online ‘shopping-basket’ and then been prompted to buy more
+      things, which were exactly what you wanted, then the chances are there
+      was an association miner working in the background.</para>
 
-      <para>Classification techniques tackle the problem of identifying which
-      groups new observations belong to, based on learned characteristics of
-      an equivalent training set. Based upon a set of observations and groups
-      provided in a training set, can we correctly predict the group of an
-      observation outside of the training set. This is really where data
-      processing gives way to machine learning. Based upon some form of
-      training set can I derive a rule or model to predict something about
-      other data records?</para>
+      <para>At their simplest, association mining algorithms are handed a
+      large number of ‘collections of items’ and then they find which items
+      co-occur in most of the collections. The ECL-ML association algorithms
+      are used by instantiating an Association module passing in a dataset of
+      Items and a number, which is the minimum number of co-occurrences
+      considered to be significant (the lower this number, the slower the
+      algorithm).</para>
 
-      <para>Classification is sufficiently central to machine learning that we
-      provide three different methods of doing it. You will need to examine
-      the literature or experiment to decide exactly which method of
-      classification will work best in any given context. In the examples that
-      follow we are simply trying to show how a given method can be used in a
-      given context and we are not necessarily claiming it is the best or only
-      way to solve the given example.</para>
+      <para>The following code creates such a module using data which is
+      randomly generated but tweaked to have some relationships within
+      it.</para>
 
-      <sect2 id="Naive_Bayes">
-        <title>Naive Bayes</title>
+      <para><programlisting>IMPORT ML;
+TestSize := 100000;
+CoOccurs := TestSize/1000;
 
-        <para>The concept behind Naïve Bayes is that every property of an
-        object is in and of itself a predictor of the type of that object. By
-        summing all of the predictions for all of the properties of an object,
-        you can compute the type the object is most likely to have. Put
-        another way, Bayes assumes that all of the properties of an object are
-        independent hence the expression ‘Naïve’.</para>
-
-        <para>Another interesting feature (and benefit) of Bayes is that while
-        it predicts ordinal values (integers – 0, 1, 2 etc), it is not
-        producing a ‘score’ so, it does not restrict the integers to being ‘in
-        sequence’. So a property of an object might predict a 0 or 2, but it
-        will not predict a 1. Bayes will not predict anything if handed
-        totally random data. It is precisely looking for a relationship
-        between the data that is non-random. The following example generates
-        test data by:</para>
-
-        <orderedlist>
-          <listitem>
-            <para>Generating three random columns.</para>
-          </listitem>
-
-          <listitem>
-            <para>Producing a fourth column that is the sum of the three
-            columns.</para>
-          </listitem>
-
-          <listitem>
-            <para>Giving the fourth column a category from 0 (small) to 2
-            (big).</para>
-          </listitem>
-        </orderedlist>
-
-        <para>The purpose is to see if the system can learn to predict which
-        category the record will be assigned using the individual fields. The
-        data generation is a little more complex than normal so it is
-        presented here. In the rest of this section if a ‘D1’ appears from
-        nowhere, it is referencing this dataset.</para>
-
-        <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
-TestSize := 10000000;
 a1 := ML.Distribution.Poisson(5,100); 
 b1 := ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
 a2 := ML.Distribution.Poisson(3,100);
@@ -967,6 +1306,161 @@ a3 := ML.Distribution.Poisson(3,100);
 b3 := ML.Distribution.GenData(TestSize,a3,3);
 
 D := b1+b2+b3; // This is the test data
+// Now construct a fourth column which is a function of column 1
+B4 := PROJECT(b1,TRANSFORM(ML.Types.NumericField, SELF.Number:=4, SELF.Value:=LEFT.Value * 2, SELF.Id := LEFT.id));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+AD0 := PROJECT(ML.Discretize.ByRounding(B1+B2+B3+B4),ML.Types.ItemElement);
+// Remove duplicates from bags (fortunately the generation allows this to be local)
+AD := DEDUP( SORT( AD0, ID, Value, LOCAL ), ID, Value, LOCAL );
+
+ASSO := ML.Associate(AD,CoOccurs);
+</programlisting>The simplest question which can now be asked is: “Which pairs
+      of items are most likely to appear together?”.</para>
+
+      <programlisting>TOPN(Asso.Apriori2,50,-Support)</programlisting>
+
+      <para>Provides that answer.</para>
+
+      <para>The answer to: ‘Which triplets can be found together?’ is answered
+      by:</para>
+
+      <programlisting>TOPN(Asso.Apriori3,50,-Support);</programlisting>
+
+      <para>The same answer can also be found by asking the question:</para>
+
+      <programlisting>TOPN(Asso.EclatN(3,3),50,-Support);</programlisting>
+
+      <para>The second form uses a different algorithm for the computation
+      (Eclat), which also has a more flexible interface. The first parameter
+      gives the maximum group size that is interesting. The second parameter
+      gives the minimum group size that is interesting.</para>
+
+      <para>Thus to find the largest groups of size 4 or 3 use:</para>
+
+      <programlisting>TOPN(Asso.EclatN(4,3),50,-Support);</programlisting>
+
+      <para>It may be noted that there is also an AprioriN function. However
+      it relies upon a feature that is not currently functional in version
+      3.4.2 of the HPCC platform.</para>
+
+      <para>In addition to being able to spot the common patterns, the
+      association module is able to turn a set of patterns into a set of rules
+      or to use a different term of art, it is capable of building a
+      predictor. Essentially a predictor answers the question: “Given I have
+      this in my basket, what will come next.?”. A predictor is built by
+      passing the output of EclatN or ApriorN into the Rules function:</para>
+
+      <programlisting>R := TOPN(Asso.EclatN(4,2),50,-Support);
+
+Asso.Rules(R)
+</programlisting>
+
+      <para>This produces the following numbers:<graphic
+      fileref="images/ML009.jpg" /></para>
+
+      <para><emphasis role="bold">Note:</emphasis> Your numbers will be
+      different because the data is randomly generated when run.</para>
+
+      <para>The support tells you how many patterns were used to make the
+      prediction.</para>
+
+      <para>Conf tells the percentage of times that the prediction would be
+      correct (in the training data, but real life might be
+      different!).</para>
+
+      <para>Sig is used to indicate whether the next item is likely to be
+      causal (high sig) or co-incidental (low-sig). To understand the
+      difference, imagine that you go into Best Buy to buy an expensive
+      telephone. Your shopping basket of 1 item will probably allow the system
+      to predict two different likely next items, such as a case for the phone
+      and a candy bar. They might both have high confidence, but the case will
+      have high significance (you will usually by the case if you by the
+      phone), the candy will not (it is only likely because ‘everyone buys
+      candy’).</para>
+    </sect1>
+
+    <sect1 id="Classify_walkthrough">
+      <title>Classification walk-through</title>
+
+      <para><emphasis role="bold">Modules: Classify, Regression,
+      Doc</emphasis></para>
+
+      <para>ML.Classify tackles the problem: “given I know these facts about
+      an object; can I predict some other value or attribute of that object.”
+      This is really where data processing gives way to machine learning:
+      based upon some form of training set can I derive a rule or model to
+      predict something something about other data records.</para>
+
+      <para>Classification is sufficiently central to machine learning that we
+      provide four different methods of doing it. You will need to examine the
+      literature or experiment to decide exactly which method of
+      classification will work best in any given context. In order to simplify
+      coding and to allow experimentation all of our classifiers can be used
+      through the unified classifier interface. <emphasis></emphasis></para>
+
+      <para><emphasis>Using</emphasis> a classifier in ML can be viewed as
+      three logical steps:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Learning the model from a training set of data that has been
+          classified externally.</para>
+        </listitem>
+
+        <listitem>
+          <para>Testing. Getting measures of how well the classifier
+          fits.</para>
+        </listitem>
+
+        <listitem>
+          <para>Classifying. Apply the classifier to new data in order to give
+          it a classification.</para>
+        </listitem>
+      </orderedlist>
+
+      <para>In the examples that follow we are simply trying to show how a
+      given method can be used in a given context; we are not necessarily
+      claiming it is the best or only way to solve the given example.</para>
+
+      <para>A classifier will not predict anything if handed totally random
+      data. It is precisely looking for a relationship between the data that
+      is non-random. So this example will generate test data by:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Generating three random columns.</para>
+        </listitem>
+
+        <listitem>
+          <para>Producing a fourth column that is the sum of the three
+          columns.</para>
+        </listitem>
+
+        <listitem>
+          <para>Giving the fourth column a category from 0 (small) to 2
+          (big).</para>
+        </listitem>
+      </orderedlist>
+
+      <para>The object is to see if the system can learn to predict from the
+      individual fields which category the record will be assigned. The data
+      generation is a little more complex than normal so it is presented here
+      (this code is also available in Tests/Explanatory/Classify in our source
+      distribution).</para>
+
+      <programlisting><?dbfo keep-together="always"?>IMPORT ML;
+// First auto-generate some test data for us to classify
+
+TestSize := 100000;
+a1 := ML.Distribution.Poisson(5,100); 
+b1 := ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
+a2 := ML.Distribution.Poisson(3,100);
+b2 := ML.Distribution.GenData(TestSize,a2,2);
+a3 := ML.Distribution.Poisson(3,100);
+b3 := ML.Distribution.GenData(TestSize,a3,3);
+
+D := b1+b2+b3; // This is the test data
+
 // Now construct a fourth column which is the sum of them all
 B4 := PROJECT(TABLE(D,{Id,Val := SUM(GROUP,Value)},Id),TRANSFORM(ML.Types.NumericField,
                                            SELF.Number:=4,
@@ -975,109 +1469,120 @@ B4 := PROJECT(TABLE(D,{Id,Val := SUM(GROUP,Value)},Id),TRANSFORM(ML.Types.Numeri
                                                                           2 ); // Big
                                            SELF := LEFT));
 D1 := D+B4;
-</programlisting>When generating and preparing data for Naïve Bayes you need
-        to be aware that Bayes is looking for discrete numbers as input (not
-        the real numbers generated). The Discretize module can do this for
-        you. This module is described in detail in the chapter The ML
-        Modules.</para>
+</programlisting>
 
-        <para>To keep things simple we will just round all the fields to
-        integers in this example:</para>
+      <para></para>
 
-        <para><programlisting><?dbfo keep-together="always"?>D2 := ML.Discretize.ByRounding(D1);</programlisting>It
-        is now possible to ‘train’ the Naïve Bayes classifier using the
-        BuildNaiveBayes definition:<programlisting><?dbfo keep-together="always"?>ML.Classify.BuildNaiveBayes(D2(Number&lt;=3),D2(Number=4))</programlisting></para>
+      <para>The data generated for D1 is in numeric field format which is to
+      say that the variables are continuous (real numbers). Classifiers
+      require that the ‘target’ results (the numbers to be produced) are
+      positive integers. The unified classier interface allows for the inputs
+      to a classifier to be either continuous or discrete (using the ‘C’ and
+      ‘D’ versions of the functions). However, most of the implemented
+      classifiers prefer discrete input and you get better control over the
+      discretization process if you do it yourself. The Discretize module can
+      do this (see the section ML Data Models and the Discretize module which
+      explain this in more detail) but to keep things simple we will just
+      round all the fields to integers:</para>
 
-        <para>Notice that all of the values I ‘know’ are being passed in as
-        the first parameter (these are the independent variables). All of the
-        ones I want to learn (the dependents) are being passed in as the
-        second parameter. In this case there is only one column of dependent
-        variables but the BuildNaiveBayes is capable of constructing multiple
-        Bayesian models at once.</para>
+      <programlisting><?dbfo keep-together="always"?>// We are going to use the 'discrete' classifier interface, so discretize our data first
+D2 := ML.Discretize.ByRounding(D1);</programlisting>
 
-        <para>One thing that seems to shock some people is that a NaiveBayes
-        classifier is not perfect. Even if you construct a Bayes model, you
-        can hand the classifier back the training data and it may still
-        mis-classify some of the data. This is not a bug. It is a restriction
-        of the mathematical model that underlies Bayes. This obviously begs
-        the question, "well, it may not be perfect but just how good is
-        it?".</para>
+      <para>In the rest of this section if a ‘D2’ appears from 'nowhere', it
+      is referencing this dataset.</para>
 
-        <para>The Classify module has a definition, TestNaiveBayes, which
-        takes in a set of independent variables, a set of actual outcomes
-        (dependent variables) and a Bayes model. It will then return a slew of
-        results to show how good (or bad) the classifier was. The following
-        results are produced:</para>
+      <para>Every classifier has a module within the classify module. It is
+      usually worth grabbing hold of that first to make the rest of the typing
+      simpler. In this case we will get the NaiveBayes module:</para>
 
-        <informaltable>
-          <tgroup cols="2">
-            <colspec align="left" colwidth="110pt" />
+      <programlisting>BayesModule := ML.Classify.NaiveBayes;</programlisting>
 
-            <colspec align="left" colwidth="480pt" />
+      <para>While I labeled it ‘BayesModule’, it important to understand that
+      that one line is the only difference between whether you are using
+      NaiveBayes, Perceptrons, LogisticRegression or one of the other
+      classifier mechanisms.</para>
 
-            <thead>
-              <row>
-                <entry align="left">Result</entry>
+      <para>For illustration purposes we will skip straight to testing:</para>
 
-                <entry align="left">Description</entry>
-              </row>
-            </thead>
+      <programlisting>TestModule := BayesModule.TestD(D2(Number&lt;=3),D2(Number=4));
+TestModule.Raw;
+TestModule.CrossAssignments;
+TestModule.PrecisionByClass;
+TestModule.Headline;
+</programlisting>
 
-            <tbody>
-              <row>
-                <entry align="left">Headline</entry>
+      <para>The TestModule := does all the work.</para>
 
-                <entry>Gives you the main precision number. On this test data,
-                the result shows how often was the classifier correct.</entry>
-              </row>
+      <para>Firstly note that D2 has been split into two pieces. The first
+      parameter is all of the independent variables (sometimes called
+      features), the second parameter is the dependent variables (or classes).
+      The fact that TestD was called (rather than TestC) is to indicate that
+      the independent variables are discrete.</para>
 
-              <row>
-                <entry align="left">PrecisionByClass</entry>
+      <para>The module now has four different outputs to show you how well the
+      classification worked:</para>
 
-                <entry>Similar to Headline except that it gives the precision
-                broken down by the class that it SHOULD have been classified
-                to. It is possible that a classifier might work well but may
-                be particularly poor at identifying one of the groups.</entry>
-              </row>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec align="left" colwidth="110pt" />
 
-              <row>
-                <entry align="left">CrossAssignments</entry>
+          <colspec align="left" colwidth="480pt" />
 
-                <entry>It is one thing to say a classification is ‘wrong’.
-                This table shows, “if a particular class is mis-classified,
-                what is it most likely to be mis-classified as?”.</entry>
-              </row>
+          <thead>
+            <row>
+              <entry align="left">Result</entry>
 
-              <row>
-                <entry align="left">Raw</entry>
+              <entry align="left">Description</entry>
+            </row>
+          </thead>
 
-                <entry>Gives a very detailed breakdown of every record in the
-                test corpus, for example, what the classification should have
-                been and what it was.</entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable>
+          <tbody>
+            <row>
+              <entry align="left">Headline</entry>
 
-        <para>Assuming you are happy with your model the final step is to use
-        it!</para>
+              <entry>Gives you the main precision number. On this test data,
+              the result shows how often the classifier was correct.</entry>
+            </row>
 
-        <para>This is very easy to do because the Classify module has a
-        NaiveBayes definition which takes the independent data and the model
-        you supply and produces the dependent columns you require. In the
-        following example, this is done using the training set we used
-        earlier.50</para>
+            <row>
+              <entry align="left">PrecisionByClass</entry>
 
-        <para>For real work this would be a completely different dataset that
-        was being processed:</para>
+              <entry>Similar to Headline except that it gives the precision
+              broken down by the class that it SHOULD have been classified to.
+              It is possible that a classifier might work well in general but
+              may be particularly poor at identifying one of the
+              groups.</entry>
+            </row>
 
-        <para><programlisting><?dbfo keep-together="always"?>Model := ML.Classify.BuildNaiveBayes(D2(Number&lt;=3),D2(Number=4));
-Results := ML.Classify.NaiveBayes(D2(Number&lt;=3),Model);
-Results 
-</programlisting></para>
+            <row>
+              <entry align="left">CrossAssignments</entry>
 
-        <para></para>
-      </sect2>
+              <entry>It is one thing to say a classification is ‘wrong’. This
+              table shows, “if a particular class is mis-classified, what is
+              it most likely to be mis-classified as?”.</entry>
+            </row>
+
+            <row>
+              <entry align="left">Raw</entry>
+
+              <entry>Gives a very detailed breakdown of every record in the
+              test corpus, for example, what the classification should have
+              been and what it was.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+
+      <para>Assuming you like the results you will normally learn the model
+      and then use it for classification. In the ‘real world’ you would
+      probably do the learning and the classifying at very different times and
+      on very different data. For illustration purposes and simplicity this
+      code learns the model and uses it immediately on the same data:</para>
+
+      <programlisting>Model := BayesModule.LearnD(D2(Number&lt;=3),D2(Number=4));
+Results := BayesModule.ClassifyD(D2(Number&lt;=3),Model);
+Results;
+</programlisting>
 
       <sect2 id="Logisitic_regression">
         <title>Logistic Regression</title>
@@ -1448,21 +1953,25 @@ Cor.Kendall;
 
       <para><emphasis role="bold">Modules: Discretize</emphasis></para>
 
-      <para>As discussed briefly in the section on data models it is not
+      <para>As discussed briefly in the section on data models, it is not
       unusual for data to be provided in a manner where the data forms some
       real value. For example a height or weight might be measured down to the
-      inch or ounce; a price might be measured down to the nearest cent. Yet
-      in terms of predictiveness we might expect ‘similar’ values in those
-      fields to exhibit similar behavior in some particular regard. Some of
-      the ML modules expect the input data to have been ‘banded’; that is for
-      data which was originally in ‘real values’ to have been turn into a set
-      of discrete bands. More concretely they require data in the
-      DiscreteField format even if it was originally provided in NumericField
-      format. The Discretize module exists to perform this conversion. All of
+      inch or ounce, or a price might be measured down to the nearest cent.
+      Yet in terms of predictiveness we might expect
+      <emphasis>similar</emphasis> values in those fields to exhibit similar
+      behavior in some particular regard.</para>
+
+      <para>Some of the ML modules expect the input data to have been
+      <emphasis>banded</emphasis>, or for data which was originally in
+      <emphasis>real values</emphasis> to have been turn into a set of
+      discrete bands. More concretely, they require data in the DiscreteField
+      format even if it was originally provided in NumericField format.</para>
+
+      <para>The Discretize module exists to perform this conversion. All of
       the examples in this walk-through use the first dataset (d) from the
-      NumericField walk-through earlier; it might help you to just quickly
-      look at that dataset again in both original and NumericField form to
-      remind you of the format.</para>
+      NumericField walk-through. It might help you to just quickly look at
+      that dataset again in both original and NumericField form to remind you
+      of the format.</para>
 
       <para><programlisting><?dbfo keep-together="always"?>ml.ToField(d,o);
 d;
@@ -1472,10 +1981,9 @@ o;
 
       <para>All three methods operate upon all the data handed to them.
       Applying different methods to different fields is very easy using the
-      methods discussed in the section entitled: “Data Models”. This simple
-      example Auto-buckets columns 2 &amp; 3 into four bands, tiles column 1
-      into 6 bands and the rounds the fourth column to the nearest
-      integer:</para>
+      methods discussed in the section on Data Models. This simple example
+      Auto-buckets columns 2 &amp; 3 into four bands, tiles column 1 into 6
+      bands and the rounds the fourth column to the nearest integer:</para>
 
       <para><programlisting>disc := ML.Discretize.ByBucketing(o(Number IN [2,3]),4)+ML.Discretize.ByTiling(o(Number IN 
                                               [1]),6)+ML.Discretize.ByRounding(o(Number=4));
@@ -1495,19 +2003,22 @@ disc;
       and discretizes a dataset based upon those instructions. Each
       instruction is actually a little record of type r_Method defined in the
       Discretize module and you can construct these records yourself if you
-      wish. It would be fairly easy to even create a little ‘discreting
-      programming language’ and have it execute. For the slightly less
-      ambitious there are a collection of parameterized functions that will
-      construct an r_Method record for each of the three main discretize
-      types.</para>
+      wish. It would be fairly easy to even create a little
+      <emphasis>discreting programming language</emphasis>’ and have it
+      execute. For the slightly less ambitious there are a collection of
+      parameterized functions that will construct an r_Method record for each
+      of the three main discretize types.</para>
 
       <para>The following example is exactly equivalent to the
       previous:</para>
 
       <para><programlisting><?dbfo keep-together="always"?>// Build up the instructions into a single data file (‘mini program’)
+
 inst := ML.Discretize.i_ByBucketing([2,3],4)+ML.Discretize.i_ByTiling([1],6)
                                             +ML.Discretize.i_ByRounding([4]);
+
 // Execute the instructions
+
 done := ML.Discretize.Do(o,inst);
 done;
 
@@ -1611,8 +2122,8 @@ done;
         <title>Tokenize</title>
 
         <para>The Tokenize module breaks a set of raw text into its lexical
-        elements. From there, it can produce a dictionary of those elements,
-        with weighting, as well as perform integer replacement that
+        elements. From there, it can produce a dictionary of those elements
+        with weighting as well as perform integer replacement that
         significantly reduces the space overhead needed to process such large
         amounts of data.</para>
 
@@ -1620,11 +2131,13 @@ done;
         following limited dataset: <programlisting><?dbfo keep-together="always"?>IMPORT ML;
 
 dSentences:=DATASET([
+
   {1,'David went to the market and bought milk and bread'},
   {2,'John picked up butter on his way home from work.'},
   {3,'Jill craved lemon cookies, so she grabbed some at the convenience store'},
   {4,'Mary needs milk, bread and butter to make breakfast tomorrow morning.'},
   {5,'William\'s lunch included a sandwich on wheat bread and chocolate chip cookies.'}
+
 ],ML.Docs.Types.Raw);
 </programlisting></para>
 
@@ -1711,12 +2224,11 @@ dSentences:=DATASET([
         words and enables the user to perform analyses on those n-grams to
         determine significance. The same dataset (dSentences) that was used in
         the walk-through of the Tokenize module above, is also used as the
-        starting point for the examples shown below.</para>
-
-        <para>As with Tokenize, the first step in processing the free text for
-        Colocation is to map all of the words. This is done by calling the
-        Words attribute, which also calls the Tokenize.Clean and
-        Tokenize.Split functions respectively: <programlisting>dWords:=ML.Docs.CoLocation.Words(dSentences);</programlisting></para>
+        starting point for the examples shown below. As with Tokenize, the
+        first step in processing the free text for Colocation is to map all of
+        the words. This is done by calling the Words attribute, which also
+        calls the Tokenize.Clean and Tokenize.Split functions respectively:
+        <programlisting>dWords:=ML.Docs.CoLocation.Words(dSentences);</programlisting></para>
 
         <para>The AllNGrams attribute then harvests every n-gram, from
         unigrams up to the n defined by the user. This produces result in a
@@ -1933,6 +2445,725 @@ Agg.BucketRanges(4)
 </programlisting></para>
     </sect1>
 
+    <sect1>
+      <title id="Matrix_Library_Walkthrough">Matrix Library
+      Walk-through</title>
+
+      <para>The Matrix Library provides a number of matrix manipulation
+      routines. Some of them are standard matrix operations that do not
+      require any specific explanations (Add, Det, Inv, Mul, Scale, Sub, and
+      Trans). Others are a bit less standard, and have been created to provide
+      the appropriate functional support for other ML library
+      algorithms.</para>
+
+      <programlisting>IMPORT ML;
+IMPORT ML.Mat AS Mat;
+d := dataset([{1,1,1.0},{1,2,2.0},{2,1,3.0},{2,2,4.0}],Mat.Types.Element);
+d1:= Mat.Scale(d,10.0);
+Mat.Add(d1,d);
+Mat.Sub(d1, d );
+Mat.Mul(d,d);
+Mat.Trans(d);
+Mat.Inv(d); 
+</programlisting>
+
+      <sect2>
+        <title id="Each">Each</title>
+
+        <para>The Each matrix module provides routines for element-wise
+        matrix, in that it provides functions that operate on individual
+        elements of the matrix. The following code starts with the square
+        matrix whose elements are equal to 2.</para>
+
+        <programlisting>IMPORT * FROM ML;
+A := dataset([{1,1,2.0},{1,2,2.0},{1,3,2.0},
+              {2,1,2.0}, {2,2,2.0},{2,3,2.0}, 
+              {3,1,2.0},{3,2,2.0}, {3,3,2.0}], ML.Mat.Types.Element);
+AA := ML.Mat.Each.Mul(A,A);
+A_org := ML.Mat.Each.Sqrt(AA);
+OneOverA := ML.Mat.Each.Reciprocal(A_org,1);
+ML.Mat.Each.Mul(A_org,OneOverA);
+</programlisting>
+
+        <para>The Each.Mul routine multiplies each element of the matrix A
+        with itself producing the matrix AA whose elements are equal to 4. The
+        Each.Sqrt routine calculates the square root of each element producing
+        the matrix A_org whose elements are equal to 2. The Each.Reciprocal
+        routine calculates reciprocal value of every element of the matrix
+        A_org producing the matrix OneOverA whose elements are equal to
+        ½.</para>
+      </sect2>
+
+      <sect2>
+        <title id="Has">Has</title>
+
+        <para>The Has matrix module provides various matrix properties, such
+        as matrix dimension or matrix density.</para>
+      </sect2>
+
+      <sect2>
+        <title id="Is">Is</title>
+
+        <para>The Is matrix module provides routines to test matrix types,
+        such as whether a matrix is an identity matrix, or whether it is a
+        zero matrix, or a diagonal matrix, or a symmetric matrix, or a Upper
+        or Lower triangular matrix.</para>
+      </sect2>
+
+      <sect2>
+        <title id="Insert_Column">Insert Column</title>
+
+        <para>You may need to insert a new column into an existing matrix,
+        e.g. regression analysis usually requires a column of 1s to be
+        inserted into the feature matrix X before a regression model gets
+        created. InsertColumn was created for this purpose. The following
+        inserts a column of 1s as the first column into the square matrix A,
+        creating the 3-by-4 matrix:</para>
+
+        <programlisting>IMPORT * FROM ML;
+A := dataset([{1,1,2.0},{1,2,3.0},{1,3,4.0},
+              {2,1,2.0}, {2,2,3.0},{2,3,4.0}, 
+              {3,1,2.0},{3,2,3.0}, {3,3,4.0}], ML.Mat.Types.Element);
+ML.Mat.InsertColumn(A, 1, 1.0);
+</programlisting>
+      </sect2>
+
+      <sect2>
+        <title id="MU">MU</title>
+
+        <para>MU is a matrix universe module. Its routines make it possible to
+        include multiple matrices into the same file. These routines are
+        useful when it is necessary to return more than one matrix from a
+        function. For example, the QR matrix decomposition process produces 2
+        matrices, Q and R, and those two matrices can be combined together
+        using routines from the MU module.</para>
+
+        <para>This sample code starts with 2 square 3-by-3 matrices, A1 and
+        A2. One with all elements eqaal to 1 and the other with all elements
+        equal to 2. The 2 matrices are combined into one universal matrix A1MU
+        + A2MU, with id=4 identifying elements of the matrix A1 and id=7
+        identifying elements of matrix A2. The last two code lines extract the
+        original matrices from the universal matrix A1MU + A2MU.</para>
+
+        <programlisting>IMPORT * FROM ML;
+
+A1 := dataset([{1,1,1.0},{1,2,1.0},{1,3,1.0},
+                         {2,1,1.0}, {2,2,1.0},{2,3,1.0}, 
+                         {3,1,1.0},{3,2,1.0}, {3,3,1.0}], ML.Mat.Types.Element);
+
+A2 := dataset([{1,1,2.0},{1,2,2.0},{1,3,2.0},
+                         {2,1,2.0}, {2,2,2.0},{2,3,2.0}, 
+                         {3,1,2.0},{3,2,2.0}, {3,3,2.0}], ML.Mat.Types.Element);
+
+A1MU := ML.Mat.MU.To(A1, 4);
+A2MU := ML.Mat.MU.To(A2, 7); 
+A1MU+A2MU;
+ML.Mat.MU.From(A1MU+A2MU, 4);
+ML.Mat.MU.From(A1MU+A2MU, 7); 
+</programlisting>
+      </sect2>
+
+      <sect2>
+        <title>Repmat</title>
+
+        <para>The Repmat function replicates a matrix, creating a large matrix
+        consisting of M-by-N tiling copies of the original matrix. For
+        example, the following code starts from a matrix with one element with
+        value = 2. It then creates a 3x2 matrix out of it by replicating this
+        single element matrix 3 times vertically, to create a 3x1 vector. This
+        vector is then replicated 2 times horizontally.</para>
+
+        <programlisting>IMPORT * FROM ML;
+
+A := DATASET ([{1,1,2.0}], ML.Mat.Types.Element);
+B := ML.Mat.Repmat(A,3,2);
+</programlisting>
+
+        <para>The resulting matrix B is a 3x2 matrix with all elements having
+        a value of 2, as in:</para>
+
+        <programlisting>DATASET([{1,1,2.0},{1,2,2.0},{2,1,2.0}, {2,2,2.0},{3,1,2.0},{3,2,2.0}], ML.Mat.Types.Element); </programlisting>
+
+        <para>The Repmat function can be used to adjust the mean values of the
+        columns of a given matrix. This can be achieved by first calculating
+        the mean values of every matrix column using the mcA :=
+        Has(A).MeanCol. This function generates a row vector mcA containing
+        mean values for every matrix column. This row vector then needs to be
+        replicated vertically to match the size of the original matrix, which
+        can be achieved using the rmcA := Repmat(mcA, Has(A).Stats.XMax, 1).
+        The rmcA matrix is the same size as the original matrix A, and its
+        column values are the same for every matrix column and they are equal
+        to the mean value of that column. Finally, if we subtract the rmcA
+        from matrix A, we get a matrix whose columns have the mean value of
+        zero. This can be achieved using the following compact code:</para>
+
+        <programlisting id="Repmat">IMPORT * FROM ML;
+A := dataset([{1,1,2.0},{1,2,3.0},{1,3,4.0},
+              {2,1,2.0}, {2,2,3.0},{2,3,4.0}, 
+              {3,1,2.0},{3,2,3.0}, {3,3,4.0}], ML.Mat.Types.Element); 
+ZeroMeanA := ML.Mat.Sub(A, ML.Mat.Repmat(ML.Mat.Has(A).MeanCol, 
+ML.Mat.Has(A).Stats.XMax, 1));
+</programlisting>
+      </sect2>
+
+      <sect2>
+        <title id="Decomp">Decomp</title>
+
+        <para>The Decomp matrix module provides routines for different matrix
+        decompositions (or matrix factorizations). Different decompositions
+        are needed to implement efficient matrix algorithms for particular
+        cases of problems in linear algebra.</para>
+      </sect2>
+
+      <sect2>
+        <title id="LU_Decomposition">LU Decomposition</title>
+
+        <para>The LU matrix decomposition is applicable to a square matrix A,
+        and it is used to help solve a system of linear equations Ax = b. When
+        solving a system of linear equations Ax = b, the matrix A can be
+        decomposed via the LU decomposition, which factorizes a matrix into a
+        lower triangular matrix L and an upper triangular matrix U. The
+        equivalent systems L(Ux) = b and Ux = Inv(L)b are easier to solve then
+        the original system of linear equations Ax = b. These equivalent
+        systems of linear equations are solved by ‘forward substitution’ and
+        ‘back substitution’ using the f_sub and b_sub routines available in
+        the Decomp module. The LU decomposition is currently being used to
+        calculate the inverted matrix.</para>
+
+        <para>The following code demonstrates how to decompose matrix A into
+        its L and U components. The L and U components are calculated first.
+        To validate that this matrix decomposition is done correctly, we need
+        to demonstrate that A=LU. This code does that by multiplying L and U,
+        and then subtracting that result from A. The expected result is a zero
+        matrix (the matrix whose size is the same as the size of the original
+        matrix A with all elements being equal to 0).</para>
+
+        <para>The problem is that the arithmetic involved in calculation of L
+        and U components may create some rounding error, and as a result of
+        that the A-LU matrix may not have all zero elements, as some elements
+        could be positive real numbers very close to zero. For example, the
+        element (4,3) of the matrix A-LU in the following example has the
+        value 8.881784197001252e-16, the number that differs from 0 at its
+        15th decimal point. The sample code deals with that problem by
+        applying the RoundDelta function to the A-LU matrix.</para>
+
+        <programlisting>IMPORT * FROM ML;
+A := dataset([{1,1,2.0},{1,2,-1.0},{1,3,3.0},{1,4,4.0},
+              {2,1,4.0}, {2,2,2.0},{2,3,1.0},{2,4,5.0}, 
+              {3,1,-6.0},{3,2,-1.0}, {3,3,3.0}, {3,4,6.0},
+              {4,1,-6.0},{4,2,-1.0}, {4,3,1.0}, {4,4,6.0}], ML.Mat.Types.Element);
+L := ML.Mat.Decomp.LComp(ML.Mat.Decomp.LU(A));
+U := Ml.Mat.Decomp.UComp(ML.Mat.Decomp.LU(A));
+LU := ML.Mat.Mul(L,U);
+ML.MAT.RoundDelta(ML.Mat.Sub(A,LU));
+</programlisting>
+      </sect2>
+
+      <sect2>
+        <title id="Cholesky_Decomposition">Cholesky Decomposition</title>
+
+        <para>The Cholesky matrix decomposition is applicable to a square,
+        symmetric, and positive real matrix A. It factorizes a matrix A into
+        the product of a lower triangular matrix L, and its transpose L’. It
+        is mainly used for the numerical solution of system of linear
+        equations Ax = b. If A is symmetric and positive, then a system of
+        linear equations Ax = b can be solved by first computing the Cholesky
+        decomposition A = L*L’, then solving Ly = b for y, and finally solving
+        L’x = y for x.</para>
+
+        <para>The sample code demonstrates how to create a lower triangular
+        matrix L using Cholesky decomposition. The code validates this
+        decomposition by multiplying L with its transpose and ensuring that
+        this product is equal to the original matrix A.</para>
+
+        <programlisting>IMPORT * FROM ML;
+A := dataset([{1,1,2.0},{1,2,1.0},{1,3,1.0},
+              {2,1,1.0}, {2,2,3.0},{2,3,1.0}, 
+             {3,1,1.0},{3,2,1.0}, {3,3,4.0}], ML.Mat.Types.Element);
+ L := ML.Mat.Decomp.Cholesky(A);
+LLt := ML.Mat.Mul(L,ML.Mat.Trans(L));
+ML.MAT.RoundDelta(ML.Mat.Sub(A,LLt));
+</programlisting>
+      </sect2>
+
+      <sect2>
+        <title>QR Decomposition</title>
+
+        <para>The QR matrix decomposition is applicable to an m-by-n matrix A.
+        It factorizes matrix A into a product QR, where Q is an orthogonal
+        matrix (ie Q*Q’ = I) of size m-by-m, and R is an upper triangular
+        matrix of size m-by-n. The QR decomposition provides an alternative
+        way of solving a system of linear equations Ax = b, without having to
+        invert the matrix. Since the Q is orthonormal, the original system Ax
+        = b is equivalent to Rx = Q’b = c. The system Rx = c is solved by
+        ‘back substitution’, since R is triangular matrix.</para>
+
+        <para>The following sample code demonstrates how to decompose matrix A
+        into its Q and R components. The code validates this decomposition by
+        demonstrating that a/ A=QR, and b/ Q is an orthonormal matrix. The
+        purpose of the Thin() function is to create a sparse matrix
+        representation of its input matrix, and this is achieved by removing
+        all zero elements from it. Since the A-QR is expected to be a zero
+        matrix, applying the Thin() function to it is expected to create an
+        empty matrix. The second result is expected to be an identity matrix,
+        and the Thin() function will remove all zero elements from it.</para>
+
+        <programlisting>IMPORT * FROM ML;
+A := dataset([{1,1,12.0},{2,1,6.0},{3,1,-4.0},
+              {1,2,-51.0},{2,2,167.0},{3,2,24.0},
+              {1,3,4.0},{2,3,-68.0},{3,3,-41.0}], ML.MAT.Types.Element);
+
+Q := ML.Mat.Decomp.QComp(A);
+R := ML.Mat.Decomp.RComp(A);
+QR := ML.Mat.Mul(Q,R);
+ML.Mat.Thin(ML.MAT.RoundDelta(ML.Mat.Sub(A,QR)));
+ML.Mat.Thin(ML.MAT.RoundDelta(ML.Mat.Mul(Q,ML.Mat.Trans(Q))));
+</programlisting>
+      </sect2>
+
+      <sect2>
+        <title id="Eigen_Decomposition">Eigen Decomposition (Eigenvalues and
+        Eigenvectors)</title>
+
+        <para>Eigen decomposition is a factorization of a matrix, where the
+        original matrix is represented in terms of its eigenvalues and
+        eigenvectors. Indirect definitions of eigenvalues and eigenvectors can
+        be stated as, "given a square matrix A, the number λ is an eigenvalue
+        of A if there exists a non-zero vector v such that A*v =λ*v." If such
+        a vector v exists, then v is called an eigenvector of A corresponding
+        to the eigenvalue λ.</para>
+
+        <para>In general, when matrix is multiplied with a vector, it changes
+        both the vector’s magnitude and direction. However, for some vectors,
+        A*v can only change the vector’s magnitude, while leaving its
+        direction unchanged. These vectors are eigenvectors of the matrix. A
+        matrix changes a vector’s magnitude by multiplying its magnitude by a
+        factor, which is positive if the vector’s direction does not change
+        and is negative if the vector’s direction is reversed. This factor is
+        the eigenvalue λ associated with that eigenvector v.</para>
+
+        <para>Here is another way of looking at eigenvectors and eigenvalues.
+        An eigenvector of matrix A is a vector that maintains its direction
+        after undergoing a linear transformation A (i.e. after matrix
+        multiplication A*v), and an eigenvalue is the scalar value that the
+        eigenvector was multiplied by during the linear transformation
+        A.</para>
+
+        <para>Eigen decomposition can be expressed as matrix factorization
+        into matrices V and L which satisfy the following equation: A*V = V*L,
+        where V is the square matrix whose columns are the eigenvectors of A,
+        and L is a diagonal matrix whose diagonal elements are eigenvalues of
+        A. The code below demonstrates how to use the Eig function to perform
+        an Eigen decomposition of a matrix:</para>
+
+        <programlisting>IMPORT * FROM ML;
+A := dataset([{1,1,12.0},{2,1,6.0},{3,1,4.0},
+              {1,2,6.0},{2,2,167.0},{3,2,24.0},
+              {1,3,4.0},{2,3,24.0},{3,3,-41.0}], ML.MAT.Types.Element);
+
+eig_values:=ML.Mat.Eig(A).valuesM;
+eig_valuesV:=ML.Mat.Eig(A).valuesV;
+eig_vectors:=ML.Mat.Eig(A).vectors;
+cnt:=(INTEGER)ML.Mat.Eig(A).convergence;  
+</programlisting>
+
+        <para>The ValuesM attribute returns eigenvalues in the diagonal matrix
+        format. The valueV returns those very same eigenvalues but in a vector
+        format. The vectors attribute returns a matrix whose columns are
+        eigenvectors corresponding to the eigenvalues returned by either
+        valuesV or valuesM attributes.</para>
+
+        <para>The eigenvectors and eigenvalues are calculated using an
+        iterative process, with the maximum number of iterations set to 200.
+        The convergence attribute returns the number of iteration it took to
+        the Eigen decomposition process to converge. If the number returned by
+        the convergence attribute equals to 200, then it is likely that the
+        decomposition process needs more than 200 iterations to converge. The
+        number of iterations can be increased to 500 for example, using the
+        sample code below:</para>
+
+        <programlisting>eig_module:=ML.Mat.Eig(A,500);
+eig_valuesV:= eig_module.valuesV;
+eig_vectors:= eig_module.vectors;
+cnt:=(INTEGER) eig_module.convergence;  
+</programlisting>
+      </sect2>
+
+      <sect2>
+        <title id="Lanczos_Algorithm">Lanczos Algorithm</title>
+
+        <para>Matrix factorization using the Eigen decomposition is very
+        expensive operation because it is based on an iterative algorithm that
+        converges linearly, while performing an expensive full QR matrix
+        decomposition at every iteration step. A number of methods have been
+        developed to improve convergence rate of the Eigen decomposition by
+        transforming the original matrix into another format which preserves
+        the eigenvalues of the original matrix, and makes the Eigen
+        decomposition converge faster. The most efficient method of that kind
+        is the Lanczos method. It is a technique for converting the original
+        matrix into a tri-diagonal matrix having the same eigenvalues as the
+        original matrix.</para>
+
+        <para>The Lanczos method is also popular because it calculates an
+        eigenvalue in every iteration cycle. This feature makes the Lanczos
+        algorithm/method useful in situations where only a few matrix largest
+        or smallest eigenvalues are needed.</para>
+
+        <para>The following code demonstrates how to calculate eigenvalues and
+        eigenvectors of matrix A using the Lanczos function to convert a
+        matrix A into its tri-dimensional equivalent before applying the Eigen
+        decomposition to it.</para>
+
+        <programlisting>IMPORT * FROM ML;
+A := dataset([{1,1,12.0},{2,1,6.0},{3,1,4.0},
+              {1,2,6.0},{2,2,167.0},{3,2,24.0},
+              {1,3,4.0},{2,3,24.0},{3,3,-41.0}], ML.MAT.Types.Element);
+
+T:=ML.Mat.Lanczos(A,3).TComp;
+V:=ML.Mat.Lanczos(A,3).VComp;
+
+eigT_val:=ML.Mat.Eig(T).valuesM;
+eigT_vec:=ML.Mat.Eig(T).vectors;
+eigA_vec := ML.Mat.Mul(V,eigT_vec);
+</programlisting>
+
+        <para>The Lanczos function takes 2 arguments, the input matrix to
+        process and the number of eigenvalues to calculate. It produces two
+        results: the TComp attribute returns the tri-diagonal matrix having
+        the same eigenvalues as the original matrix A, and the VComp returns
+        transformation matrix which is needed for calculation of eigenvectors
+        of the original matrix A.</para>
+
+        <para>Once the tri-diagonal matrix T gets created, as a result of
+        :</para>
+
+        <programlisting>T:=ML.Mat.Lanczos(A,3).TComp;</programlisting>
+
+        <para>The eigenvalues of A can be calculated using the following
+        code:</para>
+
+        <programlisting>eigA_val:=ML.Mat.Eig(T).valuesM; </programlisting>
+
+        <para>Notice that since the tri-diagonal matrix T has the same
+        eigenvalues as the original matrix A, eigT_vale=eigA_val.</para>
+
+        <para>The eigenvectors of matrix A are calculated by multiplying the V
+        matrix created by the Lanczos algorithm with the eigenvectors of the
+        matrix T.</para>
+      </sect2>
+
+      <sect2>
+        <title id="Singular_Value_Decomposition">Singular Value Decomposition
+        (SVD)</title>
+
+        <para>Singular value decomposition (SVD) is a factorization of a
+        matrix into a product of three simpler matrices. Formally, the
+        singular value decomposition of a matrix A is a factorization of the
+        form A=USV' where U is an orthogonal matrix, i.e.U is a square matrix
+        with real values whose columns and rows are orthogonal unit vectors, S
+        is a rectangular diagonal matrix with nonnegative real numbers on the
+        diagonal, and V' is a transpose of an orthogonal matrix V.</para>
+
+        <para>The orthogonal matrices U and V by definition satisfy the
+        following: U’U = UU’ = I, and V’V = VV’ = I; The columns of U are
+        orthogonal and unit (i.e. orthonormal) eigenvectors of AA’, and the
+        columns of V are orthonormal eigenvectors of A’A. The matrix S is a
+        diagonal matrix containing the square roots of eigenvalues from U or V
+        in descending order.</para>
+
+        <para>The diagonal elements of S are known as the singular values of
+        A, and the columns of U and V are called the left singular vectors and
+        right singular vectors of A respectively.</para>
+
+        <para>Singular value decomposition components of a matrix U, S and V
+        can be multiplied together to recreate the original matrix exactly.
+        However, if only a subset of rows and columns of matrices U, S, and V
+        are used, then those lower-order matrices U, S, and V provide the best
+        approximation of the original matrix in the least square error sense.
+        Because of that, SVD can be seen as a method for transforming
+        correlated variables represented by columns of the original matrix
+        into a set of uncorrelated variables that better expose relationships
+        that exist among the original data items. SVD can also be used as a
+        method for identifying and ordering the dimensions along which data
+        points exhibit the most variation.</para>
+
+        <para>SVD has many applications. For example, SVD could be applied to
+        natural language processing for latent semantic analysis (LSA). LSA
+        starts with a matrix whose rows represent words, columns represent
+        documents, and matrix values (elements) are counts of the word in the
+        document. It then applies SVD to the input matrix, and uses a subset
+        of most significant singular vectors and corresponding singular values
+        to map words and documents into a new space, called ‘latent semantic
+        space’, where documents are placed near each other measured by
+        co-occurrence of words, even if those words never co-occurred in the
+        training corpus.</para>
+
+        <para>The LSA’s notion of term-document similarity can be applied to
+        information retrieval, creating a system known as Latent Semantic
+        Indexing (LSI). An LSI system calculates similarity several terms
+        provided in a query have with documents by creating k-dimensional
+        query vector as a sum of k-dimensional vector representations of
+        individual terms, and comparing it to the k-dimensional document
+        vectors.</para>
+
+        <para>The code below demonstrates how to use SVD to decompose given
+        matrix A into its U, S and V components:</para>
+
+        <programlisting>IMPORT * FROM ML;
+A := dataset([{1,1,2.0},{1,2,3.0},{1,3,4.0},
+              {2,1,2.0}, {2,2,3.0},{2,3,4.0}, 
+              {3,1,2.0},{3,2,3.0}, {3,3,4.0}], ML.Mat.Types.Element); 
+
+U := ML.Mat.Svd(A).UComp;
+S := ML.Mat.Svd(A).SComp;
+V := ML.Mat.Svd(A).VComp;
+</programlisting>
+      </sect2>
+
+      <sect2>
+        <title id="Principal_Component_Analysis">Principal Component Analysis
+        (PCA)</title>
+
+        <para>Principal Component Analysis (PCA) is a mathematical procedure
+        that uses an orthogonal transformation to convert a set of
+        observations of possibly correlated variables into a set of values of
+        linearly uncorrelated variables called ‘principal components’. The
+        number of principal components is less than or equal to the number of
+        original variables. This transformation is defined in such a way that
+        the first principal component has the largest possible variance (that
+        is, it accounts for as much of the variability in the data as
+        possible), and each succeeding component in turn has the highest
+        variance possible, under the constraint that it is orthogonal (meaning
+        uncorrelated with) to the preceding components.</para>
+
+        <para>PCA can be done by eigenvalue decomposition of a data covariance
+        matrix or by singular value decomposition of a data matrix, after the
+        matrix vectors (i.e. data features) have been mean adjusted and
+        normalized (Wikipedia).</para>
+
+        <para>Our PCA implementation is based on a SVD of a data covariance
+        matrix, and it exports two attributes, Ureduce and ZComp. The Ureduce
+        attribute returns a matrix consisting of an ordered set of principal
+        component vectors representing the original data set. In other words,
+        Ureduce is a matrix whose columns are orthogonal vectors (i.e. vectors
+        independent from each other) ordered by their significance in
+        representing features/patterns in the original data set. The ZComp
+        attribute returns matrix which represents projection of the original
+        data set into the new space defined by the Ureduce.</para>
+
+        <para>The PCA module takes either one or two arguments. When only one
+        argument is used, it represents the original data set in matrix
+        format, where matrix columns represent individual data features. In
+        that case, the Ureduce attribute returns a matrix containing all
+        principal component vectors associated with the input data set. It is
+        also possible to ignore the components of lesser significance by
+        providing the second argument to the PCA module which represents the
+        number of principal components to preserve.</para>
+
+        <para>The following code demonstrates how to use PCA:</para>
+
+        <programlisting>IMPORT * FROM ML;
+Rec := RECORD
+       UNSIGNED rid;
+       REAL X1;  // x coordinates
+       REAL X2;  // y coordinates
+ END;
+points := DATASET([{1,2.5,2.4},{2,0.5,0.7},{3,2.2,2.9},{4,1.9,2.2},{5,3.1,3.0},
+                   {6,2.3,2.7},{7,2.0,1.6},{8,1.0,1.1},{9,1.5,1.6},{10,1.1,0.9}],Rec);
+// Turn into regular NumericField file (with continuous variables)
+ToField(points,O);
+X := Types.ToMatrix(O(Number in [1,2])); 
+Ur := Mat.Pca(X).Ureduce;
+z := Mat.PCA(X).ZComp;
+</programlisting>
+
+        <para>The dataset points represent 10 points as a two-dimensional
+        space (see the Points dataset chart below). This dataset is first
+        converted into its matrix representation X, and then the principal
+        component vectors Ur, and the matrix z as a projection of the matrix X
+        into the Ur space are calculated.</para>
+
+        <graphic fileref="images/ML010.jpg" />
+
+        <para>Notice how this vector follows directions of the data pattern,
+        and if we overlaid it onto data points it would go through the middle
+        of data points as if it was the best fit line.</para>
+
+        <para>The plot of the second principal component vector looks like
+        this:</para>
+
+        <graphic fileref="images/ML011.jpg" />
+
+        <para>This second vector is orthogonal to the first one, and it
+        identifies the following, less important, pattern in the data: while
+        all the points follow the main line, they are off to the sides of the
+        main line by some amount. If we project the original data to the Ur
+        principal component vectors, we get the following results:</para>
+
+        <informaltable>
+          <tgroup cols="2">
+            <colspec align="center" colwidth="100pt" />
+
+            <colspec align="center" colwidth="100pt" />
+
+            <thead>
+              <row>
+                <entry align="center">X</entry>
+
+                <entry align="center">Y</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>0.82797</entry>
+
+                <entry>-1.22382</entry>
+              </row>
+
+              <row>
+                <entry>-1.77758</entry>
+
+                <entry>0.142857</entry>
+              </row>
+
+              <row>
+                <entry>0.992197</entry>
+
+                <entry>0.384375</entry>
+              </row>
+
+              <row>
+                <entry>0.27421</entry>
+
+                <entry>0.130417</entry>
+              </row>
+
+              <row>
+                <entry>1.675801</entry>
+
+                <entry>-0.2095</entry>
+              </row>
+
+              <row>
+                <entry>0.912949</entry>
+
+                <entry>0.175282</entry>
+              </row>
+
+              <row>
+                <entry>-0.09911</entry>
+
+                <entry>-0.34982</entry>
+              </row>
+
+              <row>
+                <entry>-1.14457</entry>
+
+                <entry>0.046417</entry>
+              </row>
+
+              <row>
+                <entry>-0.43805</entry>
+
+                <entry>0.017765</entry>
+              </row>
+
+              <row>
+                <entry>-1.22382</entry>
+
+                <entry>-0.16268</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
+
+        <para>These results are shown on data plot chart below. The result of
+        this data projection is equivalent to rotating the principal component
+        vector 1 to make it become horizontal x-axis.</para>
+
+        <graphic fileref="images/ML012.jpg" />
+
+        <para>In the example above we decided to use both principal component
+        vectors to transform the original data into the new space, and as a
+        result, we ended up with points in the two-dimensional space with most
+        of data variability along the horizontal x-axis We could also choose
+        to use only the dominant component vector.</para>
+
+        <para>We could achieve that by modifying the original code as
+        follows:</para>
+
+        <programlisting>Ur := Mat.Pca(X, 1).Ureduce; z := Mat.PCA(X,1).ZComp; </programlisting>
+
+        <para>Where the second argument ‘1’ indicates that only one (the
+        first) principal component vector is to be used for mapping of the
+        original data set into the new space.</para>
+
+        <para>If we project the original data to the first principal component
+        vector, we get the following data:</para>
+
+        <para><informaltable>
+            <tgroup cols="1">
+              <colspec align="center" colwidth="100pt" />
+
+              <thead>
+                <row>
+                  <entry align="center">X</entry>
+                </row>
+              </thead>
+
+              <tbody>
+                <row>
+                  <entry>0.82797</entry>
+                </row>
+
+                <row>
+                  <entry>-1.77758</entry>
+                </row>
+
+                <row>
+                  <entry>0.992197</entry>
+                </row>
+
+                <row>
+                  <entry>0.27421</entry>
+                </row>
+
+                <row>
+                  <entry>1.675801</entry>
+                </row>
+
+                <row>
+                  <entry>0.912949</entry>
+                </row>
+
+                <row>
+                  <entry>-0.09911</entry>
+                </row>
+
+                <row>
+                  <entry>-1.14457</entry>
+                </row>
+
+                <row>
+                  <entry>-0.43805</entry>
+                </row>
+
+                <row>
+                  <entry>-1.22382</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </informaltable>And the following data plot is produced:</para>
+
+        <graphic fileref="images/ML013.jpg" />
+
+        <para>This transformation preserves only the dominant data features,
+        and we can see that the second dimension of the data was
+        removed.</para>
+      </sect2>
+    </sect1>
+
     <sect1 id="Regression_walkthrough">
       <title>Regression Walk-through</title>
 
@@ -2087,6 +3318,157 @@ Reg.Anova;
         example above has been coded. The default matrix decomposition can be
         changed to the LU decomposition as follows: <programlisting>B := Reg.Beta(Reg.MDM.LU);</programlisting></para>
       </sect2>
+    </sect1>
+
+    <sect1>
+      <title id="Visualization_Walkthrough">Visualization Walk-through</title>
+
+      <para>The following is a walk-through of the code located in the file
+      VL.Samples. The data used in the code is drawn from the United Nations
+      Statistics Division:</para>
+
+      <programlisting>lRegions:=RECORD
+  STRING continent;
+  STRING region;
+  UNSIGNED surface_area;
+  DECIMAL8_1 pop1950;
+  DECIMAL8_1 pop1960;
+  DECIMAL8_1 pop1970;
+  DECIMAL8_1 pop1980;
+  DECIMAL8_1 pop1990;
+  DECIMAL8_1 pop2000;
+  DECIMAL8_1 pop2010;
+END;
+
+dRegions:=DATASET([
+  {'Africa','Eastern Africa',6361,64.8,81.9,107.6,143.6,192.8,251.6,324},
+  {'Africa','Middle Africa',6613,26.1,32,40.7,53.4,71.7,96.2,126.7},
+  {'Africa','Northern Africa',8525,53,67.5,86.9,113.1,146.2,176.2,209.5},
+  {'Africa','Southern Africa',2675,15.6,19.7,25.5,33,42.1,51.4,57.8},
+  {'Africa','Western Africa',6138,70.5,85.6,107.4,139.8,182.5,235.7,304.3},
+  {'Latin America','Caribbean',234,17.1,20.7,25.3,29.7,34.2,38.4,41.6},
+  {'Latin America','Central America',2480,37.9,51.7,69.6,91.8,113.2,135.6,155.9},
+  {'Latin America','South America',17832,112.4,147.7,191.5,240.9,295.6,347.4,392.6},
+  {'North America','North America',21776,171.6,204.3,231.3,254.5,281.2,313.3,344.5},
+  {'Asia','Eastern Asia',11763,672.4,801.5,984.1,1178.6,1359.1,1495.3,1574},
+  {'Asia','South Central Asia',10791,507.1,620,778.8,986,1246.4,1515.6,1764.9},
+  {'Asia','South Eastern Asia',4495,172.9,219.3,285.2,359,445.4,523.8,593.4},
+  {'Asia','Western Asia',4831,51,66.8,86.9,114,148.6,184.4,232},
+  {'Europe','Eastern Europe',18814,220.1,252.8,276.2,294.9,310.5,304.2,294.8},
+  {'Europe','Northern Europe',1810,78,81.9,87.4,89.9,92.1,94.3,99.2},
+  {'Europe','Southern Europe',1317,108.3,117.4,126.8,137.7,142.4,145.1,115.2},
+  {'Europe','Western Europe',1108,140.8,151.8,165.5,170.4,175.4,183.1,189.1},
+  {'Oceania','Australia and New Zealand',8012,10.1,12.7,15.5,17.9,20.5,23,26.6},
+  {'Oceania','Melanesia',541,2.2,2.6,3.3,4.3,5.5,7,8.7},
+  {'Oceania','Micronesia',3,.1,.2,.2,.3,.4,.5,.5},
+  {'Oceania','Polynesia',8,.2,.3,.4,.5,.5,.6,.7}
+],lRegions);
+</programlisting>
+
+      <para>In our first set of charts, we are going to slim this dataset down
+      to the continent level and report on the surface area for each. This is
+      accomplished with a simple TABLE command. Once we have the data we are
+      looking for, we can translate it into the VL.Types.ChartData format
+      using the FormatData macro:</para>
+
+      <programlisting>dContinentArea:=TABLE(dRegions,{
+  continent;
+  UNSIGNED surface_area:=SUM(GROUP,surface_area);
+},continent);
+dContinentChart:=VL.FormatData(dContinentArea,continent);
+</programlisting>
+
+      <para>We will use all the default styles, except that we will add a
+      meaningful title:</para>
+
+      <programlisting>ContinentStyle:=VL.Styles.SetValue(Vl.Styles.Default,title,'Surface Area by Continent');</programlisting>
+
+      <para>Once we have these components, we have all we need to produce some
+      very quick and easy charts, such as the Pie, Bar and Column shown
+      below:</para>
+
+      <programlisting>VL.Chart('SurfaceAreaPie',dContinentChart,ContinentStyle).Pie;
+VL.Chart('SurfaceAreaBar',dContinentChart,ContinentStyle).Bar;
+VL.Chart('SurfaceAreaColumn',dContinentChart,ContinentStyle).Column;
+</programlisting>
+
+      <para>In a slightly more advanced example, we will now present
+      time-oriented population statistics. As with the above example, the
+      first step is to re-shape the data into just the fields we want, by
+      removing the extraneous continent and surface_area fields. Then we can
+      transform the result into our ChartData format.</para>
+
+      <programlisting>dPopOnly:=PROJECT(dRegions,{lRegions AND NOT [continent,surface_area]}); 
+dPopData:=VL.FormatData(dPopOnly,region);</programlisting>
+
+      <para>At this point, if we were to paint the charts we would have the
+      data points on the wrong axis and the visualization would be relatively
+      meaningless for our purposes. So we run the formatted dataset through
+      the function “SwapAxes”, which (as the name implies) swaps the X and Y
+      axes. Since the X-Axis was originally a series of columns, the user
+      needs to name the new X-Axis, which is the purpose of the second
+      parameter:</para>
+
+      <programlisting>dSwapped:=VL.SwapAxes(dPopData,'Decade'); </programlisting>
+
+      <para>Now we may continue producing meaningful charts, such as the line
+      and area charts below. A call to the SetValue Styles function like in
+      the above example adds in a title as before:</para>
+
+      <programlisting>PopStyle:=VL.Styles.SetValue(Vl.Styles.Default,title,'Population by Region over Time'); 
+VL.Chart('PopulationByRegionLine',dSwapped,PopStyle).Line;
+VL.Chart('PopulationByRegionArea',dSwapped,PopStyle).Area;
+</programlisting>
+
+      <para>One slightly more advanced chart the one can use from Google’s
+      arsenal is the Combo chart. This one enables the user to specify two
+      different types of charts that overlay each other. In the below example,
+      we will plot a bar graph of the 2010 population for the four regions of
+      Africa, and include a line graph showing the overall average of that
+      population across all countries. In this case, we are going to filter
+      our dataset on Africa, and then massage our data in the same way as
+      above to remove unwanted fields.</para>
+
+      <para>In addition to this subset, we also need to add in a row
+      containing the average, which we do in the row directly following our
+      filter.</para>
+
+      <programlisting>dAfrica:=PROJECT(dRegions(continent='Africa'),{lRegions AND NOT [continent,surface_area]});
+dWithAverages:=dAfrica+TABLE(dAfrica,{
+  STRING region:='Average';
+  DECIMAL8_1 pop1950:=AVE(GROUP,pop1950);
+  DECIMAL8_1 pop1960:=AVE(GROUP,pop1960);
+  DECIMAL8_1 pop1970:=AVE(GROUP,pop1970);
+  DECIMAL8_1 pop1980:=AVE(GROUP,pop1980);
+  DECIMAL8_1 pop1990:=AVE(GROUP,pop1990);
+  DECIMAL8_1 pop2000:=AVE(GROUP,pop2000);
+  DECIMAL8_1 pop2010:=AVE(GROUP,pop2010);
+});
+</programlisting>
+
+      <para>Once we have built our 5-row table, we can now perform the
+      SwapAxes transform. However, we still have one more thing to do that is
+      a little more difficult. Producing a combo Chart requires that
+      parameters be sent to Google that are not standard enough to be part of
+      our default set of style parameters. As such, we need to make use of the
+      ChartAdvanced attribute of the Styles module. This field exists so that
+      the user may pass through specific exact strings as parameters.</para>
+
+      <para>Such a task requires that the user have specific knowledge of the
+      API they are calling, but with that knowledge the user has complete
+      control over all of the buttons and knobs that are available in any of
+      the API’s. In the SetValue call below, we are setting the title to
+      something meaningful, we are defaulting the chart to a Bar type, and
+      then changing the fifth series from Bar to Line. If the user desires
+      more detail on this type of control, it is a good idea to go to the web
+      site of the API and read through the documentation regarding what
+      options are available.</para>
+
+      <programlisting>dFormatted:=VL.SwapAxes(VL.FormatData(dWithAverages,region),'Decade');
+ComboStyle:=Vl.Styles.SetValue(Vl.Styles.Default,ChartAdvanced,'title:"Population Growth in 
+Africa",seriesType:"bars",series:{5:{type:"line"}}');
+VL.Chart('AfricanPopulationGrowthCombo',dFormatted,ComboStyle).Combo;
+</programlisting>
     </sect1>
   </chapter>
 
@@ -2312,8 +3694,9 @@ Reg.Anova;
 
       <para role="nobrk"></para>
 
-      <para role="nobrk">This example shows how to use the Apriori
-      routine:</para>
+      <para role="nobrk">This example shows how to use the Apriori routine in
+      conjunction with the Doc module. A simpler example can be found in the
+      Association walk-through.</para>
 
       <para><programlisting role="nobrk"><?dbfo keep-together="always"?>IMPORT ML;
 IMPORT ML.Docs AS Docs;
@@ -3293,6 +4676,158 @@ P.RSquared
 
       <para>The R squared is a measure of goodness of fit.</para>
     </sect1>
+
+    <sect1>
+      <title id="Visualization_Module">Visualization Library (ML.VL)</title>
+
+      <para>The Visualization Library is a set of routines designed to easily
+      transition raw tabular data into an assortment of visually intuitive
+      charts. The scope of the project is not to provide the charts
+      themselves, but rather a standardized interface that can be used to
+      connect to existing, publicly available charting APIs, such as Google
+      Charts and D3. Using this library, the user may produce charts of many
+      different types without consideration for the details that are specific
+      to any one of those libraries.</para>
+
+      <para>Using the library in its most rudimentary form can be as simple as
+      this:</para>
+
+      <programlisting>dFormatted:=VL.FormatData(dMyRawData,month);
+VL.Chart(“MyLineChart”,dFormatted).Line;
+VL.Chart(“ColumnChart02”,dFormatted).Column;
+VL.Chart(“PieChart04”,dFormatted).Pie;
+</programlisting>
+
+      <para>The above calls will produce three charts (Line, Column and Pie,
+      respectively), which can be viewed in the ECL IDE directly as individual
+      charts, or as a published service in a “dashboard” type of format. More
+      advanced capabilities are also available that enable the user to specify
+      options either globally or on a chart-by-chart level, such as the
+      chart’s dimensions, title, etc.</para>
+
+      <sect2>
+        <title id="VL_Setup">Setting up</title>
+
+        <para>The assumption is being made that the ecl-ml repository has
+        already been downloaded and placed in the user’s environment. The VL
+        module is included in this suite of code. However, before the user can
+        take advantage of the capabilities of the Visualization Library some
+        changes need to be made to the environment so that the system knows
+        how to create the charts. Specifically, the user needs to direct the
+        compiler to a manifest file which contains the template information
+        needed to translate the data into charts.</para>
+
+        <para>The manifest file is located in the subfolder “XSLT” under the
+        VL module. To link the compiler to it, simply add the following line
+        as a parameter to your compiler calls:</para>
+
+        <programlisting>-manifest “[the location of ecl-ml]\VL\XSLT\manifest.xml”</programlisting>
+
+        <para>In the IDE, the user can specify compiler arguments by following
+        these steps:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>On the IDE start-up screen, select <emphasis
+            role="bold">Preferences</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Select the <emphasis role="bold">Compiler</emphasis>
+            tab.</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter the location of the manifest file (shown above) in the
+            <emphasis role="bold">Arguments</emphasis> line.</para>
+          </listitem>
+        </orderedlist>
+
+        <para><emphasis role="bold">Note: </emphasis>Compiler arguments are
+        specific to the configuration, so if there are multiple
+        configurations, ensure the proper one is selected. If the user wants
+        to enable VL on all configurations, it will be necessary to place this
+        option on each one individually.</para>
+      </sect2>
+
+      <sect2>
+        <title id="Parameters">Parameters</title>
+
+        <para>A call to a chart in the VL framework needs three
+        parameters:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>A string containing the name to give the chart.</para>
+          </listitem>
+
+          <listitem>
+            <para>A dataset containing the data to be presented, in the VL’s
+            standard ChartData format.</para>
+          </listitem>
+
+          <listitem>
+            <para>A Virtual Module containing the options to apply to the
+            chart.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The first parameter is a simple string containing the name to
+        give the chart. If more than one chart is called in a single job, it
+        is important that this name is unique, or there will be a compiler
+        error.</para>
+
+        <para>The second parameter is the data. In order to simplify the
+        movement of data through the various levels of the VL, all data passed
+        into it is expected it to be in a uniform format: VL.Types.ChartData.
+        The macro “FormatData” is provided which will translate data into this
+        format, where the user passes in the name of the incoming dataset and
+        the name of the column that contains the X-Axis values. In the above
+        example, the dataset name is dMyRawData, and the X-Axis labels are
+        located in the column “month”.</para>
+
+        <para>The third parameter is a reference to the options that the user
+        may adjust related to the position, size and other style-related
+        attributes of the chart. This is a virtual module defined in
+        VL.Styles. A default set of values is provided along with a few
+        standard modifications that the user may desire (“Large”, “Small”,
+        etc.). If the user does not specify the third parameter,
+        VL.Styles.Default is assumed to be the options to apply.</para>
+      </sect2>
+
+      <sect2>
+        <title id="Specifying_API">Specifying an API Library</title>
+
+        <para>The VL.Chart attribute is a generic entry point the enables the
+        user to be unconcerned about the underlying structure of the
+        Visualization Library. It takes on the responsibility of deciding for
+        the user which API library to call to produce the chart in question.
+        In the case where a chart may exist in more than API library, a choice
+        has already been made as to which one is considered the “default” when
+        requesting a pie chart, for example.</para>
+
+        <para>There may be times, however, when a more advanced user want to
+        have more control over which API library to call to produce a specific
+        chart. In such a case, the user can call the interface to the API
+        directly rather than through VL.Chart.</para>
+
+        <para>For example:</para>
+
+        <programlisting>VL.Chart(“MyLineChart”,dFormatted).Line;
+VL.Google(“MyLineChart”,dFormatted).Line;
+</programlisting>
+
+        <para>These two lines produce the same results because Google is the
+        default API for the Line chart type. But if the default were not
+        Google, then the user could override that default by using the second
+        line.</para>
+
+        <para>There is an interface-layer attribute for each API library with
+        which the VL library interacts. The parameter list for each will be
+        the same which enables the user to easily switch API’s when
+        desired.</para>
+      </sect2>
+    </sect1>
   </chapter>
 
   <chapter id="ML_with_documents">
@@ -3775,9 +5310,9 @@ o2;
               </row>
 
               <row>
-                <entry>Choleski</entry>
+                <entry>Decomp</entry>
 
-                <entry>Decomposition.</entry>
+                <entry>Matrix Decomposition: LU, Choleski and QR.</entry>
               </row>
 
               <row>
@@ -3790,6 +5325,13 @@ o2;
                 <entry>Each</entry>
 
                 <entry>Some ‘element by element’ processing steps.</entry>
+              </row>
+
+              <row>
+                <entry>Eig</entry>
+
+                <entry>Decompose matrix into eigenvalue and eigenvector
+                component matrices</entry>
               </row>
 
               <row>
@@ -3830,9 +5372,9 @@ o2;
               </row>
 
               <row>
-                <entry>LU</entry>
+                <entry>Lanczos</entry>
 
-                <entry>LU decomposition of a matrix.</entry>
+                <entry>Lanczos decomposition</entry>
               </row>
 
               <row>
@@ -3850,10 +5392,23 @@ o2;
               </row>
 
               <row>
+                <entry>Pca</entry>
+
+                <entry>Principal Component Analysis</entry>
+              </row>
+
+              <row>
                 <entry>Pow</entry>
 
                 <entry>Multiplies a matrix by itself N-1 * (and demo’s
                 MU).</entry>
+              </row>
+
+              <row>
+                <entry>Repmat</entry>
+
+                <entry>Construct a matrix consisting of M-by-N tiling copies
+                of the original matrix</entry>
               </row>
 
               <row>
@@ -3881,6 +5436,12 @@ o2;
                 <entry>Construct a matrix which is all the elements of the
                 right + any elements from the left which are not in the
                 right.</entry>
+              </row>
+
+              <row>
+                <entry>Svd</entry>
+
+                <entry>Singular Value Decomposition</entry>
               </row>
 
               <row>
