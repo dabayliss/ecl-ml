@@ -971,8 +971,7 @@ d;
 
         <para>It has 14 rows of data. Each row has 5 interesting data fields
         and a <emphasis>record id</emphasis> that is prepended to uniquely
-        identify the record (the ECL record has to have the record-id
-        prepended (so a 10 field ECL record actually has 11 fields).</para>
+        identify the record. Therefore a '5 field ECL record' actually has 6 fields.</para>
 
         <para>ML provides the ToField operation that converts a record in this
         general format to the NumericField format. Thus:</para>
@@ -983,7 +982,9 @@ o
 </programlisting>
 
         <para>Shows not only the original data, but also the data in the
-        standard ML NumericField format. The latter has 70 rows (5x14). If a
+        standard ML NumericField format. The latter has 70 rows (5x14). Incidentally: 
+        ToField is an example of a macro that uses a 'out' parameter (o) rather than returning
+        a value. If a
         file has N rows and M columns then the order of the ToField operation
         will be O(mn). It is also possible to turn the NumericField format
         back into a ‘regular’ ECL style record using the FromField operation:
