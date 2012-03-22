@@ -297,7 +297,7 @@ EXPORT Cluster := MODULE
 
     // Quick re-directs to the Closest attribute specific to this module's
     // parameters
-    EXPORT Allegiances(UNSIGNED n=Convergence):=Closest(Distances(d01,Result(n),fDist));
+    EXPORT Allegiances(UNSIGNED n=Convergence):=PROJECT(Closest(Distances(d01,PROJECT(Result(n),TRANSFORM(RECORDOF(Result(n)),SELF.id:=LEFT.id+iOffset;SELF:=LEFT;)),fDist)),TRANSFORM(RECORDOF(Mat.Types.Element),SELF.y:=LEFT.y-iOffset;SELF:=LEFT;));
     EXPORT UNSIGNED Allegiance(UNSIGNED id,UNSIGNED n=Convergence):=Allegiances(n)(x=id)[1].y;
   END;
 
