@@ -5,7 +5,7 @@
 IMPORT VL;
 EXPORT Google(STRING sName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p=VL.Styles.Default):=MODULE
   SHARED STRING sChartName:='GOOGLECHART_'+sName;
-  SHARED FormatData(DATASET(VL.Types.ChartData) d,STRING sChartType='Std'):=FUNCTION
+  SHARED FormatChartData(DATASET(VL.Types.ChartData) d,STRING sChartType='Std'):=FUNCTION
     #UNIQUENAME(i)
     bNumericX:=sChartType IN ['Scatter'];
     dSequenced:=PROJECT(d(series!=''),TRANSFORM({UNSIGNED %i%;RECORDOF(d);},SELF.%i%:=COUNTER;SELF:=LEFT;));
@@ -41,7 +41,7 @@ EXPORT Google(STRING sName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p=VL.
   
   // The four basic strings that are constructed as replacement strings in the
   // XSLT translator.
-  SHARED dData(STRING sChartType='Std'):=DATASET([{'DATA',FormatData(d,sChartType)}],VL.Types.ChartInterface);
+  SHARED dData(STRING sChartType='Std'):=DATASET([{'DATA',FormatChartData(d,sChartType)}],VL.Types.ChartInterface);
   SHARED dChart(STRING sChartType):=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'Chart(document.getElementById(\''+sChartName+'\'));chart.draw(data,options);'}],VL.Types.ChartInterface);
   SHARED dChartOptions:=DATASET([{'OPTIONS',ChartOptions(p)}],VL.Types.ChartInterface);
   SHARED dPageOptions:=DATASET([{'STYLES',PageOptions(p)}],VL.Types.ChartInterface);
