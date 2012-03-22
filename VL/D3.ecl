@@ -1,8 +1,8 @@
-﻿IMPORT Vl;
+IMPORT Vl;
 EXPORT D3(STRING sName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p=VL.Styles.Default):=MODULE
   SHARED STRING sChartName:='D3CHART_'+sName;
   
-  SHARED FormatData(DATASET(VL.Types.ChartData) d):=FUNCTION
+  SHARED FormatChartData(DATASET(VL.Types.ChartData) d):=FUNCTION
     RETURN 'var points=['+ROLLUP(TABLE(d(series!=''),{STRING s:='['+d.segment+','+d.val+']';}),LEFT.s!=RIGHT.s,TRANSFORM(RECORDOF(LEFT),SELF.s:=LEFT.s+','+RIGHT.s))[1].s+'];';
   END;
   
@@ -20,7 +20,7 @@ EXPORT D3(STRING sName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p=VL.Styl
     RETURN IF(sOpt='','','div.'+sChartName+' {' + sOpt[2..] + '}');
   END;
 
-  SHARED dData:=DATASET([{'DATA',FormatData(d)}],VL.Types.ChartInterface);
+  SHARED dData:=DATASET([{'DATA',FormatChartData(d)}],VL.Types.ChartInterface);
   SHARED dChartOptions:=DATASET([{'OPTIONS',ChartOptions(p)}],VL.Types.ChartInterface);
   SHARED dPageOptions:=DATASET([{'STYLES',PageOptions(p)}],VL.Types.ChartInterface);
   
