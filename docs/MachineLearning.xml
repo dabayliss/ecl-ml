@@ -34,7 +34,7 @@
 
     <releaseinfo>© 2012 HPCC Systems. All rights reserved</releaseinfo>
 
-    <date>January 2012 Version 1.2.0A</date>
+    <date>January 2012 Version 1.2.0B</date>
 
     <corpname>HPCC Systems</corpname>
 
@@ -50,7 +50,8 @@
   </bookinfo>
 
   <chapter id="Introduction_Installation">
-    <title>Introduction and Installation</title>
+    <title id="Introduction_Installation">Introduction and
+    Installation</title>
 
     <para>LexisNexis Risk Solutions is an industry leader in data content,
     data aggregation, and information services which has independently
@@ -77,7 +78,7 @@
     url="http://hpccsystems.com/community/docs/aws-install-thor">http://hpccsystems.com/community/docs/aws-install-thor</ulink>.</para>
 
     <sect1 id="HPCC_Platform">
-      <title>The HPCC Platform</title>
+      <title id="HPCC_Platform">The HPCC Platform</title>
 
       <para>HPCC is fast, flexible and highly scalable. It can be used for any
       data-centric task and can meet the needs of any database regardless of
@@ -126,7 +127,7 @@
     </sect1>
 
     <sect1 id="ECL_Programming_Language">
-      <title>The ECL Programming Language</title>
+      <title id="ECL_Programming_Lang">The ECL Programming Language</title>
 
       <para>The ECL programming language is a key factor in the flexibility
       and capabilities of the HPCC processing environment. It is designed to
@@ -209,13 +210,13 @@
 
         <listitem>
           <para>It is a mature and proven language but is still evolving as
-          new advancements in parallel processing and data-intensive computing
+          new advancements in parallel processing and data intensive computing
           occur.</para>
         </listitem>
       </itemizedlist>
 
       <para>The HPCC platform also provides a comprehensive IDE (ECL IDE)
-      which provide a highly-interactive environment for rapid development and
+      which provide a highly interactive environment for rapid development and
       implementation of ECL applications.</para>
 
       <para>HPCC and the ECL IDE downloads are available from the HPCC systems
@@ -225,7 +226,7 @@
     </sect1>
 
     <sect1 id="ECL_IDE">
-      <title>ECL IDE</title>
+      <title id="ECL_IDE">ECL IDE</title>
 
       <para>ECL IDE is an ECL programmer's tool. Its main use is to create
       queries and ECL files and is designed to make ECL coding as easy as
@@ -257,13 +258,14 @@
     </sect1>
 
     <sect1 id="Installing_Using_ML">
-      <title>Installing and using the ML Libraries</title>
+      <title id="Installing_Using_Libraries">Installing and using the ML
+      Libraries</title>
 
       <para>The ML Libraries can only be used in conjunction with an HPCC
       System, ECL IDE and the Client tools.</para>
 
       <sect2>
-        <title>Requirements</title>
+        <title id="Requirements">Requirements</title>
 
         <para>If you don't already use the HPCC platform and/or ECL IDE and
         the Client Tools, you must download and install them before
@@ -284,11 +286,11 @@
 
         <para>The ML Libraries can also be used on an HPCC Systems
         One-Click<superscript>TM</superscript> Thor, which is available to
-        anyone with an Amazon AWS account.</para>
-
-        <para>An example of how to use the
-        One-Click<superscript>TM</superscript> Thor with the Machine Learning
-        Libraries is provided at the end of this section.</para>
+        anyone with an Amazon AWS account. To walk-through an example of how
+        to use the One-Click<superscript>TM</superscript> Thor with the
+        Machine Learning Libraries, see the <emphasis>Associations
+        (ML.Assocaite)</emphasis> section in <emphasis>The ML
+        Module</emphasis> chapter later in this manual.</para>
 
         <para>To setup a One-Click<superscript>TM</superscript> Thor
         cluster:</para>
@@ -325,7 +327,8 @@
       </sect2>
 
       <sect2>
-        <title>Installing the ML Libraries</title>
+        <title id="Intsalling_ML_Libraries">Installing the ML
+        Libraries</title>
 
         <para>To install the ML Libraries:</para>
 
@@ -344,26 +347,28 @@
           </listitem>
 
           <listitem>
-            <para>Extract the downloaded files to your ECL IDE source
-            folder.</para>
-
-            <para>This folder is typically located here:
+            <para>Extract the downloaded files to your ECL IDE source folder.
+            This folder is typically located here:
             "C:\Users\Public\Documents\HPCC Systems\ECL\My Files".</para>
-
-            <para>To find out the location of this folder, simply go to your
-            ECL IDE <emphasis role="bold">Preferences</emphasis> window either
-            from the login dialog or from the <emphasis
-            role="bold">Orb</emphasis> menu.</para>
-
-            <para>Click on the <emphasis role="bold">Compiler</emphasis> tab
-            and use the first <emphasis role="bold">Working Folder</emphasis>
-            location listed.</para>
           </listitem>
         </orderedlist>
+
+        <para><emphasis role="bold">Note:</emphasis> To find out the location
+        of your <emphasis role="bold">Working Folder</emphasis>, simply go to
+        your ECL IDE <emphasis role="bold">Preferences</emphasis> window
+        either from the login dialog or from the <emphasis
+        role="bold">Orb</emphasis> menu. Click on the <emphasis
+        role="bold">Compiler</emphasis> tab and use the first <emphasis
+        role="bold">Working Folder</emphasis> location listed.</para>
+
+        <para>The ML Libraries are now ready to be used. To locate them,
+        display the <emphasis role="bold">Repository Window</emphasis> in ECL
+        IDE and expand the <emphasis role="bold">My Files</emphasis> folder to
+        see the <emphasis role="bold">ML</emphasis> folder.</para>
       </sect2>
 
       <sect2>
-        <title>Using the ML Libraries</title>
+        <title id="Using_ML_Libraries">Using the ML Libraries</title>
 
         <para>A walk-through is provided for all Machine Learning Libraries
         supported, which are designed to get you started using ML with the
@@ -392,40 +397,55 @@
           <listitem>
             <para>Using the <emphasis role="bold">Repository</emphasis>
             toolbox, expand <emphasis role="bold">My Files</emphasis>.</para>
+          </listitem>
 
-            <para>Notice that the <emphasis role="bold">ML</emphasis> folder
-            and its contents are now available for you to use in your
-            code.</para>
+          <listitem>
+            <para>Expand the <emphasis role="bold">ML</emphasis> folder to
+            locate the Machine Learning files you want to use.</para>
           </listitem>
 
           <listitem>
             <para>Open a new builder window and start writing your query. To
             reference the ML libraries in your ECL source code, use an import
-            statement.</para>
-
-            <para>For example:<programlisting><?dbfo keep-together="always"?>IMPORT * FROM ML;
-
+            statement. For example:<programlisting>IMPORT * FROM ML;
 IMPORT * FROM ML.Cluster;
-
 IMPORT * FROM ML.Types;
- 
-x2 := DATASET([
-{1, 1, 1}, {1, 2, 5},
-{2, 1, 5}, {2, 2, 7},
-{3, 1, 8}, {3, 2, 1},
-{4, 1, 0}, {4, 2, 0},
-{5, 1, 9}, {5, 2, 3},
-{6, 1, 1}, {6, 2, 4},
-{7, 1, 9}, {7, 2, 4}],NumericField);
- 
-c := DATASET([
-{1, 1, 1}, {1, 2, 5},
-{2, 1, 5}, {2, 2, 7},
-{3, 1, 9}, {3, 2, 4}],NumericField);
- 
-x3 := Kmeans(x2,c);
 
-OUTPUT(x3);
+//Define my record layout
+MyRecordLayout := RECORD
+UNSIGNED RecordId;
+REAL XCoordinate;
+REAL YCoordinate;
+END;
+
+//My dataset
+X2 := DATASET([      
+{1, 1, 5},
+{2, 5, 7},
+{3, 8, 1},
+{4, 0, 0},
+{5, 9, 3},
+{6, 1, 4},
+{7, 9, 4}], MyRecordLayout);
+
+//Three candidate centroids
+CentroidCandidates := DATASET([
+{1, 1, 5},
+{2, 5, 7},
+{3, 9, 4}], MyRecordLayout);
+
+//Convert them to our internal field format
+ml.ToField(X2, fX2);
+ml.ToField(CentroidCandidates, fCentroidCandidates);
+
+//Run K-Means for, at most, 10 iterations and stop if delta &lt; 0.3 between iterations
+fX3 := Kmeans(fX2, fCentroidCandidates, 10, 0.3);
+
+//Convert the final centroids to the original layout
+ml.FromField(fX3.result(), MyRecordLayout, X3);
+
+//Display the results
+OUTPUT(X3);
 </programlisting></para>
           </listitem>
         </orderedlist>
@@ -455,358 +475,12 @@ OUTPUT(x3);
         <para>You are required to sign a contribution agreement to become a
         contributor.</para>
       </sect2>
-
-      <sect2>
-        <title id="Example_One_Click">Example - Using ML on a
-        One-Click<superscript>TM</superscript> Thor</title>
-
-        <para>The HPCC One-Click<superscript>TM</superscript> Thor system is
-        very quick and easy to setup and provides the perfect test environment
-        for starting to use the HPCC ML Libraries. It is assumed that you have
-        already installed the ECL IDE and the ML Module (which includes the
-        example code needed). The data used is based on character information
-        from Marvel comics and is taken from the Amazon Web Service Public
-        Data area. It is available for immediate use by simply adding it to
-        your One-Click<superscript>TM</superscript> Thor as a snapshot on
-        launching the cluster.</para>
-
-        <sect3>
-          <title id="Settingup_One_Click">Setting up the
-          One-Click<superscript>TM</superscript> Thor</title>
-
-          <para>To be able to setup a One-Click<superscript>TM</superscript>
-          Thor cluster, you must have an Amazon AWS account. To setup your
-          One-Click<superscript>TM</superscript> Thor cluster:</para>
-
-          <orderedlist>
-            <listitem>
-              <para>Go to the One-Click<superscript>TM</superscript> Thor
-              <emphasis role="bold">Getting Started</emphasis> page on the
-              HPCC Systems website: <ulink
-              url="https://aws.hpccsystems.com/aws/getting_started/">https://aws.hpccsystems.com/aws/getting_started/</ulink>
-              and following the <emphasis role="bold">Logging In</emphasis>
-              instructions.</para>
-            </listitem>
-
-            <listitem>
-              <para>Click <emphasis role="bold">Launch
-              Cluster</emphasis>.</para>
-            </listitem>
-
-            <listitem>
-              <para>Select the <emphasis role="bold">Region</emphasis>, which
-              for the example data is <emphasis
-              role="bold">Virginia</emphasis>.</para>
-            </listitem>
-
-            <listitem>
-              <para>Enter the number of <emphasis role="bold">Thor
-              Nodes</emphasis> you want (1 node is sufficient for this
-              example).</para>
-            </listitem>
-
-            <listitem>
-              <para><emphasis role="bold"><emphasis>Enter the number of
-              </emphasis>Support Nodes</emphasis> (optional).</para>
-            </listitem>
-
-            <listitem>
-              <para>Enter the <emphasis role="bold">Snapshot ID</emphasis> for
-              the example data as <emphasis
-              role="bold">snap-7766d116</emphasis>.</para>
-            </listitem>
-
-            <listitem>
-              <para>Press <emphasis role="bold">Launch
-              Cluster</emphasis>.</para>
-            </listitem>
-          </orderedlist>
-
-          <para><emphasis role="bold">Note:</emphasis> To add a snapshot of
-          data from the Amazon Public Data Set , you need to know which
-          <emphasis role="bold">Region</emphasis> it is linked with.</para>
-
-          <para>The <emphasis role="bold">Launch Log</emphasis> shows the
-          status of your One-Click<superscript>TM</superscript> Thor. When the
-          configuration process is complete, the IP address of the ESP is
-          shown in a link at the bottom of the page (xx.xx.xx.xxx.8010). Click
-          on this link to access the <emphasis role="bold">ECL
-          Watch</emphasis> page.</para>
-
-          <para>Using <emphasis role="bold">ECL Watch</emphasis>, click on the
-          <emphasis role="bold">DFU Files</emphasis>/<emphasis
-          role="bold">Upload/download File</emphasis> menu option to view the
-          contents of the <emphasis role="bold">Dropzone</emphasis>. The
-          snapshot we attached to the One-Click<superscript>TM</superscript>
-          Thor system is shown in the list and is ready to be used:</para>
-
-          <graphic fileref="images/ML014.jpg" />
-
-          <para><emphasis role="bold">Note:</emphasis> You can use any data
-          that is available on Amazon as well as any data that you have made
-          and published as part of the Amazon Public Data Set. (If you want to
-          know more about how to do this see, <ulink
-          url="??http://aws.amazon.com/publicdatasets/">http://aws.amazon.com/publicdatasets/</ulink>.)
-          You can also upload your own data from your own machine using the
-          <emphasis role="bold">DFU Files/Upload/download File</emphasis> menu
-          option in <emphasis role="bold">ECL Watch</emphasis> shown
-          above.</para>
-        </sect3>
-
-        <sect3>
-          <title id="Running_One_Click_Example">Running the example using ECL
-          IDE</title>
-
-          <para>The ESP IP address changes every time you launch a new
-          One-Click<superscript>TM</superscript> Thor cluster which means that
-          you need to add a new ECL IDE configuration. On starting ECL IDE,
-          click the <emphasis role="bold">Preferences</emphasis> button and
-          enter the public ESP IP address in the <emphasis
-          role="bold">Server</emphasis> field. This information is available
-          on the One-Click<superscript>TM</superscript> Thor <emphasis
-          role="bold">Launch Log</emphasis>. Click <emphasis
-          role="bold">OK</emphasis> to return to the login window, where you
-          can select your new configuration and login.</para>
-
-          <para>The example ECL file is called <emphasis
-          role="bold">Association_Marvel_Comics.ecl</emphasis> and is located
-          by expanding the tree in the <emphasis role="bold">Repository
-          Window</emphasis> as follows: <emphasis role="bold">My
-          Files</emphasis>/<emphasis
-          role="bold">ML/Tests/Explanatory</emphasis>. Open this file either
-          by double-clicking on it or by using the <emphasis role="bold">Open
-          in Builder Window</emphasis> right-click option. This file uses the
-          Apriori3 and EclatN routines from the Associations Machine Learning
-          Module to create character associations using the snapshot data
-          (Marvel Universe Social Graph). There are some changes that need to
-          be made to this ECL file:</para>
-
-          <orderedlist>
-            <listitem>
-              <para>Change the <emphasis role="bold">Dropzone_IP</emphasis>
-              address to use the private IP address. This information is
-              available either from the One-Click<superscript>TM</superscript>
-              Thor <emphasis role="bold">Launch Log</emphasis> or by using the
-              <emphasis role="bold">System Servers</emphasis> menu item in
-              <emphasis role="bold">ECL Watch</emphasis>.</para>
-            </listitem>
-
-            <listitem>
-              <para>Change the <emphasis
-              role="bold">Folder_Location</emphasis> to the location of the
-              snapshot, (e.g.<emphasis role="bold"> <emphasis><emphasis
-              role="bold">mnt::dropzone::snap-7766d116</emphasis></emphasis></emphasis><emphasis
-              role="bold"><emphasis>)</emphasis><emphasis>.</emphasis></emphasis></para>
-            </listitem>
-
-            <listitem>
-              <para>Change the <emphasis
-              role="bold">Marvel_Inputfile</emphasis> name to the exact name
-              of the file on the <emphasis role="bold">Dropzone</emphasis>.
-              (e.g. <emphasis role="bold">labeled_edges.tsv</emphasis>)</para>
-            </listitem>
-          </orderedlist>
-
-          <para>Select <emphasis role="bold">thor</emphasis> as the <emphasis
-          role="bold">Target</emphasis>, and <emphasis
-          role="bold">Submit</emphasis>. A green tick indicates that the job
-          has completed. View the results by clicking on the completed
-          workunit.</para>
-
-          <graphic fileref="images/ML015.jpg" />
-        </sect3>
-
-        <sect3>
-          <title id="Interpreting_One_Click_Results">Interpreting the
-          results</title>
-
-          <para>Using ECL Watch you can also view the progress, details and
-          results of a workunit. It is a matter of preference whether you
-          choose to use ECL IDE or ECL Watch. For the purposes of this
-          example, results are shown using ECL Watch:</para>
-
-          <orderedlist>
-            <listitem>
-              <para>Click on the <emphasis role="bold">ECL
-              Workunits/Browse</emphasis> menu item and locate your workunit
-              in the list.</para>
-            </listitem>
-
-            <listitem>
-              <para>Click on the <emphasis role="bold">WUID</emphasis> link to
-              display the <emphasis role="bold">Workunit Details</emphasis>
-              page.</para>
-            </listitem>
-
-            <listitem>
-              <para>Expand the <emphasis role="bold">Results</emphasis> link.
-              Click on the rows link for any result to see the values.</para>
-
-              <graphic fileref="images/ML016.jpg" />
-            </listitem>
-          </orderedlist>
-
-          <para>The results produced reflect the Apriori3 and Eclat(N) example
-          build process and are interpreted as follows:</para>
-
-          <informaltable>
-            <tgroup cols="2">
-              <colspec align="left" colwidth="120pt" />
-
-              <colspec align="left" colwidth="500" />
-
-              <thead>
-                <row>
-                  <entry align="left">Result</entry>
-
-                  <entry align="left">Description</entry>
-                </row>
-              </thead>
-
-              <tbody>
-                <row>
-                  <entry>Transform File</entry>
-
-                  <entry>Initial layout adding ID field to enumerate
-                  rows.</entry>
-                </row>
-
-                <row>
-                  <entry>Enumerate</entry>
-
-                  <entry>Rows are numbered in sequential order.</entry>
-                </row>
-
-                <row>
-                  <entry>Split Fields</entry>
-
-                  <entry>Normalize and number the position of "word" in each
-                  row.</entry>
-                </row>
-
-                <row>
-                  <entry>Lexicon</entry>
-
-                  <entry>Uses the Split Fields results to generate the total
-                  for each "word" and in how many "docs".</entry>
-                </row>
-
-                <row>
-                  <entry>Tokenize Fields</entry>
-
-                  <entry>Adds new Lexicon fields to the Split Fields
-                  result.</entry>
-                </row>
-
-                <row>
-                  <entry>WordBag</entry>
-
-                  <entry>Finds the maximum amount of words and docs and counts
-                  the words in each doc.</entry>
-                </row>
-
-                <row>
-                  <entry>Transform for Association</entry>
-
-                  <entry>Transform into layout that is usable for creating the
-                  associations.</entry>
-                </row>
-
-                <row>
-                  <entry>Apriori3</entry>
-
-                  <entry>ML.Associate([input dataset],[minimum
-                  supports]).Apriori3; Uses ‘old school’ brute force and speed
-                  approach to produce patterns of up to 3 items which appear
-                  together with a particular degree of support.</entry>
-                </row>
-
-                <row>
-                  <entry>EclatN(3)</entry>
-
-                  <entry>ML.Associate([input dataset],[minimum
-                  supports]).EclatN([max item patterns]) Uses the ‘eclat’
-                  technique for finding all patterns of up to N items,
-                  appearing together with a particular degree of support.
-                  Gives the exact same results as AprioriN.</entry>
-                </row>
-              </tbody>
-            </tgroup>
-          </informaltable>
-        </sect3>
-
-        <sect3>
-          <title id="Example_One_Click_Results">Apriori3 and EclatN(3) example
-          results</title>
-
-          <para>The Marvel Comics Social Graph data uses vertices that have
-          numeric codes to represent names and comic books. The Find Captain
-          America results contains both the code and code translations. The
-          results shown include the top 10 results only.</para>
-
-          <para><emphasis role="bold">Apriori 3 Association
-          Results</emphasis></para>
-
-          <para>On the results page, click on the rows link for the <emphasis
-          role="bold">Apriori 3 Results</emphasis> to view the
-          following:</para>
-
-          <para></para>
-
-          <graphic fileref="images/ML017.jpg" />
-
-          <para><emphasis role="bold">Values 1</emphasis>, <emphasis
-          role="bold">2</emphasis> and <emphasis role="bold">3</emphasis>
-          contain the codes given in the input file. <emphasis
-          role="bold"></emphasis></para>
-
-          <para><emphasis role="bold">Support</emphasis> shows the number of
-          occurances where the association relationship was found.</para>
-
-          <para><emphasis role="bold">Apriori3 Find Captain America
-          Results</emphasis></para>
-
-          <para>On the results page, click on the rows link for the <emphasis
-          role="bold">Captain America References Apriori3</emphasis> to view
-          the following:</para>
-
-          <para></para>
-
-          <graphic fileref="images/ML018.jpg" />
-
-          <para><emphasis role="bold">EclatN(3) Association
-          Results</emphasis></para>
-
-          <para>On the results page, click on the rows link for the <emphasis
-          role="bold">Eclat N Results</emphasis> to view the following:</para>
-
-          <para></para>
-
-          <graphic fileref="images/ML019.jpg" />
-
-          <para><emphasis role="bold">Pat</emphasis> contains the codes given
-          in the input file. <emphasis role="bold"></emphasis></para>
-
-          <para><emphasis role="bold">Support</emphasis> shows the number of
-          occurances where the association relationship was found.</para>
-
-          <para><emphasis role="bold">EclatN(3) Find Captain America
-          Results</emphasis></para>
-
-          <para>On the results page, click on the rows link for the <emphasis
-          role="bold">Captain America References Eclat </emphasis>results to
-          view the following:</para>
-
-          <para></para>
-
-          <graphic fileref="images/ML020.jpg" />
-        </sect3>
-      </sect2>
     </sect1>
   </chapter>
 
   <chapter id="Machine_Learning_Algorithms">
-    <title>Machine Learning Algorithms</title>
+    <title id="Machine_Learning_Algorithms">Machine Learning
+    Algorithms</title>
 
     <para>The HPCC Systems Machine Learning libraries contain an extensible
     collection of machine learning routines which are easy and efficient to
@@ -876,7 +550,7 @@ OUTPUT(x3);
     url="http://hpccsystems.com/">http://hpccsystems.com/</ulink></ulink>.</para>
 
     <sect1 id="ML_Data_Models">
-      <title>The ML Data Models</title>
+      <title id="ML_Data_Models">The ML Data Models</title>
 
       <para>The ML routines are all centered around a small number of core
       processing models. As a user of ML (rather than an implementer) the
@@ -887,7 +561,7 @@ OUTPUT(x3);
       Type definition.</para>
 
       <sect2 id="Numeric_Field">
-        <title>Numeric field</title>
+        <title id="Numeric_Field">Numeric field</title>
 
         <para>The principle type that undergirds most of the ML processing is
         the Numeric Field. This is a general representation of an arbitrary
@@ -939,13 +613,12 @@ OUTPUT(x3);
 
 value_record := RECORD
                 UNSIGNED rid;
-
-  REAL height;
+                REAL height;
                 REAL weight;
                 REAL age;
                 INTEGER1 species; // 1 = human, 2 = tortoise
                 INTEGER1 gender; // 0 = unknown, 1 = male, 2 = female
-  END;
+END;
 
 
 d := dataset([{1,5*12+7,156*16,43,1,1},
@@ -971,7 +644,8 @@ d;
 
         <para>It has 14 rows of data. Each row has 5 interesting data fields
         and a <emphasis>record id</emphasis> that is prepended to uniquely
-        identify the record. Therefore a '5 field ECL record' actually has 6 fields.</para>
+        identify the record. Therefore a <emphasis>5 field ECL
+        record</emphasis> actually has 6 fields.</para>
 
         <para>ML provides the ToField operation that converts a record in this
         general format to the NumericField format. Thus:</para>
@@ -982,18 +656,20 @@ o
 </programlisting>
 
         <para>Shows not only the original data, but also the data in the
-        standard ML NumericField format. The latter has 70 rows (5x14). Incidentally: 
-        ToField is an example of a macro that uses a 'out' parameter (o) rather than returning
-        a value. If a
-        file has N rows and M columns then the order of the ToField operation
-        will be O(mn). It is also possible to turn the NumericField format
-        back into a ‘regular’ ECL style record using the FromField operation:
-        <programlisting>ml.ToField(d,o);
+        standard ML NumericField format. The latter has 70 rows (5x14).
+        Incidentally: ToField is an example of a macro that uses a 'out'
+        parameter (o) rather than returning a value. If a file has N rows and
+        M columns then the order of the ToField operation will be O(mn). It is
+        also possible to turn the NumericField format back into a
+        <emphasis>regular</emphasis> ECL style record using the FromField
+        operation: <programlisting>ml.ToField(d,o);
 d;
 o; 
 ml.FromField(o,value_record,d1); 
 d1; 
-Will leave d1 = d </programlisting></para>
+</programlisting></para>
+
+        <para>Will leave d1 = d.</para>
 
         <sect3>
           <title>Advanced - Converting more complex records</title>
@@ -1089,7 +765,7 @@ dReconstituted;
       </sect2>
 
       <sect2 id="Discrete_field">
-        <title>Discrete field</title>
+        <title id="Discrete_Field">Discrete field</title>
 
         <para>Some of the ML routines do not require the field values to be
         real, rather they require discrete (integral) values. The structure of
@@ -1116,7 +792,7 @@ o1</programlisting></para>
       </sect2>
 
       <sect2 id="ItemElement">
-        <title>ItemElement</title>
+        <title id="Item_element">ItemElement</title>
 
         <para>A rather more specialist format is the ItemElement format. This
         does not model an ECL record directly, rather it models an abstraction
@@ -1138,14 +814,15 @@ o1</programlisting></para>
       </sect2>
 
       <sect2 id="Coding_ML_Data_Models" role="nobrk">
-        <title>Coding with the ML data models</title>
+        <title id="Coding_ML_Data_Models">Coding with the ML data
+        models</title>
 
         <para>The ML data models are extremely flexible to work with; but
         using them is a little different from traditional ECL programming.
         This section aims to detail some of the possibilities.</para>
 
         <sect3 id="Column_Splitting">
-          <title>Column splitting</title>
+          <title id="Column_Splitting">Column splitting</title>
 
           <para>Some of the ML routines expect to be handed two datasets which
           may be, for example, a dataset of independent variables and another
@@ -1166,7 +843,7 @@ Bayes
         </sect3>
 
         <sect3 id="Genuine_Nulls">
-          <title>Genuine nulls</title>
+          <title id="Genuine_Nulls">Genuine nulls</title>
 
           <para>Implementing a genuine null can be done by simply removing
           certain fields with certain values from the datastream. For example,
@@ -1175,7 +852,7 @@ Bayes
         </sect3>
 
         <sect3 id="Sampling">
-          <title>Sampling</title>
+          <title id="Sampling">Sampling</title>
 
           <para>By far the easiest way to split a single data file into
           samples is to use the SAMPLE and ENTH verbs upon the datafile PRIOR
@@ -1183,7 +860,8 @@ Bayes
         </sect3>
 
         <sect3 id="Inserting_Column_Computed_Value">
-          <title>Inserting a column with a computed value</title>
+          <title id="Inserting_column">Inserting a column with a computed
+          value</title>
 
           <para>Inserting a column with a new value computed from another
           field value is a fairly advanced technique. The following inserts
@@ -1208,7 +886,7 @@ NewO;
     </sect1>
 
     <sect1 id="Generating_test_data">
-      <title>Generating test data</title>
+      <title id="Generating_Test_Data">Generating test data</title>
 
       <para>ML is interesting when it is being executed against data with
       meaning and significance. However, sometimes it can be useful to get
@@ -1268,7 +946,7 @@ ML.FieldAggregates(D).Simple;  // Perform some statistics on the test data to en
   </chapter>
 
   <chapter id="ML_module_walkthroughs">
-    <title>ML module walk-throughs</title>
+    <title id="ML_Module_Walktrhoughs">ML module walk-throughs</title>
 
     <para>To help you get started, a walk-through is provided for each ML
     module. The walk-throughs explain how the modules work and demonstrate how
@@ -1308,19 +986,19 @@ b3 := ML.Distribution.GenData(TestSize,a3,3);
 
 D := b1+b2+b3; // This is the test data
 // Now construct a fourth column which is a function of column 1
-B4 := PROJECT(b1,TRANSFORM(ML.Types.NumericField, SELF.Number:=4, SELF.Value:=LEFT.Value * 2, SELF.Id := LEFT.id));
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+B4 := PROJECT(b1,TRANSFORM(ML.Types.NumericField, SELF.Number:=4, SELF.Value:=LEFT.Value * 2, 
+      SELF.Id := LEFT.id));
+
 AD0 := PROJECT(ML.Discretize.ByRounding(B1+B2+B3+B4),ML.Types.ItemElement);
 // Remove duplicates from bags (fortunately the generation allows this to be local)
 AD := DEDUP( SORT( AD0, ID, Value, LOCAL ), ID, Value, LOCAL );
 
 ASSO := ML.Associate(AD,CoOccurs);
 </programlisting>The simplest question which can now be asked is: “Which pairs
-      of items are most likely to appear together?”.</para>
+      of items are most likely to appear together?”. The following provides
+      the answer:</para>
 
       <programlisting>TOPN(Asso.Apriori2,50,-Support)</programlisting>
-
-      <para>Provides that answer.</para>
 
       <para>The answer to: ‘Which triplets can be found together?’ is answered
       by:</para>
@@ -1381,7 +1059,8 @@ Asso.Rules(R)
     </sect1>
 
     <sect1 id="Classify_walkthrough">
-      <title>Classification walk-through</title>
+      <title id="Classification_Walkthrough">Classification
+      walk-through</title>
 
       <para><emphasis role="bold">Modules: Classify, Regression,
       Doc</emphasis></para>
@@ -1586,7 +1265,7 @@ Results;
 </programlisting>
 
       <sect2 id="Logisitic_regression">
-        <title>Logistic Regression</title>
+        <title id="Logistic_Regression">Logistic Regression</title>
 
         <para>Regression analysis includes techniques for modeling the
         relationship between a dependent variable Y and one or more
@@ -1647,7 +1326,7 @@ logistic.modelY;
     </sect1>
 
     <sect1 id="Cluster_Walkthrough">
-      <title>Cluster Walk-through</title>
+      <title id="Cluster_Walkthrough">Cluster Walk-through</title>
 
       <para><emphasis role="bold">Modules: Cluster, Doc</emphasis></para>
 
@@ -1700,7 +1379,7 @@ ML.ToField(dEntityMatrix,dEntities);
       library named “dEntities”.</para>
 
       <sect2 id="kmeans">
-        <title>KMeans</title>
+        <title id="KMeans">KMeans</title>
 
         <para>With k-means clustering the user creates a second set of
         entities called centroids, with coordinates in the same space as the
@@ -1809,10 +1488,28 @@ MyKMeans.DistanceDelta();    // The distance traveled by each centroid during th
 </programlisting>DistanceDelta is the same as Delta, but displays the DISTANCE
         delta as calculated using whichever method the KMeans routine was
         instructed to use, which in our example is Euclidean.</para>
+
+        <para>The function Allegiances provides a table of all the entities
+        and the centroids to which they are closest, along with the actual
+        distance between them. If a parameter is passed, it is the iteration
+        number after which to sample the allegiances. If no parameter is
+        passed, the convergence iteration is assumed.</para>
+
+        <para>A second function, Allegiance, enables the user to pinpoint a
+        specific entity to determine its allegiance. This function requires
+        one parameter, which is the ID of the entity to poll. The second
+        parameter is the iteration number and has the same behavior as with
+        Allegiances. The return value for Allegiance is an integer
+        representing the value of the centroid to which the entity is
+        allied.</para>
+
+        <programlisting>MyKMeans.Allegiances();     // The table of allegiances after convergence
+MyKMeans.Allegiance(10,5);  // The centroid to which entity #10 is closest after iteration 5
+</programlisting>
       </sect2>
 
       <sect2 id="AggloN">
-        <title>AggloN</title>
+        <title id="AggloN">AggloN</title>
 
         <para>With Agglomerative, or Hierarchical, clustering there is no need
         for a centroid set. This method takes a bottom-up approach whereby it
@@ -1878,7 +1575,7 @@ MyKMeans.DistanceDelta();    // The distance traveled by each centroid during th
     </sect1>
 
     <sect1>
-      <title>Correlations Walk-through</title>
+      <title id="Correlations_Walkthrough">Correlations Walk-through</title>
 
       <para>Most of the algorithms within the ML libraries assume that one of
       your inputs are a collection features of a particular object and the
@@ -1950,7 +1647,7 @@ Cor.Kendall;
     </sect1>
 
     <sect1 id="Discretize_Walkthrough">
-      <title>Discretize Walk-through</title>
+      <title id="Discretize_Walkthrough">Discretize Walk-through</title>
 
       <para><emphasis role="bold">Modules: Discretize</emphasis></para>
 
@@ -2026,7 +1723,7 @@ done;
 </programlisting></para>
 
       <sect2 id="ByRounding">
-        <title>ByRounding</title>
+        <title id="ByRounding">ByRounding</title>
 
         <para>The ByRounding method exists to convert a real number to an
         integer by ‘rounding it’. At its simplest this means that every real
@@ -2062,7 +1759,7 @@ done;
       </sect2>
 
       <sect2 id="ByBucketing">
-        <title>ByBucketing</title>
+        <title id="ByBucketing">ByBucketing</title>
 
         <para>ByBucketing is mathematically similar to ByRounding but with
         rather more ease of use. There is a slight performance hit and rather
@@ -2074,7 +1771,7 @@ done;
       </sect2>
 
       <sect2 id="ByTiling">
-        <title>ByTiling</title>
+        <title id="ByTiling">ByTiling</title>
 
         <para>Both of the previous methods divide the banding evenly across
         the range of the original variable. However, while the range has been
@@ -2098,7 +1795,7 @@ done;
     </sect1>
 
     <sect1 id="Docs_Walkthrough">
-      <title>Docs Walk-through</title>
+      <title id="Docs_Walkthrough">Docs Walk-through</title>
 
       <para><emphasis role="bold">Modules: Docs</emphasis></para>
 
@@ -2120,7 +1817,7 @@ done;
       industry-standard functions such as Support and Confidence.</para>
 
       <sect2 id="Tokenize">
-        <title>Tokenize</title>
+        <title id="Tokenize">Tokenize</title>
 
         <para>The Tokenize module breaks a set of raw text into its lexical
         elements. From there, it can produce a dictionary of those elements
@@ -2218,7 +1915,7 @@ dSentences:=DATASET([
       </sect2>
 
       <sect2 id="CoLocation">
-        <title>Co-Location</title>
+        <title id="Colocation">Co-Location</title>
 
         <para>The Docs.CoLocation module takes the textual analysis one step
         further than Tokenize. It harvests n-grams rather than just single
@@ -2298,7 +1995,8 @@ ML.Docs.CoLocation.Conviction(['MILK','BREAD'],['BUTTER'],dAllNGrams);
     </sect1>
 
     <sect1 id="Field_aggregates_walkthrough">
-      <title>Field Aggregates Walkthrough</title>
+      <title id="Field_Aggregates_Walkthrough">Field Aggregates
+      Walkthrough</title>
 
       <para><emphasis role="bold">Modules: FieldAggregates,
       Distribution</emphasis></para>
@@ -2565,7 +2263,7 @@ ML.Mat.MU.From(A1MU+A2MU, 7);
       </sect2>
 
       <sect2>
-        <title>Repmat</title>
+        <title id="RepMat">Repmat</title>
 
         <para>The Repmat function replicates a matrix, creating a large matrix
         consisting of M-by-N tiling copies of the original matrix. For
@@ -2688,7 +2386,7 @@ ML.MAT.RoundDelta(ML.Mat.Sub(A,LLt));
       </sect2>
 
       <sect2>
-        <title>QR Decomposition</title>
+        <title id="QR_Decomposition">QR Decomposition</title>
 
         <para>The QR matrix decomposition is applicable to an m-by-n matrix A.
         It factorizes matrix A into a product QR, where Q is an orthogonal
@@ -3166,7 +2864,7 @@ z := Mat.PCA(X).ZComp;
     </sect1>
 
     <sect1 id="Regression_walkthrough">
-      <title>Regression Walk-through</title>
+      <title id="Regression_Walkthrough">Regression Walk-through</title>
 
       <para><emphasis role="bold">Modules: Regression</emphasis></para>
 
@@ -3190,7 +2888,7 @@ z := Mat.PCA(X).ZComp;
       β1).</para>
 
       <sect2 id="Polynomial">
-        <title>Polynomial</title>
+        <title id="Polynomial">Polynomial</title>
 
         <para>The Polynomial regression expresses (ie models) relationship
         between dependent variable Y and a single independent variable X with
@@ -3242,7 +2940,7 @@ P.RSquared
       </sect2>
 
       <sect2 id="OLS">
-        <title>OLS</title>
+        <title id="OLS">OLS</title>
 
         <para>The Ordinary Least Squares (OLS) regression is a linear
         regression model that calculates parameters β using the method of
@@ -3474,7 +3172,7 @@ VL.Chart('AfricanPopulationGrowthCombo',dFormatted,ComboStyle).Combo;
   </chapter>
 
   <chapter id="ML_modules">
-    <title>The ML Modules</title>
+    <title id="ML_Modules">The ML Modules</title>
 
     <para>Each ML module focuses on a specific type of algorithm and contains
     a number of routines. The functionality of each routine is also
@@ -3485,16 +3183,16 @@ VL.Chart('AfricanPopulationGrowthCombo',dFormatted,ComboStyle).Combo;
     only.</para>
 
     <sect1 id="Associations">
-      <title>Associations (ML.Associate)</title>
+      <title id="Associations_Module">Associations (ML.Associate)</title>
 
       <para>Use this module to perform frequent pattern matching on the
       underlying data. The following routines are provided:</para>
 
       <informaltable>
         <tgroup cols="2">
-          <colspec align="left" colwidth="190pt" />
+          <colspec align="left" colwidth="170pt" />
 
-          <colspec align="left" colwidth="350pt" />
+          <colspec align="left" colwidth="430pt" />
 
           <thead>
             <row>
@@ -3552,7 +3250,7 @@ VL.Chart('AfricanPopulationGrowthCombo',dFormatted,ComboStyle).Combo;
 
           <colspec align="left" colwidth="60pt" />
 
-          <colspec align="left" colwidth="140pt" />
+          <colspec align="left" colwidth="200pt" />
 
           <thead>
             <row>
@@ -3675,26 +3373,6 @@ VL.Chart('AfricanPopulationGrowthCombo',dFormatted,ComboStyle).Combo;
         </tgroup>
       </informaltable>
 
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
-      <para role="nobrk"></para>
-
       <para role="nobrk">This example shows how to use the Apriori routine in
       conjunction with the Doc module. A simpler example can be found in the
       Association walk-through.</para>
@@ -3717,18 +3395,12 @@ d00 := DATASET([{'aa bb cc dd ee'},{'bb cc dd ee ff gg hh ii'},{'bb cc dd ee ff 
                 {'dd ee ff'},{'bb dd ee'}],{string r});
 
 d := d11;
-
 d1 := PROJECT(d,TRANSFORM(Docs.Types.Raw,SELF.Txt := LEFT.r));
-
 d2 := Docs.Tokenize.Enumerate(d1);
-
 d3 := Docs.Tokenize.Clean(d2);
-
 d4 := Docs.Tokenize.Split(d3);                                      
 
-
 lex := Docs.Tokenize.Lexicon(d4);
-
 
 o1 := Docs.Tokenize.ToO(d4,lex);
 o2 := Docs.Trans(O1).WordBag;
@@ -3743,11 +3415,375 @@ ML.Associate(ForAssoc,2).Apriori3;
 ML.Associate(ForAssoc,2).AprioriN(40);
 </programlisting></para>
 
-      <para></para>
+      <sect2>
+        <title id="Associations_Example_OneClick">Example - Using ML.Associate
+        on a One-Click<superscript>TM</superscript> Thor</title>
+
+        <para>The HPCC One-Click<superscript>TM</superscript> Thor system is
+        very quick and easy to setup and provides the perfect test environment
+        for starting to use the HPCC ML Libraries. It is assumed that you have
+        already installed the ECL IDE and the ML Module (which includes the
+        example code needed). The data used is based on character information
+        from Marvel comics and is taken from the Amazon Web Service Public
+        Data area. It is available for immediate use by simply adding it to
+        your One-Click<superscript>TM</superscript> Thor as a snapshot on
+        launching the cluster.</para>
+
+        <sect3>
+          <title id="OneClick_Setup">Setting up the
+          One-Click<superscript>TM</superscript> Thor</title>
+
+          <para>You must have an Amazon AWS account to be able to setup a
+          One-Click<superscript>TM</superscript> Thor cluster. To setup your
+          One-Click<superscript>TM</superscript> Thor cluster:</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Go to the One-Click<superscript>TM</superscript> Thor
+              <emphasis role="bold">Getting Started</emphasis> page on the
+              HPCC Systems website: <ulink
+              url="https://aws.hpccsystems.com/aws/getting_started/">https://aws.hpccsystems.com/aws/getting_started/</ulink>
+              and following the <emphasis role="bold">Logging In</emphasis>
+              instructions.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click <emphasis role="bold">Launch
+              Cluster</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Select the <emphasis role="bold">Region</emphasis>, which
+              for the example data is <emphasis
+              role="bold">Virginia</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter the number of <emphasis role="bold">Thor
+              Nodes</emphasis> you want (1 node is sufficient for this
+              example).</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold"><emphasis>Enter the number of
+              </emphasis>Support Nodes</emphasis> (optional).</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter the <emphasis role="bold">Snapshot ID</emphasis> for
+              the example data as <emphasis
+              role="bold">snap-7766d116</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Press <emphasis role="bold">Launch
+              Cluster</emphasis>.</para>
+            </listitem>
+          </orderedlist>
+
+          <para><emphasis role="bold">Note:</emphasis> To add a snapshot of
+          data from the Amazon Public Data Set , you need to know which
+          <emphasis role="bold">Region</emphasis> it is linked with.</para>
+
+          <para>The <emphasis role="bold">Launch Log</emphasis> shows the
+          status of your One-Click<superscript>TM</superscript> Thor. When the
+          configuration process is complete, the IP address of the ESP is
+          shown in a link at the bottom of the page (xx.xx.xx.xxx.8010). Click
+          on this link to access the <emphasis role="bold">ECL
+          Watch</emphasis> page.</para>
+
+          <para>Using <emphasis role="bold">ECL Watch</emphasis>, click on the
+          <emphasis role="bold">DFU Files</emphasis>/<emphasis
+          role="bold">Upload/download File</emphasis> menu option to view the
+          contents of the <emphasis role="bold">Dropzone</emphasis>.</para>
+
+          <para>The snapshot we attached to the
+          One-Click<superscript>TM</superscript> Thor system is shown in the
+          list and is ready to be used. Double-click on the folder to view the
+          files which are included with the snapshot.</para>
+
+          <para><graphic fileref="images/ML014.jpg" /></para>
+
+          <para><emphasis role="bold">Note:</emphasis> You can use any data
+          that is available on Amazon as well as any data that you have made
+          and published as part of the Amazon Public Data Set. (If you want to
+          know more about how to do this see, <ulink
+          url="??http://aws.amazon.com/publicdatasets/">http://aws.amazon.com/publicdatasets/</ulink>.)
+          You can also upload your own data from your own machine using the
+          <emphasis role="bold">DFU Files/Upload/download File</emphasis> menu
+          option in <emphasis role="bold">ECL Watch</emphasis> shown
+          above.</para>
+        </sect3>
+
+        <sect3>
+          <title id="One_Click_Running">Running the example using ECL
+          IDE</title>
+
+          <para>The ESP IP address changes every time you launch a new
+          One-Click<superscript>TM</superscript> Thor cluster which means that
+          you need to add a new ECL IDE configuration. On starting ECL IDE,
+          click the <emphasis role="bold">Preferences</emphasis> button and
+          enter the public ESP IP address in the <emphasis
+          role="bold">Server</emphasis> field. Click <emphasis
+          role="bold">OK</emphasis> to return to the login window, where you
+          can select your new configuration and login.</para>
+
+          <para><emphasis role="bold">Note:</emphasis> The public ESP IP
+          address is available on the One-Click<superscript>TM</superscript>
+          Thor <emphasis role="bold">Launch Log</emphasis>.</para>
+
+          <para>The example ECL file is called <emphasis
+          role="bold">Association_Marvel_Comics.ecl</emphasis> and is located
+          by expanding the tree in the <emphasis role="bold">Repository
+          Window</emphasis> as follows:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><emphasis role="bold">My Files</emphasis>/<emphasis
+              role="bold">ML/Tests/Explanatory</emphasis></para>
+            </listitem>
+          </itemizedlist>
+
+          <para>Open this file either by double-clicking on it or by using the
+          <emphasis role="bold">Open in Builder Window</emphasis> right-click
+          option.</para>
+
+          <para>This file uses the Apriori3 and EclatN routines from the
+          Associations Machine Learning Module to create character
+          associations using the snapshot data (Marvel Universe Social Graph).
+          There are some changes that need to be made to this ECL file:</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Change the <emphasis role="bold">Dropzone_IP</emphasis>
+              address to use the private IP address. This information is
+              available either from the One-Click<superscript>TM</superscript>
+              Thor <emphasis role="bold">Launch Log</emphasis> or by using the
+              <emphasis role="bold">System Servers</emphasis> menu item in
+              <emphasis role="bold">ECL Watch</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Change the <emphasis
+              role="bold">Folder_Location</emphasis> to the location of the
+              snapshot, (e.g.<emphasis role="bold"> <emphasis><emphasis
+              role="bold">mnt::dropzone::snap-7766d116</emphasis></emphasis></emphasis><emphasis
+              role="bold"><emphasis>)</emphasis><emphasis>.</emphasis></emphasis></para>
+            </listitem>
+
+            <listitem>
+              <para>Change the <emphasis
+              role="bold">Marvel_Inputfile</emphasis> name to the exact name
+              of the file on the <emphasis role="bold">Dropzone</emphasis>.
+              (In this case the file is called. <emphasis
+              role="bold">labeled_edges.tsv</emphasis>)</para>
+            </listitem>
+
+            <listitem>
+              <para>Select <emphasis role="bold">thor</emphasis> as the
+              <emphasis role="bold">Target</emphasis>, and <emphasis
+              role="bold">Submit</emphasis>.</para>
+            </listitem>
+          </orderedlist>
+
+          <para>A green tick indicates that the job has completed. View the
+          results by clicking on the completed workunit.<graphic
+          fileref="images/ML015.jpg" /></para>
+        </sect3>
+
+        <sect3>
+          <title id="OneClick_Results">Interpreting the results</title>
+
+          <para>Using ECL Watch you can also view the progress, details and
+          results of a workunit. It is a matter of preference whether you
+          choose to use ECL IDE or ECL Watch. For the purposes of this
+          example, results are shown using ECL Watch:</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Click on the <emphasis role="bold">ECL
+              Workunits/Browse</emphasis> menu item and locate your workunit
+              in the list.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click on the <emphasis role="bold">WUID</emphasis> link to
+              display the <emphasis role="bold">Workunit Details</emphasis>
+              page.</para>
+            </listitem>
+
+            <listitem>
+              <para>Expand the <emphasis role="bold">Results</emphasis> link.
+              Click on the rows link for any result to see the values<graphic
+              fileref="images/ML016.jpg" /></para>
+            </listitem>
+          </orderedlist>
+
+          <para></para>
+
+          <para>The results produced reflect the Apriori3 and Eclat(N) example
+          build process and are interpreted as follows:<informaltable>
+              <tgroup cols="2">
+                <colspec align="left" colwidth="120pt" />
+
+                <colspec align="left" colwidth="450pt" />
+
+                <thead>
+                  <row>
+                    <entry align="left">Result</entry>
+
+                    <entry align="left">Description</entry>
+                  </row>
+                </thead>
+
+                <tbody>
+                  <row>
+                    <entry>Transform File</entry>
+
+                    <entry>Initial layout adding ID field to enumerate
+                    rows.</entry>
+                  </row>
+
+                  <row>
+                    <entry>Enumerate</entry>
+
+                    <entry>Rows are numbered in sequential order.</entry>
+                  </row>
+
+                  <row>
+                    <entry>Split Fields</entry>
+
+                    <entry>Normalize and number the position of "word" in each
+                    row.</entry>
+                  </row>
+
+                  <row>
+                    <entry>Lexicon</entry>
+
+                    <entry>Uses the Split Fields results to generate the total
+                    for each "word" and in how many "docs".</entry>
+                  </row>
+
+                  <row>
+                    <entry>Tokenize Fields</entry>
+
+                    <entry>Adds new Lexicon fields to the Split Fields
+                    result.</entry>
+                  </row>
+
+                  <row>
+                    <entry>WordBag</entry>
+
+                    <entry>Finds the maximum amount of words and docs and
+                    counts the words in each doc.</entry>
+                  </row>
+
+                  <row>
+                    <entry>Transform for Association</entry>
+
+                    <entry>Transform into layout that is usable for creating
+                    the associations.</entry>
+                  </row>
+
+                  <row>
+                    <entry>Apriori3</entry>
+
+                    <entry>ML.Associate([input dataset],[minimum
+                    supports]).Apriori3; Uses ‘old school’ brute force and
+                    speed approach to produce patterns of up to 3 items which
+                    appear together with a particular degree of
+                    support.</entry>
+                  </row>
+
+                  <row>
+                    <entry>EclatN(3)</entry>
+
+                    <entry>ML.Associate([input dataset],[minimum
+                    supports]).EclatN([max item patterns]) Uses the ‘eclat’
+                    technique for finding all patterns of up to N items,
+                    appearing together with a particular degree of support.
+                    Gives the exact same results as AprioriN.</entry>
+                  </row>
+                </tbody>
+              </tgroup>
+            </informaltable></para>
+        </sect3>
+
+        <sect3>
+          <title id="Association_Example_Results">Apriori3 and EclatN(3)
+          example results</title>
+
+          <para>The Marvel Comics Social Graph data uses vertices that have
+          numeric codes to represent names and comic books. The Find Captain
+          America results contains both the code and code translations.</para>
+
+          <para>The results shown include the top 10 results only.</para>
+
+          <para><emphasis role="bold">Apriori 3 Association
+          Results</emphasis></para>
+
+          <para>On the results page, click on the rows link for the <emphasis
+          role="bold">Apriori 3 Results</emphasis> to view the
+          following:</para>
+
+          <para></para>
+
+          <para><graphic fileref="images/ML017.jpg" /></para>
+
+          <para><emphasis role="bold">Values 1</emphasis>, <emphasis
+          role="bold">2</emphasis> and <emphasis role="bold">3</emphasis>
+          contain the codes given in the input file. <emphasis
+          role="bold"></emphasis></para>
+
+          <para><emphasis role="bold">Support</emphasis> shows the number of
+          occurances where the association relationship was found.</para>
+
+          <para></para>
+
+          <para><emphasis role="bold">Apriori3 Find Captain America
+          Results</emphasis></para>
+
+          <para>On the results page, click on the rows link for the <emphasis
+          role="bold">Captain America References Apriori3</emphasis> to view
+          the following:</para>
+
+          <para></para>
+
+          <para><graphic fileref="images/ML018.jpg" /></para>
+
+          <para><emphasis role="bold"></emphasis></para>
+
+          <para><emphasis role="bold"></emphasis></para>
+
+          <para><emphasis role="bold"></emphasis></para>
+
+          <para><emphasis role="bold"></emphasis></para>
+
+          <para><emphasis role="bold">EclatN(3) Association
+          Results</emphasis></para>
+
+          <para>On the results page, click on the rows link for the <emphasis
+          role="bold">Eclat N Results</emphasis> to view the
+          following:<graphic fileref="images/ML019.jpg" /></para>
+
+          <para><emphasis role="bold">Pat</emphasis> contains the codes given
+          in the input file. <emphasis role="bold"></emphasis></para>
+
+          <para><emphasis role="bold">Support</emphasis> shows the number of
+          occurances where the association relationship was found.</para>
+
+          <para><emphasis role="bold">EclatN(3) Find Captain America
+          Results</emphasis></para>
+
+          <para>On the results page, click on the rows link for the <emphasis
+          role="bold">Captain America References Eclat </emphasis>results to
+          view the following:<graphic fileref="images/ML020.jpg" /></para>
+        </sect3>
+      </sect2>
     </sect1>
 
     <sect1 id="Classify">
-      <title>Classify (ML.Classify)</title>
+      <title id="Classify_Module">Classify (ML.Classify)</title>
 
       <para>Use this module to tackle the problem, “can I predict this
       dependent variable based upon these independent ones?”. The following
@@ -3807,7 +3843,7 @@ ML.Associate(ForAssoc,2).AprioriN(40);
     </sect1>
 
     <sect1 id="Cluster">
-      <title>Cluster (ML.Cluster)</title>
+      <title id="Cluster_Module">Cluster (ML.Cluster)</title>
 
       <para>This module is used to perform the clustering of a collection of
       records containing fields.</para>
@@ -3895,7 +3931,7 @@ ML.Associate(ForAssoc,2).AprioriN(40);
         </informaltable></para>
 
       <sect2 id="KMeans">
-        <title>KMeans</title>
+        <title id="Cluster_Kmeans">KMeans</title>
 
         <para>The KMeans module performs K-Means clustering on a static
         primary data set and a pre-determined set of centroids.</para>
@@ -4001,7 +4037,7 @@ KMeans.DistanceDelta();
       </sect2>
 
       <sect2 id="AggloN_function">
-        <title>AggloN</title>
+        <title id="Cluster_AggloN">AggloN</title>
 
         <para>The AggloN function performs Agglomerative clustering on a
         static document set. This is a bottom-up approach whereby close pairs
@@ -4030,7 +4066,7 @@ AggloN.Clusters;
       </sect2>
 
       <sect2 id="Distances">
-        <title>Distances</title>
+        <title id="Cluster_Distances">Distances</title>
 
         <para>This is the engine for calculating the distances between every
         entity in one dataset to every entity in a second dataset, which are
@@ -4095,7 +4131,7 @@ AggloN.Clusters;
     </sect1>
 
     <sect1 id="Correlations">
-      <title>Correlations (ML.Correlate)</title>
+      <title id="Correlations_Module">Correlations (ML.Correlate)</title>
 
       <para>Use this module to calculate the degree of correlation between
       every pair of fields provided. The following routines are
@@ -4140,7 +4176,7 @@ AggloN.Clusters;
     </sect1>
 
     <sect1 id="Discretize">
-      <title>Discretize (ML.Discretize)</title>
+      <title id="Discretize_Module">Discretize (ML.Discretize)</title>
 
       <para>This module provides a suite of routines which allow a datastream
       with continuous real elements to be turned into a stream with discrete
@@ -4307,7 +4343,7 @@ done;
     </sect1>
 
     <sect1 id="Distribution">
-      <title>Distribution (ML.Distribution)</title>
+      <title id="Distribution_Module">Distribution (ML.Distribution)</title>
 
       <para>This module exists to provide code to generate distribution tables
       and ‘random’ data for a particular distribution.</para>
@@ -4523,7 +4559,8 @@ variance(b,value)
     </sect1>
 
     <sect1 id="FieldAggregates_Module">
-      <title>FieldAggregates (ML.FieldAggregates)</title>
+      <title id="Field_Aggregates_Module">FieldAggregates
+      (ML.FieldAggregates)</title>
 
       <para>This module works on the field elements provided. It performs the
       tasks shown below for ALL the fields at once. The following routines are
@@ -4607,7 +4644,7 @@ variance(b,value)
     </sect1>
 
     <sect1 id="Regression">
-      <title>Regression (ML.Regression)</title>
+      <title id="Regression_Module">Regression (ML.Regression)</title>
 
       <para>The Regression module provides the following routines:</para>
 
@@ -4752,7 +4789,7 @@ VL.Chart(“PieChart04”,dFormatted).Pie;
       </sect2>
 
       <sect2>
-        <title id="Parameters">Parameters</title>
+        <title id="VL_Parameters">Parameters</title>
 
         <para>A call to a chart in the VL framework needs three
         parameters:</para>
@@ -4797,7 +4834,7 @@ VL.Chart(“PieChart04”,dFormatted).Pie;
       </sect2>
 
       <sect2>
-        <title id="Specifying_API">Specifying an API Library</title>
+        <title id="VL_Specifying_API">Specifying an API Library</title>
 
         <para>The VL.Chart attribute is a generic entry point the enables the
         user to be unconcerned about the underlying structure of the
@@ -4832,7 +4869,7 @@ VL.Google(“MyLineChart”,dFormatted).Line;
   </chapter>
 
   <chapter id="ML_with_documents">
-    <title>Using ML with documents (ML.Docs)</title>
+    <title id="ML_DOCS">Using ML with documents (ML.Docs)</title>
 
     <para>The ML.Docs module provides a number of routines which can be used
     to pre-process text and make it more suitable for further processing. The
@@ -5053,7 +5090,7 @@ VL.Google(“MyLineChart”,dFormatted).Line;
       </informaltable></para>
 
     <sect1 id="Doc_module_usage">
-      <title>Typical usage of the Docs module</title>
+      <title id="DOCS_Usage">Typical usage of the Docs module</title>
 
       <para>The following code demonstrates how the docs module may be used
       and show the result at each stage:</para>
@@ -5103,7 +5140,7 @@ o2;
     </sect1>
 
     <sect1 id="Performance_statistics">
-      <title>Performance Statistics</title>
+      <title id="Docs_Performance">Performance Statistics</title>
 
       <para>The following performance statistics of these routines were
       observed using a 10 node cluster:</para>
@@ -5224,7 +5261,7 @@ o2;
   </chapter>
 
   <chapter id="ML_implementation">
-    <title>Useful routines for ML implementation</title>
+    <title id="Useful_Routines">Useful routines for ML implementation</title>
 
     <para>The following modules are provided to help with ML
     implementation:</para>
@@ -5242,7 +5279,7 @@ o2;
       </itemizedlist></para>
 
     <sect1 id="Utility">
-      <title>Utility</title>
+      <title id="Routines_Utility">Utility</title>
 
       <para>The Utility module provides the following routines:</para>
 
@@ -5282,7 +5319,7 @@ o2;
     </sect1>
 
     <sect1 id="Matrix_Library">
-      <title>The Matrix Library (Mat)</title>
+      <title id="Routines_Matrix">The Matrix Library (Mat)</title>
 
       <para>This library is in addition to and subservient to the ML library
       modules. The following routines are provided:</para>
