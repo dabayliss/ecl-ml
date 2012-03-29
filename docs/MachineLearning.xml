@@ -1145,7 +1145,7 @@ D := b1+b2+b3; // This is the test data
 B4 := PROJECT(TABLE(D,{Id,Val := SUM(GROUP,Value)},Id),TRANSFORM(ML.Types.NumericField,
                                            SELF.Number:=4,
                                            SELF.Value:=MAP(LEFT.Val &lt; 6 =&gt; 0,  // Small
-                                                                    &lt; 10 =&gt; 1, // Normal
+                                                           LEFT.Val &lt; 10 =&gt; 1, // Normal
                                                                           2 ); // Big
                                            SELF := LEFT));
 D1 := D+B4;
