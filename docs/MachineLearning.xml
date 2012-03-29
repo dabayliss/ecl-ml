@@ -1245,9 +1245,8 @@ TestModule.Headline;
             <row>
               <entry align="left">Raw</entry>
 
-              <entry>Gives a very detailed breakdown of every record in the
-              test corpus, for example, what the classification should have
-              been and what it was.</entry>
+              <entry>Gives an aggregated breakdown of what the classification should have
+              been and what it was for every record in the corpus.</entry>
             </row>
           </tbody>
         </tgroup>
