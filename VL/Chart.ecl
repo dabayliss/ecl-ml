@@ -11,6 +11,7 @@ EXPORT Chart(STRING sChartName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p
   EXPORT Combo:=VL.Google(sChartName,d,p).Combo;
   EXPORT Pie:=VL.Google(sChartName,d,p).Pie;
   EXPORT Scatter:=VL.Google(sChartName,d,p).Scatter;
+  EXPORT Geo:=VL.Google(sChartName,d,p).Geo;
   EXPORT Voronoi:=VL.D3(sChartName,d,p).Voronoi;
 
 END;

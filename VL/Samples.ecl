@@ -12,10 +12,10 @@ dRegions:=DATASET([
   {'Latin America','Caribbean',234,17.1,20.7,25.3,29.7,34.2,38.4,41.6},
   {'Latin America','Central America',2480,37.9,51.7,69.6,91.8,113.2,135.6,155.9},
   {'Latin America','South America',17832,112.4,147.7,191.5,240.9,295.6,347.4,392.6},
-  {'North America','North America',21776,171.6,204.3,231.3,254.5,281.2,313.3,344.5},
+  {'North America','Northern America',21776,171.6,204.3,231.3,254.5,281.2,313.3,344.5},
   {'Asia','Eastern Asia',11763,672.4,801.5,984.1,1178.6,1359.1,1495.3,1574},
-  {'Asia','South Central Asia',10791,507.1,620,778.8,986,1246.4,1515.6,1764.9},
-  {'Asia','South Eastern Asia',4495,172.9,219.3,285.2,359,445.4,523.8,593.4},
+  {'Asia','Southern Asia',10791,507.1,620,778.8,986,1246.4,1515.6,1764.9},
+  {'Asia','South-Eastern Asia',4495,172.9,219.3,285.2,359,445.4,523.8,593.4},
   {'Asia','Western Asia',4831,51,66.8,86.9,114,148.6,184.4,232},
   {'Europe','Eastern Europe',18814,220.1,252.8,276.2,294.9,310.5,304.2,294.8},
   {'Europe','Northern Europe',1810,78,81.9,87.4,89.9,92.1,94.3,99.2},
@@ -65,5 +65,15 @@ VL.Chart('AfricanPopulationGrowthCombo',dFormatted,ComboStyle).Combo;           
 // Prepare a grid of surface area to 2010 population, then produce a scatter chart
 dPopByArea:=VL.FormatData(TABLE(dRegions,{surface_area;pop2010}),surface_area);
 VL.Chart('PopulationByArea',dPopByArea,VL.Styles.SetValue(Vl.Styles.Default,title,'Population by Surface Area')).Scatter;
+
+// Present the population in map form.  Google's Geo does not shade by region
+// so we need to convert the regions to countries first.
+dRegionPop:=JOIN(dRegions,VL.GoogleTemplates.Geo.RegionCodes,LEFT.region=RIGHT.region);
+dPopByCountry:=JOIN(VL.GoogleTemplates.Geo.CountryCodes,dRegionPop,LEFT.subcontinent_code=RIGHT.region_code,TRANSFORM({STRING3 iso_code;STRING3 continent_code;DECIMAL8_1 pop2010;},SELF:=LEFT;SELF:=RIGHT;));
+VL.Chart('WorldPopulation',VL.FormatData(TABLE(dPopByCountry,{iso_code;pop2010;}),iso_code),VL.Styles.Large).Geo;
+
+// Present the population for Africa in map form, adding a little color.
+AfricaStyle:=VL.Styles.SetValue(VL.Styles.Large,ChartAdvanced,'region:"002",colorAxis:{minValue:0,colors:["#FF0000","#00FF00"]}');
+VL.Chart('AfricaPopulation',VL.FormatData(TABLE(dPopByCountry(continent_code='002'),{iso_code;pop2010;}),iso_code),AfricaStyle).Geo;
 
 
