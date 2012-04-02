@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 // Module for processing data into the format expected by Google Charts, and
 // then processing it through Google Charts
 //---------------------------------------------------------------------------
@@ -54,5 +54,6 @@ EXPORT Google(STRING sName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p=VL.
   EXPORT Combo:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Combo'),NAMED(sChartName));
   EXPORT Area:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Area'),NAMED(sChartName));
   EXPORT Scatter:=OUTPUT(dData('Scatter')+dChartOptions+dPageOptions+dChart('Scatter'),NAMED(sChartName));
+  EXPORT Geo:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Geo'),NAMED(sChartName));
 END;
 
