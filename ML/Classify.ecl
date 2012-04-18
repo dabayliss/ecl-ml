@@ -1,4 +1,4 @@
-IMPORT ML;
+﻿IMPORT ML;
 IMPORT * FROM $;
 IMPORT $.Mat;
 /*
@@ -424,12 +424,17 @@ END;
 	Logistic Regression implementation base on the iteratively-reweighted least squares (IRLS) algorithm:
   http://www.cs.cmu.edu/~ggordon/IRLS-example
 
-	The inputs to the Logistic Regression are:
+	Logistic Regression module parameters:
+	- Ridge: an optional ridge term used to ensure existance of Inv(X'*X) even if 
+		some independent variables X are linearly dependent. In other words the Ridge parameter
+		ensures that the matrix X'*X+mRidge is non-singular.
+	- Epsilon: an optional parameter used to test convergence
+	- MaxIter: an optional parameter that defines a maximum number of iterations
+
+	The inputs to the Logis module are:
   a) A training dataset X of discretized independant variables
   b) A dataset of class results Y.
 
-	Output: A regression coefficients dataset Beta including the intercept Beta0. 
-          A dataset modelY = 1 ./ (1+exp(-X*Beta))
 */
 
 EXPORT Logistic(REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIter=200) := MODULE(DEFAULT)
