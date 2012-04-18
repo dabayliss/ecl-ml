@@ -4,7 +4,7 @@
 EXPORT Add(DATASET(Types.Element) l,DATASET(Types.Element) r) := FUNCTION
 StatsL := Has(l).Stats;
 StatsR := Has(r).Stats;
-SizeMatch := IF((StatsL.XMax=StatsR.XMax AND StatsL.YMax=StatsR.YMax), TRUE, FALSE);
+SizeMatch := ~Strict OR (StatsL.XMax=StatsR.XMax AND StatsL.YMax=StatsR.YMax);
 // Only slight nastiness is that these matrices may be sparse - so either side could be null
 Types.Element Ad(l le,r ri) := TRANSFORM
     SELF.x := IF ( le.x = 0, ri.x, le.x );
