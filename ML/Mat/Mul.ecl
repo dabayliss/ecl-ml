@@ -65,7 +65,7 @@ END;
 EXPORT Mul(DATASET(Types.Element) l,DATASET(Types.Element) r, MulMethod method=MulMethod.Default) := FUNCTION
 		StatsL := Has(l).Stats;
 		StatsR := Has(r).Stats;
-		SizeMatch := IF((StatsL.YMax=StatsR.XMax), TRUE, FALSE);
+		SizeMatch := ~Strict OR (StatsL.YMax=StatsR.XMax);
 		
 		assertCondition := ~(Debug AND ~SizeMatch);	
 		checkAssert := ASSERT(assertCondition, 'Mul FAILED - Size mismatch', FAIL);		

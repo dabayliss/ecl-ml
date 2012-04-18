@@ -1,4 +1,4 @@
-﻿IMPORT * FROM $;
+IMPORT * FROM $;
 EXPORT Decomp := MODULE
 
 // Back substitution algorithm for solving an upper-triangular system of linear 
@@ -13,8 +13,8 @@ EXPORT b_sub(DATASET(Types.Element) U, DATASET(Types.Element) B) := FUNCTION
 	loopBody(DATASET( Types.Element) ds, UNSIGNED4 c) := FUNCTION	
 				k := n-c;
 	      ukk := U(x=k, y=k);				
-				xk_1 := Mul(U(x=k), ds(x>k));
-				xk_2 := Sub(ds(x=k), xk_1(x=k));
+				xk_1 := Mul(SetDimension(U(x=k),n,n), SetDimension(ds(x>k),n,n));
+				xk_2 := Sub(SetDimension(ds(x=k),n,n), SetDimension(xk_1(x=k),n,n));
 				xk_3 := Scale(xk_2, 1/ukk[1].value);
 				xk := Substitute(ds, xk_3);
 		RETURN xk;
@@ -30,8 +30,8 @@ EXPORT f_sub(DATASET(Types.Element) L, DATASET(Types.Element) B) := FUNCTION
 	loopBody(DATASET( Types.Element) ds, UNSIGNED4 c) := FUNCTION
 				k := c;
 				lkk := L(x=k, y=k);
-				xk_1 := Mul(L(x=k), ds(x<k));
-				xk_2 := Sub(ds(x=k), xk_1(x=k));
+				xk_1 := Mul(SetDimension(L(x=k), n, n), SetDimension(ds(x<k), n,n));
+				xk_2 := Sub(SetDimension(ds(x=k),n,n), SetDimension(xk_1(x=k),n,n));
 				xk_3 := Scale(xk_2, 1/lkk[1].value);
 				xk := Substitute(ds,xk_3);
 				
@@ -84,7 +84,7 @@ EXPORT DATASET(Types.Element) LU(DATASET(Types.Element) matrix) := FUNCTION
 
 				a_k := JOIN(leave(y=k, x>k), leave(x=k, y>k), LEFT.y = RIGHT.x, 
 						TRANSFORM(Types.Element, SELF.x := LEFT.x, SELF.y := RIGHT.y, SELF.value := LEFT.value*RIGHT.value));
-				changed := Sub(to_change, a_k);;
+				changed := Sub(SetDimension(to_change,n,n), SetDimension(a_k,n,n));;
 								
 	RETURN leave+changed;
   END;
