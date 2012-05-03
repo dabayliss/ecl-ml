@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Module for processing data into the format expected by Google Charts, and
 // then processing it through Google Charts
 //---------------------------------------------------------------------------
@@ -42,18 +42,18 @@ EXPORT Google(STRING sName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p=VL.
   // The four basic strings that are constructed as replacement strings in the
   // XSLT translator.
   SHARED dData(STRING sChartType='Std'):=DATASET([{'DATA',FormatChartData(d,sChartType)}],VL.Types.ChartInterface);
-  SHARED dChart(STRING sChartType):=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'Chart(document.getElementById(\''+sChartName+'\'));chart.draw(data,options);'}],VL.Types.ChartInterface);
+  SHARED dChart(STRING sChartType):=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'(document.getElementById(\''+sChartName+'\'));chart.draw(data,options);'}],VL.Types.ChartInterface);
   SHARED dChartOptions:=DATASET([{'OPTIONS',ChartOptions(p)}],VL.Types.ChartInterface);
   SHARED dPageOptions:=DATASET([{'STYLES',PageOptions(p)}],VL.Types.ChartInterface);
 
   // The Graphs that are available for processing
-  EXPORT Pie:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Pie'),NAMED(sChartName));
-  EXPORT Line:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Line'),NAMED(sChartName));
-  EXPORT Bar:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Bar'),NAMED(sChartName));
-  EXPORT Column:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Column'),NAMED(sChartName));
-  EXPORT Combo:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Combo'),NAMED(sChartName));
-  EXPORT Area:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Area'),NAMED(sChartName));
-  EXPORT Scatter:=OUTPUT(dData('Scatter')+dChartOptions+dPageOptions+dChart('Scatter'),NAMED(sChartName));
-  EXPORT Geo:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('Geo'),NAMED(sChartName));
+  EXPORT Pie:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('PieChart'),NAMED(sChartName));
+  EXPORT Line:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('LineChart'),NAMED(sChartName));
+  EXPORT Bar:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('BarChart'),NAMED(sChartName));
+  EXPORT Column:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('ColumnChart'),NAMED(sChartName));
+  EXPORT Combo:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('ComboChart'),NAMED(sChartName));
+  EXPORT Area:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('AreaChart'),NAMED(sChartName));
+  EXPORT Scatter:=OUTPUT(dData('Scatter')+dChartOptions+dPageOptions+dChart('ScatterChart'),NAMED(sChartName));
+  EXPORT Geo:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('GeoChart'),NAMED(sChartName));
 END;
 
