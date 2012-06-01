@@ -56,7 +56,7 @@ EXPORT Default := MODULE,VIRTUAL
 								cp <= 0.0 => MIN(cv,RangeLow),
 								InterP(cv(P>=cp)[1]) );
 	END;
-  EXPORT InvDensity(t_FieldReal delta) := 0; //Only sensible for monotonic distributions
+  EXPORT InvDensity(t_FieldReal delta) := 0.0; //Only sensible for monotonic distributions
 	EXPORT Discrete := FALSE;
   END;
 
