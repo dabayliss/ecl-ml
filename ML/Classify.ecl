@@ -22,8 +22,7 @@ SHARED l_model := RECORD
 END;
 
 // Function to compute the efficacy of a given classification process
-// Expects the independents (features used to classify)
-// The dependents (classification tags deemed to be true)
+// Expects the dependents (classification tags deemed to be true)
 // Computeds - classification tags created by the classifier
 EXPORT Compare(DATASET(Types.DiscreteField) Dep,DATASET(l_result) Computed) := MODULE
 	DiffRec := RECORD
@@ -45,18 +44,61 @@ EXPORT Compare(DATASET(Types.DiscreteField) Dep,DATASET(l_result) Computed) := M
 	SHARED J := JOIN(Computed,Dep,LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,notediff(LEFT,RIGHT));
 	// Shows which classes were modeled as which classes
 	EXPORT Raw := TABLE(J,{classifier,c_actual,c_modeled,score,score_delta,sole_result,Cnt := COUNT(GROUP)},classifier,c_actual,c_modeled,score,score_delta,sole_result,MERGE);
-	EXPORT CrossAssignments := TABLE(J,{classifier,c_actual,c_modeled,Cnt := COUNT(GROUP)},classifier,c_actual,c_modeled,FEW);
-	EXPORT PrecisionByClass := TABLE(J,{classifier,c_actual, Precision := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,c_actual,FEW);
-	EXPORT HeadLine := TABLE(J,{classifier, Precision := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,FEW);
+	// Building the Confusion Matrix
+	SHARED ConfMatrix_Rec := RECORD
+		Types.t_FieldNumber classifier;	// The classifier in question (value of 'number' on outcome data)
+		Types.t_Discrete c_actual;			// The value of c provided
+		Types.t_Discrete c_modeled;			// The value produced by the classifier
+		Types.t_FieldNumber Cnt:=0;			// Number of occurences
+	END;
+	SHARED class_cnt := TABLE(Dep,{classifier:= number, c_actual:= value, Cnt:= COUNT(GROUP)},number, value, FEW); // Looking for class values
+	ConfMatrix_Rec form_cfmx(class_cnt le, class_cnt ri) := TRANSFORM
+	  SELF.classifier := le.classifier;
+		SELF.c_actual:= le.c_actual;
+		SELF.c_modeled:= ri.c_actual;
+	END;
+	SHARED cfmx := JOIN(class_cnt, class_cnt, LEFT.classifier = RIGHT.classifier, form_cfmx(LEFT, RIGHT)); // Initialzing the Confusion Matrix with 0 counts
+	SHARED cross_raw := TABLE(J,{classifier,c_actual,c_modeled,Cnt := COUNT(GROUP)},classifier,c_actual,c_modeled,FEW); // Counting ocurrences
+	ConfMatrix_Rec form_confmatrix(ConfMatrix_Rec le, cross_raw ri) := TRANSFORM
+		SELF.Cnt	:= ri.Cnt;
+		SELF 			:= le;
+	END;
+//CrossAssignments, it returns information about actual and predicted classifications done by a classifier
+//                  also known as Confusion Matrix
+	EXPORT CrossAssignments := JOIN(cfmx, cross_raw,
+														LEFT.classifier = RIGHT.classifier AND LEFT.c_actual = RIGHT.c_actual AND LEFT.c_modeled = RIGHT.c_modeled,
+														form_confmatrix(LEFT,RIGHT),
+														LEFT OUTER, LOOKUP);
+//RecallByClass, it returns the percentage of instances belonging to a class that was correctly classified,
+//               also know as True positive rate and sensivity, TP/(TP+FN).
+	EXPORT RecallByClass := SORT(TABLE(J,{classifier,c_actual, tp_rate := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,c_actual,FEW), classifier, c_actual);
+//PrecisionByClass, returns the percentage of instances classified as a class that really belong to this class: TP /(TP + FP).
+	EXPORT PrecisionByClass := SORT(TABLE(J,{classifier,c_modeled, Precision := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,c_modeled,FEW), classifier, c_modeled);
+//FP_Rate_ByClass, it returns the percentage of instances not belonging to a class that were incorrectly classified as this class,
+//                 also known as False Positive rate FP / (FP + TN).
+	FalseRate_rec := RECORD
+		Types.t_FieldNumber classifier;
+		Types.t_Discrete class;
+		Types.t_FieldReal fp_rate;
+	END;
+	FalseRate_rec FalseRate(class_cnt le):= TRANSFORM
+		wrong_modeled:=COUNT(J(c_modeled=le.c_actual AND c_actual<>le.c_actual AND classifier = le.classifier)); // Incorrectly classified as actual class
+		not_class:= COUNT(J(c_actual<>le.c_actual AND classifier = le.classifier)); // Not belonging to the actual class
+		SELF.classifier:= le.classifier;
+		SELF.class:= le.c_actual;
+		SELF.fp_rate:= wrong_modeled/not_class;
+	END;
+	EXPORT FP_Rate_ByClass := PROJECT(class_cnt, FalseRate(LEFT));
+// Accuracy, it returns the percentage of instances correctly classified (total, without class distinction)
+	EXPORT HeadLine := TABLE(J,{classifier, Accuracy := AVE(GROUP,IF(c_actual=c_modeled,100,0))},classifier,FEW);
+	EXPORT Accuracy := HeadLine;
 END;
-
-
 /*
 	The purpose of this module is to provide a default interface to provide access to any of the 
   classifiers
 */
-  EXPORT Default := MODULE,VIRTUAL
-	  EXPORT Base := 1000; // ID Base - all ids should be higher than this
+	EXPORT Default := MODULE,VIRTUAL
+		EXPORT Base := 1000; // ID Base - all ids should be higher than this
 		// Premise - two models can be combined by concatenating (in terms of ID number) the under-base and over-base parts
 		SHARED CombineModels(DATASET(Types.NumericField) sofar,DATASET(Types.NumericField) new) := FUNCTION
 			UBaseHigh := MAX(sofar(id<Base),id);
@@ -148,43 +190,74 @@ END;
 				Vals.class_number;
 				Types.t_Count support := COUNT(GROUP);
 			END;
-// This is the raw table - how many of each value 'f' for each field 'number' appear for each value 'c' of each classifier 'class_number'
+			// This is the raw table - how many of each value 'f' for each field 'number' appear for each value 'c' of each classifier 'class_number'
 			Cnts := TABLE(Vals,AggregatedTriple,c,f,number,class_number,FEW);
-
-// Compute P(C)
+			// Compute P(C)
 			CTots := TABLE(cl,{value,number,Support := COUNT(GROUP)},value,number,FEW);
-			CLTots := TABLE(CTots,{number,TSupport := SUM(GROUP,Support)},number,FEW);
-	
+			CLTots := TABLE(CTots,{number,TSupport := SUM(GROUP,Support), GC := COUNT(GROUP)},number,FEW);
 			P_C_Rec := RECORD
 				Types.t_Discrete c;            // The value within the class
 				Types.t_Discrete class_number; // Used when multiple classifiers being produced at once
 				Types.t_FieldReal support;     // Used to store total number of C
 				REAL8 w;                       // P(C)
 			END;
+			// Apply Laplace Estimator to P(C) in order to be consistent with attributes' probability
 			P_C_Rec pct(CTots le,CLTots ri) := TRANSFORM
 				SELF.c := le.value;
 				SELF.class_number := ri.number;
-				SELF.support := le.Support;
-				SELF.w := le.Support/ri.TSupport;
+				SELF.support := le.Support + SampleCorrection;
+				SELF.w := (le.Support + SampleCorrection) / (ri.TSupport + ri.GC*SampleCorrection);
 			END;
 			PC := JOIN(CTots,CLTots,LEFT.number=RIGHT.number,pct(LEFT,RIGHT),FEW);
-	
-	// We do NOT want to assume every value exists for every field - so we will count the number of class values by field
-			TotalFs := TABLE(Cnts,{c,number,class_number,Types.t_Count Support := SUM(GROUP,Support),GC := COUNT(GROUP)},c,number,class_number,FEW);
-			F_Given_C_Rec := RECORD
-				Cnts.c;
-				Cnts.f;
-				Cnts.number;
-				Cnts.class_number;
-				Cnts.support;
-				REAL8 w;	
+			// Computing Attributes' probability
+			AttribValue_Rec := RECORD
+				Cnts.class_number; 	// Used when multiple classifiers being produced at once
+				Cnts.number;				// A reference to a feature (or field) in the independants
+				Cnts.f;				 			// Independant value
+				Types.t_Count support := 0;
 			END;
-			F_Given_C_Rec mp(Cnts le,TotalFs ri) := TRANSFORM
+			// Generating feature domain per feature (class_number only used when multiple classifiers being produced at once)
+			AttValues	:= TABLE(Cnts, AttribValue_Rec, class_number, number, f, FEW);
+			AttCnts 	:= TABLE(AttValues, {class_number, number, ocurrence:= COUNT(GROUP)},class_number, number, FEW); // Summarize	
+			AttrValue_per_Class_Rec := RECORD
+				Types.t_Discrete c;
+				AttValues.f;
+				AttValues.number;
+				AttValues.class_number;
+				AttValues.support;
+			END;
+			// Generating class x feature domain, initial support = 0
+			AttrValue_per_Class_Rec form_cl_attr(AttValues le, CTots ri):= TRANSFORM
+				SELF.c:= ri.value;
+				SELF:= le;
+			END;
+			ATots:= JOIN(AttValues, CTots, LEFT.class_number = RIGHT.number, form_cl_attr(LEFT, RIGHT), MANY LOOKUP, FEW);
+			// Counting feature value ocurrence per class x feature, remains 0 if combination not present in dataset
+			ATots form_ACnts(ATots le, Cnts ri) := TRANSFORM
+				SELF.support	:= ri.support;
+				SELF 			:= le;
+			END;
+			ACnts := JOIN(ATots, Cnts, LEFT.c = RIGHT.c AND LEFT.f = RIGHT.f AND LEFT.number = RIGHT.number AND LEFT.class_number = RIGHT.class_number, 
+														form_ACnts(LEFT,RIGHT),
+														LEFT OUTER, LOOKUP);
+			// Summarizing and getting value 'GC' to apply in Laplace Estimator
+			TotalFs := TABLE(ACnts,{c,number,class_number,Types.t_Count Support := SUM(GROUP,Support),GC := COUNT(GROUP)},c,number,class_number,FEW);
+			// Merge and Laplace Estimator
+			F_Given_C_Rec := RECORD
+				ACnts.c;
+				ACnts.f;
+				ACnts.number;
+				ACnts.class_number;
+				ACnts.support;
+				REAL8 w;
+			END;
+			F_Given_C_Rec mp(ACnts le,TotalFs ri) := TRANSFORM
+				SELF.support := le.Support+SampleCorrection;
 				SELF.w := (le.Support+SampleCorrection) / (ri.Support+ri.GC*SampleCorrection);
 				SELF := le;
 			END;
-			FC := JOIN(Cnts,TotalFs,LEFT.C = RIGHT.C AND LEFT.number=RIGHT.number AND LEFT.class_number=RIGHT.class_number,mp(LEFT,RIGHT),LOOKUP);
-
+			// Calculating final probabilties
+			FC := JOIN(ACnts,TotalFs,LEFT.C = RIGHT.C AND LEFT.number=RIGHT.number AND LEFT.class_number=RIGHT.class_number,mp(LEFT,RIGHT),LOOKUP);
 			Pret := PROJECT(FC,TRANSFORM(BayesResult,SELF := LEFT))+PROJECT(PC,TRANSFORM(BayesResult,SELF.number := 0,SELF:=LEFT));
 			Pret1 := PROJECT(Pret,TRANSFORM(BayesResult,SELF.w := LogScale(LEFT.w),SELF.id := Base+COUNTER,SELF := LEFT));
 			ToField(Pret1,o);
