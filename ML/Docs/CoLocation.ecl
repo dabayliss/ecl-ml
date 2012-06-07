@@ -1,4 +1,4 @@
-IMPORT $ AS Docs;
+﻿IMPORT $ AS Docs;
 IMPORT Std.Str AS str;
 EXPORT CoLocation:=MODULE
 
@@ -103,6 +103,24 @@ EXPORT CoLocation:=MODULE
       SELF:=L;
     END;
     RETURN LOOP(WithComponent,MaxN,JOIN(ROWS(LEFT),Unigrams,Str.GetNthWord(LEFT.ngram,COUNTER)=RIGHT.ngram,tJoin(LEFT,RIGHT,COUNTER),LOOKUP));
+  END;
+	
+	EXPORT	SubGramsLayout	:= {NGramsLayout;Docs.Types.t_value components;};
+	
+	//-------------------------------------------------------------------------
+	// Pointwise Mutual Information for all Subgrams
+	//-------------------------------------------------------------------------
+  EXPORT PMI(DATASET(SubGramsLayout) d):= FUNCTION
+    PMILayout:={SubGramsLayout;Docs.Types.t_value pmi;};
+    PMI:=PROJECT(d,TRANSFORM(PMILayout,SELF.pmi := LOG(LEFT.pct/LEFT.components)/-LOG(LEFT.pct),SELF :=LEFT));
+
+		PMILayout normPMI(PMILayout L)	:= TRANSFORM
+			n := Str.FindCount(L.ngram,' ');
+			SELF.pmi := IF(n>1,L.pmi/n,L.pmi);
+			SELF := L;
+    END;
+
+		RETURN PROJECT(PMI,normPMI(LEFT));
   END;
 
   //-------------------------------------------------------------------------
