@@ -83,5 +83,156 @@ PairAccum := RECORD
   END;
 	
 EXPORT Kendall := TABLE(pairs,PairAccum,left_number,right_number,FEW);	
+
+/*
+	Mutual Information is a statistic that measures how much a value informs another value.
+	cVec is the number of the column that is informed by the remaining columns in the record set
+	units is the unit of measurement for MutualInfo to calculate
+	buckets is the amount of buckets for the Discretize.ByBucketing method to distribute values into
+*/
+EXPORT MutualInfo(UNSIGNED cVec,UNSIGNED units=2,UNSIGNED buckets = 10)	:= FUNCTION
+	dis := Discretize.ByBucketing(d,buckets);
+
+	LOGN(REAL x) := FUNCTION
+		RETURN LOG(x)/LOG(units);
+	END;
+
+	ProbRec := RECORD
+		UNSIGNED number;
+		UNSIGNED value;
+		UNSIGNED class;
+		REAL probability;
+	END;
+
+	ProbPRec := RECORD
+		ProbRec;
+		REAL mprobability;
+	END;
+
+	DiscreteFieldP := RECORD
+		Types.DiscreteField;
+		UNSIGNED class;
+	END;
+
+	DiscreteFieldP AddClass(Types.DiscreteField L, Types.DiscreteField R)	:= TRANSFORM
+		SELF.class := R.value;
+		SELF := L;
+	END;
+
+	pDis1	:= PROJECT(dis,TRANSFORM(Types.DiscreteField,SELF.id := LEFT.id,SELF.number := IF(LEFT.number = cVec,SKIP,LEFT.number),SELF.value := LEFT.value),LOCAL);
+	pDis2	:= PROJECT(dis,TRANSFORM(Types.DiscreteField,SELF.id := LEFT.id,SELF.number := IF(LEFT.number != cVec,SKIP,LEFT.number),SELF.value := LEFT.value),LOCAL);
+	jDis	:= JOIN(pDis1,pDis2,LEFT.id = RIGHT.id,AddClass(LEFT,RIGHT));
+
+	CCountRec	:= RECORD
+		class	:= pDis2.value;
+		total	:= COUNT(GROUP);
+	END;
+
+	gCCount	:= GROUP(SORT(pDis2,value),value);
+	tCCount	:= TABLE(gCCount,CCountRec);
+	cCCount	:= SUM(tCCount,total);
+
+	CondProbPRec := RECORD
+		UNSIGNED class;
+		REAL	mprobability;
+	END;
+
+	CondProbPRec CalcMProb(CCountRec L, UNSIGNED total_all)	:= TRANSFORM
+		SELF.class := L.class;
+		SELF.mprobability := L.total/total_all;
+	END;
+
+	ProbPRec AddMProb(ProbRec L, CondProbPRec R)	:= TRANSFORM
+		SELF.mprobability	:= R.mprobability;
+		SELF	:= L;
+	END;
+
+	dMProb := PROJECT(tCCount,CalcMProb(LEFT,cCCount));
+
+	GroupRec := RECORD
+		jDis.number;
+		jDis.value;
+		jDis.class;
+		total	:= COUNT(GROUP);
+	END;
 	
+	sDis := SORT(jDis,number,value,class);
+	gDis := GROUP(sDis,number,value,class);
+	tDis := TABLE(gDis,GroupRec);
+
+	ProbRec JointProb(GroupRec L, UNSIGNED total_all)	:= TRANSFORM
+		SELF.number	:= L.number;
+		SELF.value	:= L.value;
+		SELF.class	:= L.class;
+		SELF.probability := L.Total/total_all;
+	END;
+
+	dJoint := PROJECT(tDis,JointProb(LEFT,cCCount));
+	dJointP := JOIN(dJoint,dMProb,LEFT.class = RIGHT.class,AddMProb(LEFT,RIGHT));
+
+	NVCountRec := RECORD
+		jdis.number;
+		jdis.value;
+		total	:= COUNT(GROUP);
+	END;
+
+	sNVCount := SORT(jdis,number,value);
+	gNVCount := GROUP(sNVCount,number,value);
+	tNVCount := TABLE(gNVCount,NVCountRec);
+
+	NVProbRec	:= RECORD
+		UNSIGNED number;
+		UNSIGNED value;
+		REAL probability;
+	END;
+
+	NVProbRec ToNVProb(NVCountRec L, UNSIGNED total_all)	:= TRANSFORM
+		SELF.probability := L.total/total_all;
+		SELF := L;
+	END;
+
+	dNVCount := PROJECT(tNVCount,ToNVProb(LEFT,cCCount));
+
+	ProbRec CondProb (ProbPRec L, NVProbRec R)	:= TRANSFORM
+		SELF.probability := L.probability/R.probability;
+		SELF := L;
+	END;
+
+	dCond	:= JOIN(dJointP,dNVCount,LEFT.number = RIGHT.number AND LEFT.value = RIGHT.value,CondProb(LEFT,RIGHT));
+
+	EntropyRec := RECORD
+		UNSIGNED number;
+		REAL marginal;
+		REAL conditional;
+	END;
+
+	EntropyRec CalcEntropy(ProbPRec L,ProbRec R)	:= TRANSFORM
+		SELF.number := L.number;
+		SELF.marginal := L.mprobability * LOGN(L.mprobability);
+		SELF.conditional := L.probability * LOGN(R.probability);
+	END;
+
+	EntropyRec SumEntropy(EntropyRec L, EntropyRec R)	:= TRANSFORM
+		SELF.number	:= L.number;
+		SELF.marginal	:= L.marginal + R.marginal;
+		SELF.conditional := L.conditional + R.conditional;
+	END;
+
+	MutualInfoRec	:= RECORD
+		UNSIGNED number;
+		REAL mi;
+	END;
+
+	MutualInfoRec	CalcMi(EntropyRec L)	:= TRANSFORM
+		SELF.number	:= L.number;
+		SELF.mi := (-1*L.marginal) - (-1*L.conditional);
+	END;
+
+	dEntropy := JOIN(dJointP,dCond,LEFT.value = RIGHT.value AND LEFT.class = RIGHT.class AND LEFT.number = RIGHT.number,CalcEntropy(LEFT,RIGHT));
+	dEntropyRollup := ROLLUP(SORT(dEntropy,number),LEFT.number = RIGHT.number,SumEntropy(LEFT,RIGHT));
+	dMi	:= PROJECT(dEntropyRollup,CalcMi(LEFT));
+
+	RETURN dMi;
+END;
+
 END;
