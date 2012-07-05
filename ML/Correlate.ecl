@@ -119,8 +119,8 @@ EXPORT MutualInfo(UNSIGNED cVec,UNSIGNED units=2,UNSIGNED buckets = 10)	:= FUNCT
 		SELF := L;
 	END;
 
-	pDis1	:= PROJECT(dis,TRANSFORM(Types.DiscreteField,SELF.id := LEFT.id,SELF.number := IF(LEFT.number = cVec,SKIP,LEFT.number),SELF.value := LEFT.value),LOCAL);
-	pDis2	:= PROJECT(dis,TRANSFORM(Types.DiscreteField,SELF.id := LEFT.id,SELF.number := IF(LEFT.number != cVec,SKIP,LEFT.number),SELF.value := LEFT.value),LOCAL);
+	pDis1	:= dis(number<>cVec);
+	pDis2	:= dis(number=cVec);
 	jDis	:= JOIN(pDis1,pDis2,LEFT.id = RIGHT.id,AddClass(LEFT,RIGHT));
 
 	CCountRec	:= RECORD
@@ -128,8 +128,7 @@ EXPORT MutualInfo(UNSIGNED cVec,UNSIGNED units=2,UNSIGNED buckets = 10)	:= FUNCT
 		total	:= COUNT(GROUP);
 	END;
 
-	gCCount	:= GROUP(SORT(pDis2,value),value);
-	tCCount	:= TABLE(gCCount,CCountRec);
+	tCCount	:= TABLE(pDis2,CCountRec,value,MERGE);
 	cCCount	:= SUM(tCCount,total);
 
 	CondProbPRec := RECORD
@@ -156,9 +155,7 @@ EXPORT MutualInfo(UNSIGNED cVec,UNSIGNED units=2,UNSIGNED buckets = 10)	:= FUNCT
 		total	:= COUNT(GROUP);
 	END;
 	
-	sDis := SORT(jDis,number,value,class);
-	gDis := GROUP(sDis,number,value,class);
-	tDis := TABLE(gDis,GroupRec);
+	tDis := TABLE(jDis,GroupRec,number,value,class,MERGE);
 
 	ProbRec JointProb(GroupRec L, UNSIGNED total_all)	:= TRANSFORM
 		SELF.number	:= L.number;
@@ -176,9 +173,7 @@ EXPORT MutualInfo(UNSIGNED cVec,UNSIGNED units=2,UNSIGNED buckets = 10)	:= FUNCT
 		total	:= COUNT(GROUP);
 	END;
 
-	sNVCount := SORT(jdis,number,value);
-	gNVCount := GROUP(sNVCount,number,value);
-	tNVCount := TABLE(gNVCount,NVCountRec);
+	tNVCount := TABLE(jDis,NVCountRec,number,value,MERGE);
 
 	NVProbRec	:= RECORD
 		UNSIGNED number;
@@ -229,9 +224,15 @@ EXPORT MutualInfo(UNSIGNED cVec,UNSIGNED units=2,UNSIGNED buckets = 10)	:= FUNCT
 	END;
 
 	dEntropy := JOIN(dJointP,dCond,LEFT.value = RIGHT.value AND LEFT.class = RIGHT.class AND LEFT.number = RIGHT.number,CalcEntropy(LEFT,RIGHT));
-	dEntropyRollup := ROLLUP(SORT(dEntropy,number),LEFT.number = RIGHT.number,SumEntropy(LEFT,RIGHT));
-	dMi	:= PROJECT(dEntropyRollup,CalcMi(LEFT));
 
+	EntropyRRec	:= RECORD
+		dEntropy.number;
+		marginal := SUM(GROUP,dEntropy.marginal);
+		conditional := SUM(GROUP,dEntropy.conditional);
+	END;
+
+	dEntropyRollup := TABLE(dEntropy,EntropyRRec,number,MERGE);
+	dMi	:= PROJECT(dEntropyRollup,CalcMi(LEFT));
 	RETURN dMi;
 END;
 
