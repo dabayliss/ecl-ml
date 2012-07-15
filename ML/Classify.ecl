@@ -589,4 +589,43 @@ EXPORT Logistic(REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIte
 	END;
 		
 	END; // Logistic Module
+	
+	EXPORT split_Algorithm := ENUM(GiniImpurity, Other);
+	EXPORT DecisionTree(split_Algorithm splitAlg) := MODULE(DEFAULT)
+		SHARED splAlg:= splitAlg;
+		SHARED model_Map :=	DATASET([{'id','ID'},{'node_id','1'},{'level','2'},{'number','3'},{'value','4'},{'new_node_id','5'}], {STRING orig_name; STRING assigned_name;});
+	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep) := FUNCTION
+			nodes := CASE(splAlg, split_Algorithm.GiniImpurity => ML.Trees.SplitsGiniImpurBased(Indep, Dep), split_Algorithm.Other => ML.Trees.SplitsGiniImpurBased(Indep, Dep, 1));
+			AppendID(nodes, id, model);
+			STRING model_fields := 'node_id,level,number,value,new_node_id';
+			ToField(model, out_model, id, model_fields);			
+			RETURN out_model;
+		END;
+
+// Function to turn 'generic' classifier output into specific
+// This will be the 'same' in every module - but not overridden - has unique return type
+		EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
+			ML.FromField(mod,Trees.SplitF,o, model_Map);
+			RETURN o;
+		END;
+
+		EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+			ML.FromField(mod, Trees.SplitF, nodes, model_Map);
+			splits:= nodes(new_node_id <> 0);
+			leafs := nodes(new_node_id = 0);
+			join0 := JOIN(Indep, splits, LEFT.number = RIGHT.number AND LEFT.value = RIGHT.value, LOOKUP, MANY);
+			sort0 := SORT(join0, id, level, number, node_id, new_node_id);
+			dedup0:= DEDUP(sort0, LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
+			dedup1:= DEDUP(dedup0, LEFT.id = RIGHT.id AND LEFT.new_node_id = RIGHT.node_id, KEEP 1, RIGHT);
+			l_result final_class(RECORDOF(dedup1) l, RECORDOF(leafs) r ):= TRANSFORM
+				SELF.id 		:= l.id;
+				SELF.number	:= 1;
+				SELF.value	:= r.value;
+				SELF.conf				:= 0;
+				SELF.closest_conf:= 0;
+			END;
+			RETURN JOIN(dedup1, leafs, LEFT.new_node_id = RIGHT.node_id, final_class(LEFT, RIGHT), LOOKUP);
+		END;
+	
+	END; // DecisionTree Module
 END;
