@@ -10,11 +10,10 @@ EXPORT Trees := MODULE
   SHARED wNode := RECORD
     t_node node_id; // The node-id for a given point
     t_level level; // The level for a given point
-		ML.Types.t_Discrete depend; // Actually copies the dependant value to EVERY node - paying memory to avoid downstream cycles
+		ML.Types.t_Discrete depend; // The dependant value
     ML.Types.DiscreteField;
   END;
-
-	EXPORT SplitF := RECORD
+	EXPORT SplitF := RECORD		// data structure for splitting results
 		t_node node_id; // The node that is being split
 		t_level level;  // The level the split is occuring
 		ML.Types.t_FieldNumber number; // The column used to split
@@ -77,7 +76,10 @@ EXPORT Trees := MODULE
 		EXPORT CountVariance := VARIANCE(Counts,Cnt);
 		EXPORT Extents := TABLE(Partitioned,{ node_id, number, MinV := MIN(GROUP,Value), MaxV := MAX(GROUP,Value) }, node_id, number, FEW);
 	END;
-
+	
+// Previously implemented in Decision MODULE by David Bayliss
+// Extracted as it is, converted to a function because more impurity based splitting are comming (e.g. Information Gain Ration)
+// which will be used by different decision tree learning algorithms (e.g. ID.3 Quilan)
 	SHARED PartitionGiniImpurityBased	(DATASET(wNode) nodes, t_level p_level, REAL Purity=1.0) := FUNCTION
 		this_set0 := nodes(level = p_level); // Only process those 'undecided' nodes
 		Purities := ML.Utils.Gini(this_set0(number=1),node_id,depend); // Compute the purities for each node
@@ -252,16 +254,21 @@ EXPORT Trees := MODULE
 		EXPORT CountMean := AVE(Counts,Cnt);
 		EXPORT CountVariance := VARIANCE(Counts,Cnt);
 	END;
+// Splitting Function Based on Gini Impurity,
+// Previously implemented in Decision MODULE by David Bayliss,
+// changed to return a dataset with branch nodes and final nodes
 	EXPORT SplitsGiniImpurBased(DATASET(ML.Types.DiscreteField) ind,DATASET(ML.Types.DiscreteField) dep,
 																t_level Depth=10,REAL Purity=1.0) := FUNCTION
 		ind0 := ML.Utils.FatD(ind); // Ensure no sparsity in independents
 		wNode init(ind0 le,dep ri) := TRANSFORM
 			SELF.node_id := 1;
 			SELF.level := 1;
-			SELF.depend := ri.value;
+			SELF.depend := ri.value;	// Actually copies the dependant value to EVERY node - paying memory to avoid downstream cycles
 			SELF := le;
 		END;
-		ind1 := JOIN(ind, dep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
+//		ind1 := JOIN(ind, dep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
+// I guess should use ind0 that is ind after FatD, please confirm
+		ind1 := JOIN(ind0, dep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
 		res := LOOP(ind1, Depth, PartitionGiniImpurityBased(ROWS(LEFT), COUNTER));
 		nodes := PROJECT(res(id=0),TRANSFORM(SplitF, SELF.new_node_id := LEFT.value, SELF.value := LEFT.depend, SELF := LEFT)); // The split points used to partition each node i
 		mode_r := RECORD
@@ -274,5 +281,4 @@ EXPORT Trees := MODULE
 		leafs:= PROJECT(nsplits, TRANSFORM(SplitF, SELF.number:=0, SELF.value:= LEFT.depend, SELF.new_node_id:=0, SELF:= LEFT));
 		RETURN nodes + leafs; 
 	END;
-
 END;
