@@ -36,7 +36,58 @@ EXPORT CoLocation:=MODULE
     EveryNGram:=NORMALIZE(LongDedup,n,tNorm(LEFT,COUNTER));
     RETURN PROJECT(TABLE(EveryNGram,{id;ngram},id,ngram,LOCAL)(ngram!=''),AllNGramsLayout);
   END;
-  
+
+	//-------------------------------------------------------------------------
+	// Mutual Information for all words in corpus
+	// dIn :	Documents in class
+	// dOut : Documents not in class
+	// units : [OPTIONAL] unit of measurement for mutual information. Default is 2 (bits)
+	//-------------------------------------------------------------------------
+	EXPORT MutualInfo(DATASET(Docs.Types.Raw) dIn, DATASET(Docs.Types.Raw) dOut, UNSIGNED units=2)	:= FUNCTION
+		MutualInfoLayout	:= RECORD
+			STRING word;
+			REAL mi;
+		END;
+
+		rDocCount := RECORD
+			STRING word;
+			REAL n11 := 0;
+			REAL n10 := 0;
+			REAL n00 := 0;
+			REAL n01 := 0;
+		END;
+
+		cIn := COUNT(dIn);
+		cOut := COUNT(dOut);
+		cAll := cOut + cIn;
+		dInLexicon := Docs.Tokenize.Lexicon(Docs.Tokenize.Split(Docs.Tokenize.Clean(dIn)));
+		dOutLexicon := Docs.Tokenize.Lexicon(Docs.Tokenize.Split(Docs.Tokenize.Clean(dOut)));
+		dInN := PROJECT(dInLexicon,TRANSFORM(rDocCount,SELF.word := LEFT.word,SELF.n11 := LEFT.total_docs,SELF.n01 := cIn - LEFT.total_docs));
+		dOutN := PROJECT(dOutLexicon,TRANSFORM(rDocCount,SELF.word := LEFT.word,SELF.n00 := cOut - LEFT.total_docs,SELF.n10 := LEFT.total_docs));
+		dDocN	:= dInN + dOutN;
+
+		rRollup := RECORD
+			dDocN.word;
+			n11 := SUM(GROUP,dDocN.n11);
+			n10 := SUM(GROUP,dDocN.n10);
+			n00 := SUM(GROUP,dDocN.n00);
+			n01 := SUM(GROUP,dDocN.n01);
+		END;
+
+		tDocCount := TABLE(dDocN,rRollup,word,MERGE);
+		MutualInfoLayout CalcMI(rRollup X, UNSIGNED total_doc) := TRANSFORM
+			SELF.word := X.word;
+			m := (X.n11/total_doc) * (LOG((total_doc * X.n11)/((X.n11 + X.n10) * (X.n01 + X.n11)))/LOG(units));
+			o := (X.n01/total_doc) * (LOG((total_doc * X.n01)/((X.n01 + X.n00) * (X.n01 + X.n11)))/LOG(units));
+			p := (X.n10/total_doc) * (LOG((total_doc * X.n10)/((X.n10 + X.n11) * (X.n00 + X.n10)))/LOG(units));
+			q := (x.n00/total_doc) * (LOG((total_doc * X.n00)/((X.n00 + X.n01) * (X.n00 + X.n10)))/LOG(units));
+			SELF.mi := m + o + p + q;
+		END;
+		dMI := PROJECT(tDocCount,CalcMI(LEFT,cAll));
+
+		RETURN dMI;
+	END;
+
   //-------------------------------------------------------------------------
   // Support for a set of ngrams is the ratio of the number of documents that
   // contain all the items in the set compared to the total document count.
