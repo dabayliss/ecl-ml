@@ -187,6 +187,44 @@ EXPORT REAL8 lowerGamma(REAL8 x, REAL8 y)	:= BEGINC++
 ENDC++;
 
 /*
+	return the upper incomplete gamma value of two real numbers, x and y
+*/
+EXPORT REAL8 upperGamma(REAL8 x, REAL8 y)	:= BEGINC++
+	#include <math.h>
+	double n,r,s,ga,t,gim;
+	int k;
+
+	if ((x < 0.0) || (y < 0)) return 0;
+	n = -y+x*log(y);
+
+	if (y == 0.0) {
+		gim = exp(gamma(x));
+		return gim;
+	}
+
+	if (y <= 1.0+x) {
+		s = 1.0/x;
+		r = s;
+		for (k=1;k<=100;k++) {
+			r *= y/(x+k);
+			s += r;
+			if (fabs(r/s) < 1e-15) break;
+		}
+
+	ga = exp(gamma(x));
+	gim = ga-(exp(n)*s);
+	}
+	else {
+		t = 0.0;
+		for (k=100;k>=1;k--) {
+			t = (k-x)/(1.0+(k/(y+t)));
+		}
+		gim = exp(n)/(y+t);
+	}
+	return gim;
+ENDC++;
+
+/*
 	return the beta value of two real numbers, x and y
 */
 EXPORT Beta(REAL8 x, REAL8 y) := FUNCTION
