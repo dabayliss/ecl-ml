@@ -1,4 +1,4 @@
-IMPORT ML;
+﻿IMPORT ML;
 IMPORT * FROM $;
 IMPORT $.Mat;
 /*
@@ -589,14 +589,33 @@ EXPORT Logistic(REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIte
 	END;
 		
 	END; // Logistic Module
+	
+
+/* From Wikipedia: 
+http://en.wikipedia.org/wiki/Decision_tree_learning#General
+... Decision tree learning is a method commonly used in data mining. 
+The goal is to create a model that predicts the value of a target variable based on several input variables.
+... A tree can be "learned" by splitting the source set into subsets based on an attribute value test. 
+This process is repeated on each derived subset in a recursive manner called recursive partitioning. 
+The recursion is completed when the subset at a node has all the same value of the target variable,
+or when splitting no longer adds value to the predictions. 
+This process of top-down induction of decision trees (TDIDT) [1] is an example of a greedy algorithm,
+ and it is by far the most common strategy for learning decision trees from data, but it is not the only strategy.
+*/
 	EXPORT split_Algorithm := ENUM(GiniImpurity, InfoGainRatio, Other); // Constant for different Splittting Criteria
 	EXPORT DecisionTree(split_Algorithm splitAlg) := MODULE(DEFAULT)
+/*
+	The module can learn using different splitting algorithms, and return a model.
+	The Decision Tree (model) has the same structure independently of which split algorithm was used. 
+	The model  is used to predict the class from new examples.
+*/
 		SHARED splAlg:= splitAlg;
 		EXPORT model_Map :=	DATASET([{'id','ID'},{'node_id','1'},{'level','2'},{'number','3'},{'value','4'},{'new_node_id','5'}], {STRING orig_name; STRING assigned_name;});
 // Function to learn from a discrete dataset, prepared to use various splitting criteria
 	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep) := FUNCTION
 			nodes := CASE(splAlg,
-				split_Algorithm.GiniImpurity => ML.Trees.SplitsGiniImpurBased(Indep, Dep), // So far the only one implemented
+				split_Algorithm.GiniImpurity => ML.Trees.SplitsGiniImpurBased(Indep, Dep), 
+				split_Algorithm.InfoGainRatio => ML.Trees.SplitsInfoGainRatioBased(Indep, Dep),
 				split_Algorithm.Other => ML.Trees.SplitsGiniImpurBased(Indep, Dep, 1));    // calling giniImpurity with different parameters
 			AppendID(nodes, id, model);
 			STRING model_fields := 'node_id,level,number,value,new_node_id';	// need to use field map to call FromField later 
