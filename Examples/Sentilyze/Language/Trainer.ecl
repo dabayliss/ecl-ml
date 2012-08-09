@@ -4,7 +4,7 @@
 * rank-ordered unigrams categorized by language
 * (-1 = Non-English, 1 = English)
 ***********************************************/
-IMPORT Sentilyze;
+IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
 rNorm := RECORD

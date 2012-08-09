@@ -5,7 +5,7 @@
 * with specified Language 
 * (-1 = Non-English, 1 = English)
 ***********************************************/
-IMPORT Sentilyze;
+IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
 EXPORT Classify(DATASET(Sentilyze.Types.TweetType) T, INTEGER1 N=1) := FUNCTION		

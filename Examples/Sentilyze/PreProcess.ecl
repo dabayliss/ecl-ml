@@ -3,7 +3,7 @@
 * DESCRIPTION: Pre-processes noisy data for 
 * sentiment classification
 ***********************************************/
-IMPORT Sentilyze;
+IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT std.Str as Str;
 IMPORT ML;
 

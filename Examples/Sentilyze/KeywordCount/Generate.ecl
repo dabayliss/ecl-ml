@@ -4,7 +4,7 @@
 * DESCRIPTION: Generates keywords from a TweetType
 * record set containing tweets.
 ***********************************************/
-IMPORT Sentilyze;
+IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
 EXPORT Generate(DATASET(Sentilyze.Types.TweetType) T,UNSIGNED nWords=100)	:= MODULE
@@ -17,8 +17,8 @@ EXPORT Generate(DATASET(Sentilyze.Types.TweetType) T,UNSIGNED nWords=100)	:= MOD
 	
 	EXPORT Keywords_TFIDF := FUNCTION
 		r_tfidf	:= RECORD
-		STRING ngram;
-		REAL tf_idf;
+			STRING ngram;
+			REAL tf_idf;
 		END;
 
 		r_tfidf	Calc_tfidf(ML.Docs.CoLocation.NGramsLayout L)	:= TRANSFORM
