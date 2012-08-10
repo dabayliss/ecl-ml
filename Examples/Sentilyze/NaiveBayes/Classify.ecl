@@ -1,11 +1,11 @@
-/*****************************************************
+﻿/*****************************************************
 * SENTILYZE - TWITTER SENTIMENT CLASSIFICATION
 * NAIVE BAYES CLASSIFIER - CLASSIFY
 * DESCRIPTION: Takes a dataset of tweets and runs it
 * through the classifier using the model built in 
 * NaiveBayes.Model
 ******************************************************/
-IMPORT Sentilyze;
+IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
 EXPORT Classify(DATASET(Sentilyze.Types.TweetType) T) := FUNCTION

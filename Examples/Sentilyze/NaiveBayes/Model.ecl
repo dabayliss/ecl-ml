@@ -1,11 +1,11 @@
-/*****************************************************
+﻿/*****************************************************
 * SENTILYZE - TWITTER SENTIMENT CLASSIFICATION
 * NAIVE BAYES CLASSIFIER - Model
 * DESCRIPTION: Creates a model for the ECL-ML 
 * Naive Bayes classifier from two datasets of 
 * positive and negative tagged tweets. 
 ******************************************************/
-IMPORT Sentilyze;
+IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
 ML.Types.NumericField IntoMatrix(ML.Docs.Types.OWordElement L) := TRANSFORM

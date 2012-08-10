@@ -4,7 +4,7 @@
 * of similar words and to expand an
 * existing dataset with similar words
 **************************************************/
-IMPORT Sentilyze;
+IMPORT Examples.Sentilyze AS Sentilyze;
 
 EXPORT Query := MODULE
 	SHARED	WordNet		:= Sentilyze.WordNet;

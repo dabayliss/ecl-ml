@@ -6,7 +6,7 @@
 * or negative sentiment. 
 * (-1 = Negative, 1 = Positive)
 ***********************************************/
-IMPORT Sentilyze;
+IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
 EXPORT Classify(DATASET(Sentilyze.Types.TweetType) T)	:= FUNCTION
