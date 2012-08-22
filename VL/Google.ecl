@@ -3,24 +3,28 @@
 // then processing it through Google Charts
 //---------------------------------------------------------------------------
 IMPORT VL;
-EXPORT Google(STRING sName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p=VL.Styles.Default):=MODULE
-  SHARED STRING sChartName:='GOOGLECHART_'+sName;
-  SHARED FormatChartData(DATASET(VL.Types.ChartData) d,STRING sChartType='Std'):=FUNCTION
+EXPORT Google:=MODULE
+  // Function takes data formatted in the standard cartesian format and
+  // constructs the string that will be plugged into the template
+  SHARED STRING FormatChartData(DATASET(VL.Types.CartesianData) d,STRING sChartType='Std'):=FUNCTION
     #UNIQUENAME(i)
     bNumericX:=sChartType IN ['Scatter'];
     dSequenced:=PROJECT(d(series!=''),TRANSFORM({UNSIGNED %i%;RECORDOF(d);},SELF.%i%:=COUNTER;SELF:=LEFT;));
     dFieldNames:=SORT(TABLE(dSequenced,{STRING s:='{id:\''+TRIM(series)+'\',label:\''+TRIM(series)+'\',type:\'number\'}';UNSIGNED %i%:=MIN(%i%);},series),%i%);
     dFieldLine:=ROLLUP(dFieldNames,LEFT.s!=RIGHT.s,TRANSFORM(RECORDOF(dFieldNames),SELF.s:=LEFT.s+','+RIGHT.s;SELF:=LEFT;));
-    sFieldNames:='var data=new google.visualization.DataTable({cols:[{id:\''+d(series='')[1].segment+'\',label:\''+d(series='')[1].segment+'\',type:'+IF(bNumericX,'\'number\'','\'string\'')+'},'+dFieldLine[1].s+'],';
+    sFieldNames:='{cols:[{id:\''+d(series='')[1].segment+'\',label:\''+d(series='')[1].segment+'\',type:'+IF(bNumericX,'\'number\'','\'string\'')+'},'+dFieldLine[1].s+'],';
     dFieldData:=SORT(TABLE(dSequenced,{dSequenced;STRING s:='{v:'+(STRING)val+'}';}),segment,%i%);
     dSegmentPrep01:=ROLLUP(dFieldData,LEFT.segment=RIGHT.segment,TRANSFORM(RECORDOF(dFieldData),SELF.s:=LEFT.s+','+RIGHT.s;SELF:=LEFT;));
     dSegmentPrep02:=PROJECT(dSegmentPrep01,TRANSFORM({STRING s;UNSIGNED %i%;},SELF.s:='{c:[{v:'+IF(bNumericX,'','\'')+TRIM(LEFT.segment)+IF(bNumericX,'','\'')+'},'+LEFT.s+']}';SELF:=LEFT;));
     dSegments:=ROLLUP(SORT(dSegmentPrep02,%i%),LEFT.s!=RIGHT.s,TRANSFORM(RECORDOF(dSegmentPrep02),SELF.s:=LEFT.s+','+RIGHT.s;SELF:=LEFT;));
-    sWithSegments:=sFieldNames+'rows:['+dSegments[1].s+']});';
+    sWithSegments:=sFieldNames+'rows:['+dSegments[1].s+']}';
     RETURN sWithSegments;
   END;
-  
-  SHARED ChartOptions(VL.Styles.Default p):=FUNCTION
+
+  // Takes any options specified in the Styles virtual module that relate to
+  // chart-specific options and adds them to a string that will be enveloped
+  // by the template.
+  SHARED STRING ChartOptions(VL.Styles.Default p):=FUNCTION
     sOpt:=''+
       IF(p.Title<>'',',title:"'+p.title+'"','')+
       IF(p.Height>0,',height:'+(STRING)p.height,'')+
@@ -32,28 +36,36 @@ EXPORT Google(STRING sName,DATASET(VL.Types.ChartData) d,VL.Styles.Default p=VL.
     RETURN IF(sOpt='','','var options={'+sOpt[2..]+'};');
   END;
   
-  SHARED PageOptions(VL.Styles.Default p):=FUNCTION
+  // Same as above, but for page-specific options (float, etc).
+  SHARED STRING PageOptions(STRING sChartName,VL.Styles.Default p):=FUNCTION
     sOpt:=''+
       IF(p.Float=VL.Styles.FloatStyles.Left,',float:left',IF(p.Float=VL.Styles.FloatStyles.Right,',float:right',''))+
       IF(p.HTMLAdvanced<>'',','+p.HTMLAdvanced,'');
     RETURN IF(sOpt='','','div.'+sChartName+' {' + sOpt[2..] + '}');
   END;
-  
-  // The four basic strings that are constructed as replacement strings in the
-  // XSLT translator.
-  SHARED dData(STRING sChartType='Std'):=DATASET([{'DATA',FormatChartData(d,sChartType)}],VL.Types.ChartInterface);
-  SHARED dChart(STRING sChartType):=DATASET([{'CHARTCALL','var chart=new google.visualization.'+sChartType+'(document.getElementById(\''+sChartName+'\'));chart.draw(data,options);'}],VL.Types.ChartInterface);
-  SHARED dChartOptions:=DATASET([{'OPTIONS',ChartOptions(p)}],VL.Types.ChartInterface);
-  SHARED dPageOptions:=DATASET([{'STYLES',PageOptions(p)}],VL.Types.ChartInterface);
 
-  // The Graphs that are available for processing
-  EXPORT Pie:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('PieChart'),NAMED(sChartName));
-  EXPORT Line:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('LineChart'),NAMED(sChartName));
-  EXPORT Bar:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('BarChart'),NAMED(sChartName));
-  EXPORT Column:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('ColumnChart'),NAMED(sChartName));
-  EXPORT Combo:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('ComboChart'),NAMED(sChartName));
-  EXPORT Area:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('AreaChart'),NAMED(sChartName));
-  EXPORT Scatter:=OUTPUT(dData('Scatter')+dChartOptions+dPageOptions+dChart('ScatterChart'),NAMED(sChartName));
-  EXPORT Geo:=OUTPUT(dData()+dChartOptions+dPageOptions+dChart('GeoChart'),NAMED(sChartName));
+  // Function takes the variable elements and wraps them into the default
+  // template used to produce Google Charts
+  SHARED STRING DefaultTemplate(STRING sChartType,STRING sChartName,DATASET(VL.Types.CartesianData) d,VL.Styles.Default s):=''+
+    '<html><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">'+
+    '<title>Google Chart Visualization</title>'+
+    '<style type="text/css">'+PageOptions(sChartName,s)+'</style>'+
+    '<script type="text/javascript" src="http://www.google.com/jsapi"></script>'+
+    '<script type="text/javascript">'+
+    'google.load(\'visualization\', \'1.0\', {packages: [\'corechart\', \'geochart\', \'annotatedtimeline\', \'table\', \'motionchart\', \'ImageSparkLine\']});'+
+    'google.setOnLoadCallback(draw'+sChartName+');'+
+    'function draw'+sChartName+'(){'+
+    'var data=new google.visualization.DataTable('+FormatChartData(d,IF(sChartType='ScatterChart','Scatter','Std'))+');'+ChartOptions(s)+
+    'var chart=new google.visualization.'+sChartType+'(document.getElementById(\''+sChartName+'\'));chart.draw(data,options);'+
+    '}</script></head><body>'+
+    '<div id="'+sChartName+'" class="'+sChartName+'"></div>'+
+    '</body></html>';
+
+  // The primary function call for Cartesian charts using Google Charts
+  EXPORT Cartesian(STRING sChartType,STRING sChartName,DATASET(VL.Types.CartesianData) d,VL.Styles.Default s=VL.Styles.Default):=FUNCTION
+    RETURN OUTPUT(DATASET([{'CHARTCODE',DefaultTemplate(sChartType,sChartName,d,s)}],VL.Types.ChartInterface),NAMED('CHART_'+sChartName));
+  END;
+
 END;
+
 
