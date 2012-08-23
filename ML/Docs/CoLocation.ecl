@@ -1,4 +1,4 @@
-IMPORT $ AS Docs;
+﻿IMPORT $ AS Docs;
 IMPORT Std.Str AS str;
 EXPORT CoLocation:=MODULE
 
@@ -41,10 +41,10 @@ EXPORT CoLocation:=MODULE
 	// Mutual Information for all words in corpus
 	// dIn :	Documents in class
 	// dOut : Documents not in class
-	// minf : Minimum term frequency for inclusion. Default is 0
+	// minf : [OPTIONAL] Minimum document frequency for inclusion. Default is 1
 	// units : [OPTIONAL] unit of measurement for mutual information. Default is 2 (bits)
 	//-------------------------------------------------------------------------
-	EXPORT MutualInfo(DATASET(Docs.Types.Raw) dIn, DATASET(Docs.Types.Raw) dOut,UNSIGNED minf=0, UNSIGNED units=2)	:= FUNCTION
+	EXPORT MutualInfo(DATASET(Docs.Types.Raw) dIn, DATASET(Docs.Types.Raw) dOut,UNSIGNED minf=1, UNSIGNED units=2)	:= FUNCTION
 		MutualInfoLayout	:= RECORD
 			STRING word;
 			REAL mi;
@@ -63,8 +63,8 @@ EXPORT CoLocation:=MODULE
 		cAll := cOut + cIn;
 		dInLexicon := Docs.Tokenize.Lexicon(Docs.Tokenize.Split(Docs.Tokenize.Clean(dIn)));
 		dOutLexicon := Docs.Tokenize.Lexicon(Docs.Tokenize.Split(Docs.Tokenize.Clean(dOut)));
-		dInN := PROJECT(dInLexicon(total_words >= minf),TRANSFORM(rDocCount,SELF.word := LEFT.word,SELF.n11 := LEFT.total_docs,SELF.n01 := cIn - LEFT.total_docs));
-		dOutN := PROJECT(dOutLexicon(total_words >= minf),TRANSFORM(rDocCount,SELF.word := LEFT.word,SELF.n00 := cOut - LEFT.total_docs,SELF.n10 := LEFT.total_docs));
+		dInN := PROJECT(dInLexicon,TRANSFORM(rDocCount,SELF.word := LEFT.word,SELF.n11 := LEFT.total_docs,SELF.n01 := cIn - LEFT.total_docs));
+		dOutN := PROJECT(dOutLexicon,TRANSFORM(rDocCount,SELF.word := LEFT.word,SELF.n00 := cOut - LEFT.total_docs,SELF.n10 := LEFT.total_docs));
 		dDocN	:= dInN + dOutN;
 
 		rRollup := RECORD
@@ -74,8 +74,15 @@ EXPORT CoLocation:=MODULE
 			n00 := SUM(GROUP,dDocN.n00);
 			n01 := SUM(GROUP,dDocN.n01);
 		END;
+		rRollup AdjDocCount(rRollup X) := TRANSFORM
+			SELF.word := IF(X.n11+X.n10 >= minf,X.word,SKIP);
+			SELF.n01 := IF(X.n11 = 0,cIn,X.n01);
+			SELF.n00 := IF(X.n10 = 0,cOut,X.n00);
+			SELF := X;
+		END;
 
-		tDocCount := TABLE(dDocN,rRollup,word,MERGE);
+		tDocCount := PROJECT(TABLE(dDocN,rRollup,word,MERGE),AdjDocCount(LEFT));
+
 		MutualInfoLayout CalcMI(rRollup X, UNSIGNED total_doc) := TRANSFORM
 			SELF.word := X.word;
 			m := (X.n11/total_doc) * (LOG((total_doc * X.n11)/((X.n11 + X.n10) * (X.n01 + X.n11)))/LOG(units));
