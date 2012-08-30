@@ -1,28 +1,29 @@
 ﻿/**********************************************
 * SENTILYZE: LANGUAGE CLASSIFIER - CLASSIFY
-* DESCRIPTION: takes a TweetType record set and
-* outputs a LanguageType record set of all tweets
-* with specified Language 
-* (-1 = Non-English, 1 = English)
+* DESCRIPTION: takes a Raw record set and
+* outputs a Raw record set of all tweets
+* with specified Language Group
+* (N = -1 or 1)
 ***********************************************/
 IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
-EXPORT Classify(DATASET(Sentilyze.Types.TweetType) T, INTEGER1 N=1) := FUNCTION		
+EXPORT Classify(DATASET(ML.Docs.Types.Raw) T, INTEGER1 N=1) := FUNCTION
 
-	LanguageType := Sentilyze.Types.LanguageType;
-	TokenType := ML.Docs.Types.WordElement;
+	rLangId := RECORD
+		UNSIGNED id;
+		INTEGER1 Language;
+	END;
 
 	rShortRank := RECORD
-		STRING NGram;
+		STRING Word;
 		UNSIGNED InternalRank;
 		UNSIGNED OverallRank;
-		UNSIGNED1 Language;
+		INTEGER1 Language;
 	END;
 
 	rOverRank := RECORD
-		STRING NGram;
-		UNSIGNED NGramCount;
+		STRING Word;
 		INTEGER1 Language;
 		UNSIGNED InternalRank;
 		REAL InternalFreq;
@@ -30,48 +31,41 @@ EXPORT Classify(DATASET(Sentilyze.Types.TweetType) T, INTEGER1 N=1) := FUNCTION
 		REAL OverallFreq;
 	END;
 
-	rShortRank ExtractLanguage(TokenType L,rOverRank R) := TRANSFORM
-		SELF.Ngram := L.Word;
+	rShortRank GetLanguage(ML.Docs.Types.WordElement L,rOverRank R) := TRANSFORM
+		SELF.Word := L.Word;
 		SELF.InternalRank := R.InternalRank;
 		SELF.OverallRank := R.OverallRank;
 		SELF.Language := R.Language;
 	END;
 
-	rShortRank MineLanguage(rShortRank R1,rShortRank R2) := TRANSFORM
-		SELF.Ngram := R1.NGram;
+	rShortRank SetLanguage(rShortRank R1,rShortRank R2) := TRANSFORM
+		SELF.Word := R1.Word;
 		SELF.InternalRank := 0;
 		SELF.OverallRank := 0;
 		SELF.Language := MAP(R1.OverallRank < R2.OverallRank => R1.Language,
 				     R1.OverallRank = R2.OverallRank =>IF(R1.InternalRank < R2.InternalRank,R1.Language,R2.Language),R2.Language);
 	END;
 
-	LanguageType MatchTags(ML.Docs.Types.WordElement L, rShortRank R) := TRANSFORM
+	rLangId JoinTags(ML.Docs.Types.WordElement L, rShortRank R) := TRANSFORM
 		SELF.Id := L.id;
-		SELF.Tweet := L.word;
 		SELF.Language := R.language;
 	END;
 
-	LanguageType SumTags(LanguageType L, LanguageType R) := TRANSFORM
-		SELF.Id := L.Id;
-		SELF.Tweet := L.Tweet;
-		SELF.language := L.language + R.language;	
-	END;
-
-	LanguageType FinalTag(ML.Docs.Types.Raw L, LanguageType R) := TRANSFORM
+	Sentilyze.Types.LanguageType Tag(ML.Docs.Types.Raw L, rLangId R) := TRANSFORM
 		SELF.Id := L.Id;
 		SELF.Tweet := L.Txt;
 		SELF.language := IF(R.language > 0,1,-1);
 	END;
 
-	dProcess := Sentilyze.PreProcess.ToRaw(Sentilyze.PreProcess.ForAnalysis(T));
-	dTokens	:= ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dProcess)); 
-	dDedup	:= DEDUP(dTokens,LEFT.word = RIGHT.word,ALL);
-	dTagged	:= JOIN(dDedup,Sentilyze.Language.Trainer,LEFT.Word = RIGHT.Ngram,ExtractLanguage(LEFT,RIGHT));
-	dRollupNgrams := ROLLUP(SORT(dTagged,NGram),LEFT.Ngram = RIGHT.Ngram,MineLanguage(LEFT,RIGHT));
-	dTokenTagged := JOIN(dTokens,dTagged,LEFT.word = RIGHT.ngram,MatchTags(LEFT,RIGHT));
-	dRollupTweets := ROLLUP(SORT(dTokenTagged,id),LEFT.id = RIGHT.id,SumTags(LEFT,RIGHT));
-	dClassified := JOIN(dProcess,dRollupTweets,LEFT.Id = RIGHT.Id,FinalTag(LEFT,RIGHT));
-	dReturn := PROJECT(dClassified(Language=N),TRANSFORM(Sentilyze.Types.TweetType,SELF.tweet := LEFT.tweet));
+	dTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(T));
+	dDedup := DEDUP(dTokens,LEFT.word = RIGHT.word,ALL);
+	dGetTags := JOIN(dDedup,Sentilyze.Language.Trainer,LEFT.Word = RIGHT.Word,GetLanguage(LEFT,RIGHT));
+	dRollup := ROLLUP(SORT(dGetTags,Word),LEFT.Word = RIGHT.Word,SetLanguage(LEFT,RIGHT));
+	dTagTokens := JOIN(dTokens,dGetTags,LEFT.word = RIGHT.word,JoinTags(LEFT,RIGHT));
+	rRollupTags := {dTagTokens.id,INTEGER1 language := SUM(GROUP,dTagTokens.language)};
+	dRollupTags := TABLE(dTagTokens,rRollupTags,id,MERGE);
+	dTagged := JOIN(T,dRollupTags,LEFT.Id = RIGHT.Id,Tag(LEFT,RIGHT));
+	dReturn := PROJECT(dTagged(Language=N),TRANSFORM(ML.Docs.Types.Raw,SELF.txt := LEFT.tweet;SELF := LEFT));
 
 	RETURN dReturn;
 END;
