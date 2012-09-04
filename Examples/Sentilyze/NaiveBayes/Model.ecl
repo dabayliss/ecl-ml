@@ -1,4 +1,4 @@
-﻿/*****************************************************
+/*****************************************************
 * SENTILYZE - TWITTER SENTIMENT CLASSIFICATION
 * NAIVE BAYES CLASSIFIER - Model
 * DESCRIPTION: Creates a model for the ECL-ML 
@@ -8,42 +8,59 @@
 IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
-ML.Types.NumericField IntoMatrix(ML.Docs.Types.OWordElement L) := TRANSFORM
-	SELF.id := L.id;
-	SELF.number := L.word;
-	SELF.value := L.words_in_doc;
+rTrainer := RECORD
+	UNSIGNED id;
+	UNSIGNED word;
+	UNSIGNED1 words_in_doc;
+	INTEGER1 sentiment;
 END;
 
-dPosiTrainer := DATASET('~SENTILYZE::TRAINER::POSITIVE',Sentilyze.Types.TweetType,CSV);
-dNegaTrainer := DATASET('~SENTILYZE::TRAINER::NEGATIVE',Sentilyze.Types.TweetType,CSV);
-dStopwords := DATASET('~SENTILYZE::TRAINER::STOPWORDS',Sentilyze.Types.WordType,CSV);
-dPosiEnglish := Sentilyze.Language.Classify(dPosiTrainer,1);
-dNegaEnglish := Sentilyze.Language.Classify(dNegaTrainer,1);
-dPosiRaw := Sentilyze.PreProcess.ToRaw(Sentilyze.PreProcess.ForTraining(dPosiEnglish));
-dNegaRaw := Sentilyze.PreProcess.ToRaw(Sentilyze.PreProcess.ForTraining(dNegaEnglish));
-nPosiCount := COUNT(dPosiRaw);
-SentiMerge := PROJECT((dPosiRaw + dNegaRaw),TRANSFORM(ML.Docs.Types.Raw,SELF.id := COUNTER, SELF.txt := LEFT.txt));
-SentiWords := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(SentiMerge));
-SentiStop := JOIN(SentiWords,dStopwords,LEFT.word = RIGHT.word,TRANSFORM(LEFT),LEFT ONLY);
+rTrainer ToTrainer(ML.Docs.Types.OWordElement L,Sentilyze.Types.SentimentType R) := TRANSFORM
+	SELF.words_in_doc := L.words_in_doc;
+	SELF.sentiment := R.sentiment;
+	SELF := L;
+END;
 
-// Vocabulary
-Senticon := ML.Docs.Tokenize.Lexicon(SentiStop);
+// FILE STRING DEFINITIONS
+sPosiTrainer := '~SENTILYZE::TRAINER::POSITIVE'; //Logical File Name of Positive Tweets
+sNegaTrainer := '~SENTILYZE::TRAINER::NEGATIVE'; //Logical File Name of Negative Tweets
+sModelPersist := '~SENTILYZE::PERSIST::TRAINER::MODEL'; //Logical File Name of Classifier Model
+sVocabPersist := '~SENTILYZE::PERSIST::TRAINER::VOCABULARY'; //Logical File Name of Classifier Vocabulary
 
-// Wordbag	
-SentiO1 := ML.Docs.Tokenize.ToO(SentiStop,Senticon);
+//Pre-Process Training Data
+dPosiTrainer := DATASET(sPosiTrainer,Sentilyze.Types.TweetType,CSV);
+dPosiRaw := Sentilyze.PreProcess.ToRaw(dPosiTrainer);
+dPosiProcess := Sentilyze.PreProcess.ForTraining(dPosiRaw);
+dPosiLanguage := Sentilyze.Language.Classify(dPosiProcess);
+dPosiTagged := PROJECT(dPosiLanguage,TRANSFORM(Sentilyze.Types.SentimentType,SELF.id := LEFT.id;SELF.tweet := LEFT.txt;SELF.sentiment := 1));
+
+dNegaTrainer := DATASET(sNegaTrainer,Sentilyze.Types.TweetType,CSV);
+dNegaRaw := Sentilyze.PreProcess.ToRaw(dNegaTrainer);
+dNegaProcess := Sentilyze.PreProcess.ForTraining(dNegaRaw);
+dNegaLanguage := Sentilyze.Language.Classify(dNegaProcess);
+dNegaTagged := PROJECT(dNegaLanguage,TRANSFORM(Sentilyze.Types.SentimentType,SELF.id := LEFT.id;SELF.tweet := LEFT.txt;SELF.sentiment := -1));
+
+SentiMerge := PROJECT((dPosiTagged + dNegaTagged),TRANSFORM(Sentilyze.Types.SentimentType, SELF.id := COUNTER;SELF := LEFT));
+SentiRaw := PROJECT(SentiMerge,TRANSFORM(ML.Docs.Types.Raw,SELF.id := LEFT.id;SELF.txt := LEFT.tweet));
+SentiWords := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(SentiRaw));
+
+//Create Vocabulary
+Senticon := ML.Docs.Tokenize.Lexicon(SentiWords);
+
+//Create Wordbags
+SentiO1 := ML.Docs.Tokenize.ToO(SentiWords,Senticon);
 SentiBag := SORT(ML.Docs.Trans(SentiO1).WordBag,id,word);
+dTrainer := JOIN(Sentibag,SentiMerge,LEFT.id = RIGHT.id,ToTrainer(LEFT,RIGHT));
 
-// Independent and dependent datasets
-independents := PROJECT(SentiBag,IntoMatrix(LEFT));
-ML.ToField(PROJECT(SentiMerge, TRANSFORM({unsigned id , unsigned value}, SELF.id := LEFT.id, SELF.value := IF(LEFT.id > nPosiCount,0,1))),dependents,id,'value'); // 1 for positive, 0 for negative
-independentD := ML.Discretize.ByRounding(independents);
-dependentD := ML.Discretize.ByRounding(dependents);
-
-// Train Classifier
+//Train Classifier
+ML.ToField(dTrainer,nfTrainer);
+dfTrainer := ML.Discretize.ByRounding(nfTrainer);
+dIndependent := dfTrainer(number < 3);
+dDependent := dfTrainer(number = 3);
 Bayes := ML.Classify.NaiveBayes;
-SentiModel := Bayes.LearnD(independentD,dependentD);
+SentiModel := Bayes.LearnD(dIndependent,dDependent);
 
 EXPORT Model := MODULE
-	EXPORT Vocab := Senticon:PERSIST('~SENTILYZE::PERSIST::TRAINER::VOCABULARY');
-	EXPORT Model := SentiModel:PERSIST('~SENTILYZE::PERSIST::TRAINER::MODEL');
+	EXPORT Vocab := Senticon:PERSIST(sVocabPersist);
+	EXPORT Model := SentiModel:PERSIST(sModelPersist);
 END;

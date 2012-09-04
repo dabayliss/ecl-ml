@@ -1,32 +1,22 @@
 ﻿/**********************************************
 * SENTILYZE: LANGUAGE CLASSIFIER TRAINER
-* DESCRIPTION: creates a record set of 
+* DESCRIPTION: creates a record set of
 * rank-ordered unigrams categorized by language
-* (-1 = Non-English, 1 = English)
+* (-1 = Discard, 1 = Keep)
 ***********************************************/
 IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
-rNorm := RECORD
-	STRING		NGram;
-	UNSIGNED	NGramCount;
-	INTEGER1	Language;	//-1 is Non-English, 1 is English
-	UNSIGNED	InternalRank;
-	REAL		InternalFreq;
-END;
-
-rOverFreq := RECORD
-	STRING		NGram;
-	UNSIGNED	NGramCount;
-	INTEGER1	Language;
-	UNSIGNED	InternalRank;
-	REAL			InternalFreq;
-	REAL			OverallFreq;
+rIntRank := RECORD
+	STRING Word;
+	UNSIGNED WordCount;
+	INTEGER1 Language; //-1 is language to discard, 1 is language to keep
+	UNSIGNED InternalRank;
+	REAL InternalFreq;
 END;
 
 rOverRank := RECORD
-	STRING NGram;
-	UNSIGNED NGramCount;
+	STRING Word;
 	INTEGER1 Language;
 	UNSIGNED InternalRank;
 	REAL InternalFreq;
@@ -34,60 +24,64 @@ rOverRank := RECORD
 	REAL OverallFreq;
 END;
 
-rOverRank RankOverall(rOverFreq L, UNSIGNED C, REAL MaxFreq) := TRANSFORM
-	SELF.NGram := L.NGram;
-	SELF.NGramCount := L.NGramCount;
-	SELF.Language := L.Language;
-	SELF.InternalRank := L.InternalRank;
-	SELF.InternalFreq := L.InternalFreq;
-	SELF.OverallRank := C;
-	SELF.OverallFreq := (L.OverallFreq/MaxFreq)+1
-END;
-
-
 /*
 Assigns Sorted NGram Dataset a Rank Number, 1 being the most frequent
 Normalizes frequency values by dividing freq by highest frequency of
-dataset and added 1. (H/T to Pace University)
+dataset and adding 1. (H/T to Ahmed et al. at Pace University)
 */
-rNorm NormalizeRank(ML.Docs.CoLocation.NGramsLayout L, UNSIGNED C, REAL MaxFreq, UNSIGNED1 Language)	:= TRANSFORM
-	SELF.NGram := L.NGram;
-	SELF.NGramCount := L.DocCount;
+
+rIntRank InternalRank(ML.Docs.Types.LexiconElement L,REAL MaxTotal, UNSIGNED1 Language, UNSIGNED C)	:= TRANSFORM
+	SELF.word := L.word;
+	SELF.WordCount := L.total_words;
 	SELF.Language := Language;
 	SELF.InternalRank := C;
-	SELF.InternalFreq := (L.Pct/MaxFreq) + 1;
+	SELF.InternalFreq := (L.total_words/MaxTotal) + 1;
 END;
 
-rOverFreq OverallFreq(rNorm L, UNSIGNED ngramNum)	:= TRANSFORM
-	SELF.OverallFreq := L.NGramCount/ngramNum;
+rIntRank NormInternalRank(rIntRank L, rIntRank R, UNSIGNED C)	:= TRANSFORM
+	SELF.InternalRank := IF(L.InternalFreq = R.InternalFreq,L.InternalRank,C);
+	SELF := R;
+END;
+
+rOverRank OverallFreq(rIntRank L, UNSIGNED MaxTotal, UNSIGNED C)	:= TRANSFORM
+	SELF.OverallRank := C;
+	SELF.OverallFreq := (L.WordCount/MaxTotal) + 1;
 	SELF := L;
 END;
 
+rOverRank NormOverallRank(rOverRank L, rOverRank R, UNSIGNED C) := TRANSFORM
+	SELF.OverallRank := IF(L.OverallFreq = R.OverallFreq,L.OverallRank,C);
+	SELF := R;
+END;
+
+// FILE STRING DEFINITIONS
+sKeep := '~SENTILYZE::TRAINER::KEEP'; //Logical File Name of Tweets of Language to Keep
+sDiscard := '~SENTILYZE::TRAINER::DISCARD'; //Logical File Name of Tweets of Language to Discard
+sTrainer := '~SENTILYZE::PERSIST::TRAINER::LANGUAGE'; //Logical File Name of Language Classifier Trainer
+
 // DEFINITIONS
+dKeep := DATASET(sKeep,Sentilyze.Types.TweetType,CSV);
+dKeepRaw := Sentilyze.PreProcess.ToRaw(dKeep);
+dKeepProcess := Sentilyze.PreProcess.ForTraining(dKeepRaw);
+dKeepTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dKeepProcess));
+dKeepLexicon := ML.Docs.Tokenize.Lexicon(dKeepTokens);
+nKeepMax := MAX(dKeepLexicon,dKeepLexicon.total_words);
+dKeepRank := PROJECT(dKeepLexicon,InternalRank(LEFT,nKeepMax,1,COUNTER));
+dKeepNorm := ITERATE(dKeepRank,NormInternalRank(LEFT,RIGHT,COUNTER));
 
-dEng := DATASET('~SENTILYZE::TRAINER::ENGLISH',Sentilyze.Types.TweetType,CSV);
-dEngProcess := Sentilyze.PreProcess.ToRaw(Sentilyze.PreProcess.ForTraining(dEng));
-dEngTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dEngProcess));
-dEngNGrams := ML.Docs.CoLocation.AllNGrams(dEngTokens);
-dEngStats := ML.Docs.CoLocation.NGrams(dEngNGrams);
-dEngSort := SORT(dEngStats,-DocCount);
-nEngMax := MAX(dEngSort,dEngSort.pct);
-dEngNorm := PROJECT(dEngSort,NormalizeRank(LEFT,COUNTER,nEngMax,1));
+dDiscard := DATASET(sDiscard,Sentilyze.Types.TweetType,CSV);
+dDiscardRaw := Sentilyze.PreProcess.ToRaw(dDiscard);
+dDiscardProcess := Sentilyze.PreProcess.ForTraining(dDiscardRaw);
+dDiscardTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dDiscardProcess));
+dDiscardLexicon := ML.Docs.Tokenize.Lexicon(dDiscardTokens);
+nDiscardMax := MAX(dDiscardLexicon,dDiscardLexicon.total_words);
+dDiscardRank := PROJECT(dDiscardLexicon,InternalRank(LEFT,nDiscardMax,-1,COUNTER));
+dDiscardNorm := ITERATE(dDiscardRank,NormInternalRank(LEFT,RIGHT,COUNTER));
 
-dNon := DATASET('~SENTILYZE::TRAINER::NONENGLISH',Sentilyze.Types.TweetType,CSV);
-dNonProcess := Sentilyze.PreProcess.ToRaw(Sentilyze.PreProcess.ForTraining(dNon));
-dNonTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dNonProcess));
-dNonNGrams := ML.Docs.CoLocation.AllNGrams(dNonTokens);
-dNonStats := ML.Docs.CoLocation.NGrams(dNonNGrams);
-dNonSort := SORT(dNonStats,-DocCount);
-nNonMax := MAX(dNonSort,dNonSort.pct);
-dNonNorm := PROJECT(dNonSort,NormalizeRank(LEFT,COUNTER,nNonMax,-1));
 
-dMerge := dEngNorm + dNonNorm;
-nCount := COUNT(dMerge);
-dFreq := PROJECT(dMerge,OverallFreq(LEFT,nCount));
-dFreqSort := SORT(dFreq,-OverallFreq,-InternalFreq);
-nFreqMax := MAX(dFreqSort,dFreqSort.OverallFreq);
-dRank := PROJECT(dFreqSort,RankOverall(LEFT,COUNTER,nFreqMax));
+dMerge := dKeepNorm + dDiscardNorm;
+nWordMax := MAX(dMerge,dMerge.WordCount);
+dMergeFreq := SORT(PROJECT(dMerge,OverallFreq(LEFT,nWordMax,COUNTER)),-overallfreq,-internalfreq);
+dRank := ITERATE(dMergeFreq,NormOverallRank(LEFT,RIGHT,COUNTER));
 
-EXPORT Trainer	:= dRank:PERSIST('~SENTILYZE::PERSIST::TRAINER::LANGUAGE');
+EXPORT Trainer := dRank:PERSIST(sTrainer);
