@@ -10,15 +10,13 @@ IMPORT ML;
 
 EXPORT Classify(DATASET(ML.Docs.Types.Raw) T) := FUNCTION
 
-	rClassify := RECORD
-		UNSIGNED id;
-		UNSIGNED word;
-		UNSIGNED words_in_doc;
-	END;
-
-	rClassify ToClassify(ML.Docs.Types.OWordElement L) := TRANSFORM
-		SELF.words_in_doc := L.words_in_doc;
-		SELF := L;
+	ML.Types.NumericField ToIndep(ML.Docs.Types.OWordElement L) := TRANSFORM
+	//Takes relevant data from ML.Docs.Trans.Wordbag
+	//and converts to numericfield
+		SELF.id := L.id;
+		SELF.number := L.word;
+		//Depending on NB Model value is either words_in_doc (term frequency) or 1 (term presence)
+		SELF.value := L.words_in_doc;
 	END;
 
 	Sentilyze.Types.SentimentType TagWithPolarity(ML.Docs.Types.Raw L, INTEGER1 P)	:= TRANSFORM
@@ -28,8 +26,7 @@ EXPORT Classify(DATASET(ML.Docs.Types.Raw) T) := FUNCTION
 	END;
 
 	//Pre-Process Tweets
-	dProcess := Sentilyze.PreProcess.ForAnalysis(T);
-	dLanguage := Sentilyze.Language.Classify(dProcess);
+	dLanguage := Sentilyze.Language.Classify(T);
 	dTokens	:= ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dLanguage));
 
 	//Get Vocabulary and Model
@@ -39,12 +36,11 @@ EXPORT Classify(DATASET(ML.Docs.Types.Raw) T) := FUNCTION
 	//Create Wordbag with Vocabulary
 	TweetO1	:= ML.Docs.Tokenize.ToO(dTokens,TrainVocab);
 	TweetBag := SORT(ML.Docs.Trans(TweetO1).WordBag,id,word);
-	dClassify := PROJECT(TweetBag,ToClassify(LEFT));
-	ML.ToField(dClassify,nfClassify);
-	dfClassify := ML.Discretize.ByRounding(nfClassify);
 
 	//Classify Tweets with model
-	Result := ML.Classify.NaiveBayes.ClassifyD(dfClassify,TrainModel);
+	nfIndep := PROJECT(TweetBag,ToIndep(LEFT));
+	dfIndep := ML.Discretize.ByRounding(nfIndep);
+	Result := ML.Classify.NaiveBayes.ClassifyD(dfIndep,TrainModel);
 	NegaIds := SET(Result (value in [-1]),id);
 	PosiIds := SET(Result (value in [1]),id);
 	NegaSet := PROJECT(T(id in NegaIds),TagWithPolarity(LEFT,-1));
