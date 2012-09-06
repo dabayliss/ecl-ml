@@ -1,4 +1,4 @@
-/*****************************************************
+﻿/*****************************************************
 * SENTILYZE - TWITTER SENTIMENT CLASSIFICATION
 * NAIVE BAYES CLASSIFIER - Model
 * DESCRIPTION: Creates a model for the ECL-ML 
@@ -8,17 +8,27 @@
 IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
-rTrainer := RECORD
-	UNSIGNED id;
-	UNSIGNED word;
-	UNSIGNED1 words_in_doc;
-	INTEGER1 sentiment;
+ML.Docs.Types.LexiconElement AddOne(ML.Docs.Types.LexiconElement L) := TRANSFORM
+//Increases word_id value by 1
+//This is so the number "1" can be used for the dependent sentiment variable
+	SELF.word_id := L.word_id + 1;
+	SELF := L;
 END;
 
-rTrainer ToTrainer(ML.Docs.Types.OWordElement L,Sentilyze.Types.SentimentType R) := TRANSFORM
-	SELF.words_in_doc := L.words_in_doc;
-	SELF.sentiment := R.sentiment;
-	SELF := L;
+ML.Types.NumericField ToIndep(ML.Docs.Types.OWordElement L) := TRANSFORM
+//Takes relevant data from ML.Docs.Trans.Wordsbag
+//and converts to numericfield
+	SELF.id := L.id;
+	SELF.number := L.word;
+	//Depending on NB Model value is either words_in_doc (term frequency) or 1 (term presence)
+	SELF.value := L.words_in_doc;
+END;
+
+ML.Types.NumericField ToDep(Sentilyze.Types.SentimentType L) := TRANSFORM
+// to extract document ids and sentiment values to a numericfield
+	SELF.id := L.id;
+	SELF.number := 1;
+	SELF.value := L.sentiment;
 END;
 
 // FILE STRING DEFINITIONS
@@ -45,20 +55,18 @@ SentiRaw := PROJECT(SentiMerge,TRANSFORM(ML.Docs.Types.Raw,SELF.id := LEFT.id;SE
 SentiWords := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(SentiRaw));
 
 //Create Vocabulary
-Senticon := ML.Docs.Tokenize.Lexicon(SentiWords);
+Senticon := PROJECT(ML.Docs.Tokenize.Lexicon(SentiWords),AddOne(LEFT));
 
 //Create Wordbags
 SentiO1 := ML.Docs.Tokenize.ToO(SentiWords,Senticon);
 SentiBag := SORT(ML.Docs.Trans(SentiO1).WordBag,id,word);
-dTrainer := JOIN(Sentibag,SentiMerge,LEFT.id = RIGHT.id,ToTrainer(LEFT,RIGHT));
 
 //Train Classifier
-ML.ToField(dTrainer,nfTrainer);
-dfTrainer := ML.Discretize.ByRounding(nfTrainer);
-dIndependent := dfTrainer(number < 3);
-dDependent := dfTrainer(number = 3);
-Bayes := ML.Classify.NaiveBayes;
-SentiModel := Bayes.LearnD(dIndependent,dDependent);
+nfIndep := PROJECT(SentiBag,ToIndep(LEFT));
+dfIndep := ML.Discretize.ByRounding(nfIndep);
+nfDep := DEDUP(JOIN(nfIndep,SentiMerge,LEFT.id = RIGHT.id,ToDep(RIGHT)),LEFT.id = RIGHT.id);
+dfDep := ML.Discretize.ByRounding(nfDep);
+SentiModel := ML.Classify.NaiveBayes.LearnD(dfIndep,dfDep);
 
 EXPORT Model := MODULE
 	EXPORT Vocab := Senticon:PERSIST(sVocabPersist);

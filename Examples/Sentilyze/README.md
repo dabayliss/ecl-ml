@@ -23,7 +23,7 @@ Filters tweets by language using Rank Ordered Unigrams ([Ahmed et al., Pace Univ
 - Synset and Similar data from [Princeton's WordNet](http://wordnet.princeton.edu "Princeton's Wordnet")
 - Tweets
 
-###Aqcuiring and Loading Tweets From Twitter
+###Aqcuiring Tweets From Twitter
 
 ####Format
 The default format for files containing tweets is a Comma Separated Values (CSV) file of twitter statuses terminated with newline characters.
@@ -65,10 +65,29 @@ Datasets of Positive and Negative words are required to train the Keyword Count 
 
 > IMPORT Sentilyze;
 
-> tweetsPositive := DATASET('SENTILYZE::POSITIVE',Sentilyze.Types.TweetType,CSV);
->wordsPositive := Sentilyze.KeywordCount.Generate(tweetsPositive,200).Keywords_tfidf;
+> tweetsPositive := DATASET('~SENTILYZE::POSITIVE',Sentilyze.Types.TweetType,CSV);
 
->OUTPUT(wordsPositive,all,NAMED('Positive Words'));
+> tweetsNegative := DATASET('~SENTILYZE::NEGATIVE',Sentilyze.Types.TweetType,CSV);
+
+> rawPositive := Sentilyze.PreProcess.ToRaw(tweetsPositive);
+
+> rawNegative := Sentilyze.PreProcess.ToRaw(tweetsNegative);
+
+> processPositive := Sentilyze.PreProcess.ForTraining(rawPositive);
+
+> processNegative := Sentilyze.PreProcess.ForTraining(rawNegative);
+
+> positiveWordsTfidf := Sentilyze.KeywordCount.Generate(processPositive,200).Keywords_tfidf;
+
+> negativeWordsTfidf := Sentilyze.KeywordCount.Generate(processNegative,200).Keywords_tfidf;
+
+> sentimentWordsMI := Sentilyze.KeywordCount.Generate(processPositive,200).Keywords_MI(processNegative);
+
+>OUTPUT(positiveWordsTfidf,all,NAMED('PositiveTfidf_Words'));
+
+>OUTPUT(negativeWordsTfidf,all,NAMED('NegativeTfidf_Words'));
+
+>OUTPUT(sentimentWordsMI,all,NAMED('SentimentMI_Words'));
 
 #####Training Keyword Count Classifier
 - Expand the ***KeywordCount*** folder and open ***Trainer.ecl***
@@ -85,13 +104,15 @@ Below is an example of a dataset of tweets that are classified using both Keywor
 
 >rawTweets := Sentilyze.PreProcess.ToRaw(Tweets);
 
->kcSentiment := Sentilyze.KeywordCount.Classify(rawTweets);
+>processTweets := Sentilyze.PreProcess.ForAnalysis(rawTweets)
 
->nbSentiment := Sentilyze.NaiveBayes.Classify(Tweets);
+>kcSentiment := Sentilyze.KeywordCount.Classify(processTweets);
 
->OUTPUT(kcSentiment,NAMED('Twitter_Sentiment_KeywordCount'));
+>nbSentiment := Sentilyze.NaiveBayes.Classify(processTweets);
 
->OUTPUT(nbSentiment,NAMED('Twitter_Sentiment_NaiveBayes'));
+>OUTPUT(kcSentiment,NAMED('TwitterSentiment_KeywordCount'));
+
+>OUTPUT(nbSentiment,NAMED('TwitterSentiment_NaiveBayes'));
 
 ----------
 
@@ -136,7 +157,28 @@ Sentilyze.KeywordCount.Generate(*recordset[,nWords]*).Keywords_TFIDF
 The ***Keywords_TFIDF*** attribute returns a list of keywords sorted by descending TF-IDF weight.
 
 #####Keywords_MI
-Sentilyze.KeywordCount.Generate(*recordset[,nWords]*).Keywords_MI(*otherset*)
+Sentilyze.KeywordCount.Generate(*recordset[,nWords]*).Keywords_MI(*otherset*[,*threshold*[,*units*]])
+<table>
+<tr>
+<td>recordset</td><td>A set of <em>Raw</em> (ML.Docs.Types.Raw) records to process</td>
+</tr>
+<tr>
+<td>nWords</td><td>(Optional) An integer representing the maximum number of keywords in the returned set. Default: 100</td>
+</tr>
+<tr>
+<td>otherset</td><td>A set of <em>Raw</em> (ML.Docs.Types.Raw) records to process</td>
+</tr>
+<tr>
+<td>threshold</td><td>(Optional) An integer representing the minimum document frequency for a word to be included in the result set. Default:0</td>
+</tr>
+<tr>
+<td>units</td><td>(Optional) An integer representing the unit of measurement for mutual information. Default: 2 (bits)</td>
+</tr>
+<tr>
+<td>Return:</td><td><strong><em>Keywords_MI</em></strong> returns a <em>WordType</em> (Sentilyze.Types.WordType) record set.</td>
+</tr>
+</table>
+The ***Keywords_MI*** attribute returns a list of keywords sorted by descending Mutual Information weight.
 
 ####Classify
 Sentilyze.KeywordCount.Classify(*recordset*)

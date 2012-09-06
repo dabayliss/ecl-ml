@@ -9,8 +9,7 @@ IMPORT ML;
 
 EXPORT Generate(DATASET(ML.Docs.Types.Raw) T,UNSIGNED nWords=100) := MODULE
 
-	dProcess := Sentilyze.PreProcess.ForTraining(T);
-	SHARED dLanguage := Sentilyze.Language.Classify(dProcess);
+	SHARED dLanguage := Sentilyze.Language.Classify(T);
 	SHARED dTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dLanguage));
 	SHARED dLexicon := ML.Docs.Tokenize.Lexicon(dTokens);
 
@@ -28,7 +27,6 @@ EXPORT Generate(DATASET(ML.Docs.Types.Raw) T,UNSIGNED nWords=100) := MODULE
 	END;
 	
 	EXPORT Keywords_MI(DATASET(ML.Docs.Types.Raw) O, UNSIGNED nThreshold=0,UNSIGNED units=2) := FUNCTION
-		oProcess := Sentilyze.PreProcess.ForTraining(O);
 		oLanguage := Sentilyze.Language.Classify(O);
 		dMi := ML.Docs.CoLocation.MutualInfo(dLanguage,oLanguage,nThreshold,units);
 		RETURN TOPN(dMI,nWords,-mi);
