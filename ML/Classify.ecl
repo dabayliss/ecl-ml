@@ -593,58 +593,73 @@ EXPORT Logistic(REAL8 Ridge=0.00001, REAL8 Epsilon=0.000000001, UNSIGNED2 MaxIte
 
 /* From Wikipedia: 
 http://en.wikipedia.org/wiki/Decision_tree_learning#General
-... Decision tree learning is a method commonly used in data mining. 
+"... Decision tree learning is a method commonly used in data mining.
 The goal is to create a model that predicts the value of a target variable based on several input variables.
 ... A tree can be "learned" by splitting the source set into subsets based on an attribute value test. 
 This process is repeated on each derived subset in a recursive manner called recursive partitioning. 
 The recursion is completed when the subset at a node has all the same value of the target variable,
-or when splitting no longer adds value to the predictions. 
+or when splitting no longer adds value to the predictions.
 This process of top-down induction of decision trees (TDIDT) [1] is an example of a greedy algorithm,
- and it is by far the most common strategy for learning decision trees from data, but it is not the only strategy.
+and it is by far the most common strategy for learning decision trees from data, but it is not the only strategy."
+The module can learn using different splitting algorithms, and return a model.
+The Decision Tree (model) has the same structure independently of which split algorithm was used.
+The model  is used to predict the class from new examples.
 */
-	EXPORT split_Algorithm := ENUM(GiniImpurity, InfoGainRatio, Other); // Constant for different Splittting Criteria
-	EXPORT DecisionTree(split_Algorithm splitAlg) := MODULE(DEFAULT)
-/*
-	The module can learn using different splitting algorithms, and return a model.
-	The Decision Tree (model) has the same structure independently of which split algorithm was used. 
-	The model  is used to predict the class from new examples.
-*/
-		SHARED splAlg:= splitAlg;
+	EXPORT DecisionTree := MODULE
 		EXPORT model_Map :=	DATASET([{'id','ID'},{'node_id','1'},{'level','2'},{'number','3'},{'value','4'},{'new_node_id','5'}], {STRING orig_name; STRING assigned_name;});
-// Function to learn from a discrete dataset, prepared to use various splitting criteria
-	  EXPORT LearnD(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep) := FUNCTION
-			nodes := CASE(splAlg,
-				split_Algorithm.GiniImpurity => ML.Trees.SplitsGiniImpurBased(Indep, Dep), 
-				split_Algorithm.InfoGainRatio => ML.Trees.SplitsInfoGainRatioBased(Indep, Dep),
-				split_Algorithm.Other => ML.Trees.SplitsGiniImpurBased(Indep, Dep, 1));    // calling giniImpurity with different parameters
-			AppendID(nodes, id, model);
-			STRING model_fields := 'node_id,level,number,value,new_node_id';	// need to use field map to call FromField later 
-			ToField(model, out_model, id, model_fields);			
-			RETURN out_model;
-		END;
-// Function to turn 'generic' classifier output into specific
-// This will be the 'same' in every module - but not overridden - has unique return type
-		EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
-			ML.FromField(mod,Trees.SplitF,o, model_Map);
-			RETURN o;
-		END;
-// Function that return predicted dependent values based on independent values and a decision tree model
-		EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
-			ML.FromField(mod, Trees.SplitF, nodes, model_Map);	// need to use model_Map previously build when Learning (ToField) 
-			splits:= nodes(new_node_id <> 0);	// separate split or branches
+		EXPORT STRING model_fields := 'node_id,level,number,value,new_node_id';	// need to use field map to call FromField later
+		SHARED GenClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+			ML.FromField(mod, Trees.SplitF, nodes, model_Map);	// need to use model_Map previously build when Learning (ToField)
 			leafs := nodes(new_node_id = 0);	// from final nodes
-			join0 := JOIN(Indep, splits, LEFT.number = RIGHT.number AND LEFT.value = RIGHT.value, LOOKUP, MANY);
-			sort0 := SORT(join0, id, level, number, node_id, new_node_id);
-			dedup0:= DEDUP(sort0, LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
-			dedup1:= DEDUP(dedup0, LEFT.id = RIGHT.id AND LEFT.new_node_id = RIGHT.node_id, KEEP 1, RIGHT);
-			l_result final_class(RECORDOF(dedup1) l, RECORDOF(leafs) r ):= TRANSFORM
+			splitData:= Trees.SplitInstances(nodes, Indep);
+			l_result final_class(RECORDOF(splitData) l, RECORDOF(leafs) r ):= TRANSFORM
 				SELF.id 		:= l.id;
 				SELF.number	:= 1;
 				SELF.value	:= r.value;
 				SELF.conf				:= 0;		// added to fit in l_result, not used so far
 				SELF.closest_conf:= 0;	// added to fit in l_result, not used so far
 			END;
-			RETURN JOIN(dedup1, leafs, LEFT.new_node_id = RIGHT.node_id, final_class(LEFT, RIGHT), LOOKUP);
+			RETURN JOIN(splitData, leafs, LEFT.new_node_id = RIGHT.node_id, final_class(LEFT, RIGHT), LOOKUP);
+		END;
+		// Function to turn 'generic' classifier output into specific
+		EXPORT GenModel(DATASET(Types.NumericField) mod) := FUNCTION
+			ML.FromField(mod,Trees.SplitF,o, model_Map);
+			RETURN o;
+		END;
+/*	
+		Decision Tree Learning using Gini Impurity-Based criterion
+*/
+		EXPORT GiniImpurityBased(INTEGER1 Depth=10, REAL Purity=1.0):= MODULE(DEFAULT)
+			EXPORT LearnD(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep) := FUNCTION
+				nodes := ML.Trees.SplitsGiniImpurBased(Indep, Dep, Depth, Purity);
+				AppendID(nodes, id, model);
+				ToField(model, out_model, id, model_fields);
+				RETURN out_model;
+			END;
+			EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+				RETURN GenClassifyD(Indep,mod);
+			END;
+			EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
+				RETURN GenModel(mod);
+			END;
+		END;
+/*
+		Decision Tree using C4.5 Algorithm (Quinlan, 1987)
+*/
+		EXPORT C45(BOOLEAN Pruned= TRUE, INTEGER1 numFolds = 3, REAL z = 0.67449) := MODULE(DEFAULT)
+			EXPORT LearnD(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep) := FUNCTION
+				nodes := IF(Pruned, Trees.SplitsIGR_Pruned(Indep, Dep, numFolds, z), Trees.SplitsInfoGainRatioBased(Indep, Dep));
+				AppendID(nodes, id, model);
+				ToField(model, out_model, id, model_fields);
+				RETURN out_model;
+			END;
+			EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+				RETURN GenClassifyD(Indep,mod);
+			END;
+			EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
+				RETURN GenModel(mod);
+			END;
 		END;
 	END; // DecisionTree Module
+	
 END;
