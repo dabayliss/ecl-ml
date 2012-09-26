@@ -1,7 +1,8 @@
-﻿//Take a dataset of cells for a partition and pack into a dense matrix.  Specify Row or Column major
+﻿//Take a dataset of cells for a partition and pack into a dense matrix.  Specify Row
+// or Column major for the layout of te cells in a block.
 //First row and first column are one based.
-//Insert is used insert columns with a spacific value.  Typical use is building a matrix for a solver
-//where the first column is an inserted column of 1 values for the intercept.
+//Insert is used insert columns with a spacific value.  Typical use is building a matrix
+// for a solver where the first column is an inserted column of 1 values for the intercept.
 IMPORT PBblas;
 IMPORT PBblas.Types;
 Layout_Part := Types.Layout_Part;
@@ -52,9 +53,18 @@ EXPORT DMAT(PBblas.IMatrix_Map mat_map) := MODULE
   END;
   // Convert from dense to sparse
   Layout_Cell cvtPart2Cell(Layout_Part pr, UNSIGNED4 c) := TRANSFORM
+    Column_Major := pr.array_layout=Types.array_enum.Column_Major;
+    block_rows := pr.end_row - pr.begin_row + 1;
+    block_cols := pr.end_col - pr.begin_col + 1;
+    col_major_row:= ((c-1)  %  block_rows) + 1;
+    row_major_row:= ((c-1) DIV block_cols) + 1;
+    row_in_block := IF(Column_Major, col_major_row, row_major_row);
+    col_major_col:= ((c-1) DIV block_rows) + 1;
+    row_major_col:= ((c-1)  %  block_cols) + 1;
+    col_in_block := IF(Column_Major, col_major_col, row_major_col);
     SELF.v  := pr.mat_part[c];
-    SELF.x  := mat_map.first_row(pr.partition_id) + mat_map.block_row(c) - 1;
-    SELF.y  := mat_map.first_col(pr.partition_id) + mat_map.block_col(c) - 1;
+    SELF.x  := pr.begin_row + row_in_block - 1;
+    SELF.y  := pr.begin_col + col_in_block - 1;
   END;
   EXPORT FromPart2Cell(DATASET(Layout_Part) part_recs) :=
     NORMALIZE(part_recs, COUNT(LEFT.mat_part), cvtPart2Cell(LEFT, COUNTER));
