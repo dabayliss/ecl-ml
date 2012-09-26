@@ -14,4 +14,6 @@ EXPORT IMatrix_Map := MODULE
   EXPORT Types.dimension_t  part_rows(Types.partition_t p);
   EXPORT Types.dimension_t  part_cols(Types.partition_t p);
   EXPORT Types.array_enum   array_layout;
+  EXPORT Types.dimension_t  block_row(Types.dimension_t pos);
+  EXPORT Types.dimension_t  block_col(Types.dimension_t pos);
 END;
