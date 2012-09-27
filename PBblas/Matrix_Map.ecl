@@ -31,10 +31,4 @@ EXPORT Matrix_Map(dimension_t m_rows, dimension_t m_cols,
   EXPORT first_col(partition_t p)   := (((p-1) % col_blocks) * block_cols) + 1;
   EXPORT part_rows(partition_t p)   := MIN(matrix_rows-first_row(p)+1, block_rows);
   EXPORT part_cols(partition_t p)   := MIN(matrix_cols-first_col(p)+1, block_cols);
-  // EXPORT row_in_block(dimension_t pos) := IF(array_layout=array_enum.Column_Major,
-                                                // ((pos-1) % block_cols) + 1,
-                                                // ((pos-1) DIV block_rows) + 1);
-  // EXPORT col_in_block(dimension_t pos) := IF(array_layout=array_enum.Column_Major,
-                                                // ((pos-1) DIV block_cols) + 1,
-                                                // ((pos-1) % block_rows) + 1);
 END;
