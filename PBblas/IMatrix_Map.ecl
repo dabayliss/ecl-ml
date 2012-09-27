@@ -1,4 +1,4 @@
-﻿// Interface only
+// Interface only
 IMPORT PBblas.Types;
 
 EXPORT IMatrix_Map := MODULE
