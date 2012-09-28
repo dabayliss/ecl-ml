@@ -12,8 +12,8 @@ EXPORT Matrix_Map(dimension_t m_rows, dimension_t m_cols,
   SHARED nodes_available := Thorlib.nodes();
   SHARED this_node       := Thorlib.node();
   //
-  SHARED row_blocks   := IF(f_b_rows>0, ((m_rows-1) DIV f_b_rows) + 1, 1);
-  SHARED col_blocks   := IF(f_b_cols>0, ((m_cols-1) DIV f_b_cols) + 1, 1);
+  EXPORT row_blocks   := IF(f_b_rows>0, ((m_rows-1) DIV f_b_rows) + 1, 1);
+  EXPORT col_blocks   := IF(f_b_cols>0, ((m_cols-1) DIV f_b_cols) + 1, 1);
   SHARED block_rows   := f_b_rows;    // Need an IF here
   SHARED block_cols   := f_b_cols;    // Need an IF here
   //
