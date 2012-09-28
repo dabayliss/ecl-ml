@@ -1,4 +1,4 @@
-﻿// Types for the Parellel Block Basic Linear Algebra Sub-programs support
+// Types for the Parellel Block Basic Linear Algebra Sub-programs support
 EXPORT Types := MODULE
   EXPORT dimension_t  := UNSIGNED4;     // WARNING: do not change with out changing C++ attributes
   EXPORT partition_t  := UNSIGNED2;
@@ -19,6 +19,8 @@ EXPORT Types := MODULE
     node_t          node_id;
     partition_t     destination_partition_id;   // usually zero
     node_t          destination_node_id;        // usually zero
+    dimension_t     block_row;
+    dimension_t     block_col;
     dimension_t     begin_row;
     dimension_t     end_row;
     dimension_t     begin_col;
