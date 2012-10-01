@@ -6,12 +6,13 @@
 IMPORT PBblas.Types;
 dimension_t := Types.dimension_t;
 array_enum  := Types.array_enum;
+matrix_t    := Types.matrix_t;
 
-EXPORT SET OF REAL8 dgemm(array_enum layout, BOOLEAN transposeA, BOOLEAN transposeB,
-                          dimension_t M, dimension_t N, dimension_t K,
-                          REAL8 alpha, SET OF REAL8 A, dimension_t lda,
-                          SET OF REAL8 B, dimension_t ldb,
-                          REAL8 beta, SET OF REAL8 C, dimension_t ldc) := BEGINC++
+EXPORT matrix_t dgemm(array_enum layout, BOOLEAN transposeA, BOOLEAN transposeB,
+                      dimension_t M, dimension_t N, dimension_t K,
+                      REAL8 alpha, SET OF REAL8 A, dimension_t lda,
+                      SET OF REAL8 B, dimension_t ldb,
+                      REAL8 beta, SET OF REAL8 C, dimension_t ldc) := BEGINC++
 #include <cblas.h>
 #define COLUMN_MAJOR 1    // See PBblas Types array_enum
 #option library blas
