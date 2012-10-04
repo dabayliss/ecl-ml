@@ -1,4 +1,4 @@
-﻿// Implements result <- alpha*op(A)op(B) + beta*C.  op is No Transpose or Transpose.
+// Implements result <- alpha*op(A)op(B) + beta*C.  op is No Transpose or Transpose.
 //Result has same matrix map as C.
 IMPORT PBblas.Types;
 IMPORT PBblas.IMatrix_Map;
@@ -18,23 +18,29 @@ EXPORT PB_dgemm(BOOLEAN transposeA, BOOLEAN transposeB, value_t alpha,
 //and dimensions must be consistent, partitions and partition contents
 // Perform transpositions as required to achieve layout compatability.
 //
-  Layout_Target cvt(Layout_Part par, INTEGER c, BOOLEAN byCol) := TRANSFORM
-    part_id_row       := map_c.assigned_part(c, par.block_col);
-    part_id_col       := map_c.assigned_part(par.block_row, c);
-    partition_id      := IF(byCol, part_id_col, part_id_row);
+  Layout_Target cvt(Layout_Part par, INTEGER c,
+                    BOOLEAN transpose, BOOLEAN keepRow) := TRANSFORM
+    s_block_row       := IF(transpose, par.block_col, par.block_row);
+    s_block_col       := IF(transpose, par.block_row, par.block_col);
+    part_id_new_row   := map_c.assigned_part(c, s_block_col);
+    part_id_new_col   := map_c.assigned_part(s_block_row, c);
+    partition_id      := IF(keepRow, part_id_new_col, part_id_new_row);
     SELF.t_node_id    := map_c.assigned_node(partition_id);
     SELF.t_part_id    := partition_id;
-    SELF.t_block_row  := IF(byCol, par.block_row, c);
-    SELF.t_block_col  := IF(byCol, c, par.block_col);
+    SELF.t_block_row  := IF(keepRow, s_block_row, c);
+    SELF.t_block_col  := IF(keepRow, c, s_block_col);
+    SELF.t_term       := IF(keepRow, s_block_col, s_block_row);
     SELF              := par;
   END;
 
-  // A: copy of each cell in a row goes to a column
-  a_work := NORMALIZE(A, map_a.col_blocks, cvt(LEFT, COUNTER, TRUE));
+  // A: copy of each cell in a row (column) goes to a column(row) (transpose)
+  a_fact := IF(transposeB, map_b.row_blocks, map_b.col_blocks);
+  a_work := NORMALIZE(A, a_fact, cvt(LEFT, COUNTER, transposeA, TRUE));
   a_dist := DISTRIBUTE(a_work, t_node_id);
   a_sort := SORT(a_dist, t_part_id, LOCAL);
   // B: copy of each cell in a column goes to a row
-  b_work := NORMALIZE(B, map_b.row_blocks, cvt(LEFT, COUNTER, FALSE));
+  b_fact := IF(transposeA, map_a.col_blocks, map_a.row_blocks);
+  b_work := NORMALIZE(B, b_fact, cvt(LEFT, COUNTER, transposeB, FALSE));
   b_dist := DISTRIBUTE(b_work, t_node_id);
   b_sort := SORT(b_dist, t_part_id, LOCAL);
   // Multiply
@@ -44,25 +50,26 @@ EXPORT PB_dgemm(BOOLEAN transposeA, BOOLEAN transposeB, value_t alpha,
     part_a_rows := a_part.end_row - a_part.begin_row + 1;
     part_b_rows := b_part.end_row - b_part.begin_row + 1;
     part_c_rows := map_c.part_rows(part_id);
-    k := IF(transposeA, part_a_cols, part_a_rows);
+    part_c_cols := map_c.part_cols(part_id);
+    part_c_first_row  := map_c.first_row(part_id);
+    part_c_first_col  := map_c.first_col(part_id);
+    k := IF(transposeA, part_a_rows, part_a_cols);
     SELF.partition_id := part_id;
     SELF.node_id      := a_part.t_node_id;
     SELF.block_row    := a_part.t_block_row;
     SELF.block_col    := a_part.t_block_col;
-    SELF.begin_row    := map_c.first_row(part_id);
-    SELF.end_row      := map_c.part_rows(part_id)+map_c.first_row(part_id)-1;
-    SELF.begin_col    := map_c.first_col(part_id);
-    SELF.end_col      := map_c.part_cols(part_id)+map_c.first_col(part_id)-1;
+    SELF.begin_row    := part_c_first_row;
+    SELF.end_row      := part_c_first_row + part_c_rows - 1;
+    SELF.begin_col    := part_c_first_col;
+    SELF.end_col      := part_c_first_col + part_c_cols -1;
     SELF.array_layout := map_c.array_layout;
     SELF.mat_part     := BLAS.dgemm(map_c.array_layout, transposeA, transposeB,
-                                    map_c.matrix_rows, map_c.matrix_cols, k,
-                                    alpha, a_part.mat_part, part_a_rows,
-                                    b_part.mat_part, part_b_rows,
-                                    0.0, empty_array, part_c_rows);
+                                    part_c_rows, part_c_cols, k,
+                                    alpha, a_part.mat_part, b_part.mat_part,
+                                    0.0, empty_array);
   END;
   ab_prod := JOIN(a_sort, b_sort,
-                  LEFT.t_part_id=RIGHT.t_part_id AND LEFT.block_row=RIGHT.block_col
-                  AND LEFT.block_col=RIGHT.block_row,
+                  LEFT.t_part_id=RIGHT.t_part_id AND LEFT.t_term=RIGHT.t_term,
                   mul(LEFT,RIGHT), LOCAL);
 
   // Apply beta
