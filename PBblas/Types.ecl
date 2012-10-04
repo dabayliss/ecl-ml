@@ -32,5 +32,6 @@ EXPORT Types := MODULE
     node_t          t_node_id;
     dimension_t     t_block_row;
     dimension_t     t_block_col;
+    dimension_t     t_term;
   END;
 END;
