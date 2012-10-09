@@ -46,35 +46,60 @@ dep := ML.Discretize.ByRounding(pr_dep);
 //TE.MonkDS.Test_Data;;
 indep_test:= TABLE(TE.MonkDS.Test_Data,{id, a1, a2, a3, a4, a5, a6});
 dep_test:= TABLE(TE.MonkDS.Test_Data,{id, class});
-ToField(indep_data, t_indep);
+ToField(indep_test, t_indep);
 indep_t := ML.Discretize.ByRounding(t_indep);
-ToField(dep_data, t_dep);
+ToField(dep_test, t_dep);
 dep_t := ML.Discretize.ByRounding(t_dep);
 
-//Training the classifiers using split_Algorithm 1. GiniImpurity and 2. InfoGainRatio
-trainer1:= Classify.DecisionTree(Classify.split_Algorithm.GiniImpurity);
+trainer1:= Classify.DecisionTree.GiniImpurityBased(5, 1); 
 model1:= trainer1.LearnD(Indep, Dep);
-trainer2:= Classify.DecisionTree(Classify.split_Algorithm.InfoGainRatio);
+trainer2:= Classify.DecisionTree.C45(FALSE); // Unpruned
 model2:= trainer2.LearnD(Indep, Dep);
+//Pruning using test dataset
+nodes2b:=Trees.C45PruneTree(trainer2.Model(model2), indep_t, dep_t);
+AppendID(nodes2b, id, modelb);
+ToField(modelb, model2b, id, Classify.DecisionTree.model_fields);
+
+trainer3:= Classify.DecisionTree.C45(TRUE, 3, 0.67449); // Pruned using 3 folds of training dataset and 25% confidence factor (z= 0.67449)
+model3:= trainer3.LearnD(Indep, Dep);
+
 OUTPUT(model1, NAMED('Model1'));
 OUTPUT(SORT(trainer1.Model(model1), level, node_id), NAMED('DecTree_1'), ALL);
 OUTPUT(model2, NAMED('Model2'));
 OUTPUT(SORT(trainer2.Model(model2), level, node_id), NAMED('DecTree_2'), ALL);
+OUTPUT(model2b, NAMED('Model2b'));
+OUTPUT(SORT(trainer2.Model(model2b), level, node_id), NAMED('DecTree_2b'), ALL);
+OUTPUT(model3, NAMED('Model3'));
+OUTPUT(SORT(trainer2.Model(model3), level, node_id), NAMED('DecTree_3'), ALL);
 
 //Classifying independent test data and comparing with dependent test data 
 results1:= trainer1.ClassifyD(indep_t, model1);
 results11:= Classify.Compare(dep_t, results1);
 results2:= trainer2.ClassifyD(indep_t, model2);
 results21:= Classify.Compare(dep_t, results2);
+results2b:= trainer2.ClassifyD(indep_t, model2b);
+results21b:= Classify.Compare(dep_t, results2b);
+results3:= trainer2.ClassifyD(indep_t, model3);
+results31:= Classify.Compare(dep_t, results3);
 
 //Showing Results
 OUTPUT(results11.CrossAssignments, NAMED('CrossAssig1'));
 OUTPUT(results11.RecallByClass, NAMED('RecallByClass1'));
-OUTPUT(results11.PrecisionByClass, NAMED('PrecByClass1'));
-OUTPUT(SORT(results11.FP_Rate_ByClass, classifier, class), NAMED('FPR_ByClass1'));
+//OUTPUT(results11.PrecisionByClass, NAMED('PrecByClass1'));
+//OUTPUT(SORT(results11.FP_Rate_ByClass, classifier, class), NAMED('FPR_ByClass1'));
 OUTPUT(results11.Accuracy, NAMED('Accur1'));
 OUTPUT(results21.CrossAssignments, NAMED('CrossAssig2'));
 OUTPUT(results21.RecallByClass, NAMED('RecallByClass2'));
-OUTPUT(results21.PrecisionByClass, NAMED('PrecByClass2'));
-OUTPUT(SORT(results21.FP_Rate_ByClass, classifier, class), NAMED('FPR_ByClass2'));
+//OUTPUT(results21.PrecisionByClass, NAMED('PrecByClass2'));
+//OUTPUT(SORT(results21.FP_Rate_ByClass, classifier, class), NAMED('FPR_ByClass2'));
 OUTPUT(results21.Accuracy, NAMED('Accur2'));
+OUTPUT(results21b.CrossAssignments, NAMED('CrossAssig2b'));
+OUTPUT(results21b.RecallByClass, NAMED('RecallByClass2b'));
+//OUTPUT(results21b.PrecisionByClass, NAMED('PrecByClass2b'));
+//OUTPUT(SORT(results21b.FP_Rate_ByClass, classifier, class), NAMED('FPR_ByClass2b'));
+OUTPUT(results21b.Accuracy, NAMED('Accur2b'));
+OUTPUT(results31.CrossAssignments, NAMED('CrossAssig3'));
+OUTPUT(results31.RecallByClass, NAMED('RecallByClass3'));
+//OUTPUT(results31.PrecisionByClass, NAMED('PrecByClass3'));
+//OUTPUT(SORT(results31.FP_Rate_ByClass, classifier, class), NAMED('FPR_ByClass3'));
+OUTPUT(results31.Accuracy, NAMED('Accur3'));

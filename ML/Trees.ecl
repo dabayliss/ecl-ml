@@ -1,4 +1,6 @@
-﻿IMPORT ML,ML.Mat;
+﻿IMPORT ML;
+IMPORT * FROM $;
+IMPORT $.Mat;
 EXPORT Trees := MODULE
   SHARED t_node := INTEGER4; // Assumes a maximum of 32 levels presently
 	SHARED t_level := INTEGER1; // Would allow up to 2^256 levels
@@ -20,7 +22,30 @@ EXPORT Trees := MODULE
 		ML.Types.t_Discrete value; // The value for the column in question
 		t_node new_node_id; // The new node that value goes to
 	END;  
-  
+	SHARED final_node := RECORD
+		Types.t_RecordID root_node		:= 0; 	// parent node id
+		INTEGER1 				 root_level		:= 0; 	// parent node level
+		Types.t_RecordID final_node		:= 0; 	// final node id, '0' means the parent node is a leaf
+		INTEGER1 				 final_level	:= 0; 	// final node level
+		Types.t_Discrete final_class	:= -1;	// final class value, '-1' means the parent node is a branch
+	END;
+	SHARED final_node_instance := RECORD(final_node)
+		Types.t_RecordID instance_id		:= 0; 	// instance id
+		Types.t_Discrete instance_class	:= -1;	// instance class value
+		BOOLEAN match:= FALSE;
+	END;
+	SHARED node_error := RECORD(final_node)
+		UNSIGNED4 			e:=0;		// error count
+		UNSIGNED4 		cnt:=0;		// total count
+		REAL8 	NxErr_est:=0;		// N x error estimated
+	END;
+	SHARED node_error to_node_error(SplitF l):= TRANSFORM
+		SELF.root_node		:= l.node_id;
+		SELF.root_level		:= l.level;
+		SELF.final_node		:= l.new_node_id;
+		SELF.final_level	:= l.level + 1;
+	END;
+
 /*
 	The NodeIds within a KdTree follow a natural pattern - all the node-ids will have the same number of bits - corresponding to the
   depth of the tree+1. The left-most will always be 1. Moving from left to right a 0 always implies taking the 'low' decision at a node
@@ -286,7 +311,7 @@ EXPORT Trees := MODULE
 		this_set0 := nodes(level = p_level);
 		node_base:= MAX(nodes, node_id);
 		// nodes could come from different splits having different sets of remaining attributes
-		min_num:= TABLE(this_set0,{node_id, min_number:= MIN(number)}, node_id); 
+		min_num:= TABLE(this_set0,{node_id, min_number:= MIN(GROUP, number)}, node_id);
 		this_set1:= JOIN(this_set0, min_num, LEFT.node_id=RIGHT.node_id AND LEFT.number=RIGHT.min_number, LOOKUP);
 		// Calculating Information Entropy of Nodes
 		top_dep := TABLE(this_set1, {node_id, depend, cnt:= COUNT(GROUP)}, node_id, depend);
@@ -391,4 +416,142 @@ EXPORT Trees := MODULE
 		leafs:= PROJECT(nsplits, TRANSFORM(SplitF, SELF.number:=0, SELF.value:= LEFT.depend, SELF.new_node_id:=0, SELF:= LEFT)); // leaf nodes
 		RETURN nodes + leafs; 
 	END;
+	EXPORT SplitInstances(DATASET(Splitf) mod, DATASET(ML.Types.DiscreteField) Indep) := FUNCTION
+			splits:= mod(new_node_id <> 0);	// separate split or branches
+			leafs := mod(new_node_id = 0);	// from final nodes
+			join0 := JOIN(Indep, splits, LEFT.number = RIGHT.number AND LEFT.value = RIGHT.value, LOOKUP, MANY);
+			sort0 := SORT(join0, id, level, number, node_id, new_node_id);
+			dedup0:= DEDUP(sort0, LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
+			dedup1:= DEDUP(dedup0, LEFT.id = RIGHT.id AND LEFT.new_node_id = RIGHT.node_id, KEEP 1, RIGHT);
+			return dedup1;
+	END;
+	
+//Function that prune a Decision Tree based on Estimated Error (C4.5 Quinlan)
+//Inputs:
+//		- nodes dataset from a learning process
+//		- Independent and Depenedent datasets, should not use the same used in the learning process
+//		- z score corresponding to confidence factor, default z = 0.67449
+//			default confidence factor = 0.25 -> the positive z for 2 * 0.25% confidence interval = between -0.67449 and 0.67449 
+	EXPORT C45PruneTree(DATASET(Splitf) nodes, DATASET(ML.Types.DiscreteField) Indep, DATASET(ML.Types.DiscreteField) Dep, REAL z=0.67449):= FUNCTION
+		splitData	:= SplitInstances(nodes, Indep); 	// splits the instances throughout the tree (looking for a leaf node, same as classify)
+		branches	:= nodes(new_node_id <> 0);				// identify branch nodes
+		leafs 		:= nodes(new_node_id = 0);				// identify leaf nodes
+		max_level	:= MAX(nodes, level);
+		// Calculate the N x estimated error of a leaf node
+		node_error NxErrEst(node_error l):= TRANSFORM
+			UNSIGNED4 N:= l.cnt;
+			REAL4 f:= l.e/N;
+			SELF.NxErr_est:= N*(f + z*z/(2*N) + z*SQRT(f/N - (f*f)/N + (z*z)/(4*N*N)) )/(1 + z*z/N);
+			SELF:=l;
+		END;
+		// Store split_instance/final_node info
+		final_node_instance final_nodes(RECORDOF(splitData) l, RECORDOF(leafs) r ):= TRANSFORM
+			SELF.instance_id 		:= l.id;
+			SELF.root_node 			:= l.node_id;
+			SELF.root_level			:= l.level;
+			SELF.final_node			:= r.node_id;
+			SELF.final_level		:= r.level;
+			SELF.final_class		:= r.value;
+		END;
+		// Store instance_class value and evaluate match with final_class value
+		final_node_instance actual_class(final_node_instance l, ML.Types.DiscreteField r):= TRANSFORM
+			SELF.instance_class	:= r.value;
+			SELF.match					:= l.final_class = r.value;
+			SELF:= l;
+		END;
+		// Return all children nodes of a branch
+		ExplodeSubTree(DATASET(SplitF) branch):= FUNCTION
+			local_level:= MAX(branch, level);
+			RETURN branch + JOIN(nodes, branch(level = local_level), LEFT.node_id=RIGHT.new_node_id);
+		END;
+		// Return parent's node_id of a node
+		FindParent(ML.Types.t_RecordID child_id):= FUNCTION
+			parent_node:= branches(new_node_id = child_id);
+			RETURN if(exists(parent_node), MAX(parent_node,node_id), 0);
+		END;
+		// Populating instance-nodes with predicted and actual classes, and calcualting leaf nodes Error Estimated
+		class_as:= JOIN(splitData, leafs, LEFT.new_node_id = RIGHT.node_id, final_nodes(LEFT, RIGHT), LOOKUP); // classified as
+		real_class:= JOIN(class_as, Dep, LEFT.instance_id = RIGHT.id, actual_class(LEFT, RIGHT), LOOKUP);	// real classes and matches
+		rc_err:= TABLE(real_class, {root_node, root_level, final_node, final_level, final_class, e:= COUNT(GROUP,real_class.match=FALSE), cnt:= COUNT(GROUP)}, root_node, root_level, final_node, final_level, final_class);
+		leaf_error:=PROJECT(rc_err, node_error);
+		leaf_NxErrEst:= PROJECT(leaf_error, NxErrEst(LEFT)); // Calculate N x error estimated on tree's leaf nodes
+
+		// loop body of instance split accumulated
+		loopbody1(DATASET(final_node_instance) nodes_inst, INTEGER1 p_level) := FUNCTION
+			this_set:= nodes_inst(root_level = p_level);
+			final_node_instance trx(SplitF l, final_node_instance r):= TRANSFORM
+				SELF.root_node	:= l.node_id;
+				SELF.root_level	:= l.level;
+				SELF.final_node := r.root_node;
+				SELF.final_level:= r.root_level;
+				SELF:= r;
+			END;
+			join1:= JOIN(nodes, this_set, left.new_node_id = right.root_node, trx(LEFT, RIGHT));
+			return nodes_inst + join1;
+		END;
+		// Generating possible replacing nodes for each branch -> repo nodes
+		acc_split:= LOOP(real_class, max_level, loopbody1(ROWS(LEFT), max_level - COUNTER)); //  instance splits accumulated
+		g_acc_split:= TABLE(acc_split, {root_node, root_level, final_class, cnt:= COUNT(GROUP)}, root_node, root_level, final_class);
+		gtot_acc_split:= TABLE(g_acc_split,{root_node, root_level, tot:=SUM(GROUP, cnt)}, root_node, root_level);
+		g_join:= JOIN(g_acc_split, gtot_acc_split, LEFT.root_node = RIGHT.root_node AND LEFT.root_level = RIGHT.root_level, TRANSFORM(node_error,
+				SELF.root_node:= FindParent(LEFT.root_node), SELF.root_level:= LEFT.root_level -1,
+				SELF.final_node:= LEFT.root_node, SELF.final_level:= LEFT.root_level,
+				SELF.final_class:=LEFT.final_class, SELF.e:= RIGHT.tot - LEFT.cnt, SELF.cnt:=RIGHT.tot));
+		g_sort:= SORT(g_join, final_node, e);		// sorting based on error to chose the final class with less errors
+		repo_nodes:= DEDUP(g_sort, final_node); // repo nodes
+		repo_NxErrEst:= PROJECT(repo_nodes,NxErrEst(LEFT)); // Calculate N x error estimated on repo nodes
+		
+		// loop body of branchs and repo nodes error estimated comparisson
+		loopbody2(DATASET(node_error) all_nodes, INTEGER1 n_level) := FUNCTION
+			level_nodes:= all_nodes(root_level = n_level);	// get only level nodes
+			// calculating error estimated of branch (all leaf nodes with same root_node)
+			g_level_nodes:= TABLE(level_nodes,{root_node, root_level, err:=SUM(GROUP, e), tot:= SUM(GROUP, cnt), totErr_est:=SUM(GROUP, nxerr_est)}, root_node, root_level);
+			// transforming to update upper level error estimated value
+			lnodes_NxErrEst:= PROJECT(g_level_nodes, TRANSFORM(node_error,
+					SELF.root_node:= FindParent(LEFT.root_node), SELF.root_level:=LEFT.root_level -1,
+					SELF.final_node:= LEFT.root_node, SELF.final_level:=LEFT.root_level,
+					SELF.e:= LEFT.err, SELF.cnt:= LEFT.tot, SELF.nxerr_est:= LEFT.toterr_est, SELF.final_class:= -1));
+			level_repo:= repo_NxErrEst(final_level= n_level);	// get the repo nodes for the level
+			to_chose:=SORT(lnodes_NxErrEst + level_repo, final_node, nxerr_est);
+			for_update:=DEDUP(to_chose, final_node);		// will update dataset with chosen nodes
+			for_delete:= for_update(final_class >= 0);	// extract leafs nodes from chosen nodes
+			to_delete:=PROJECT(for_delete, TRANSFORM(SplitF, SELF.node_id:=LEFT.root_node, SELF.level:= LEFT.root_level, SELF.new_node_id:=LEFT.final_node, SELF:=[]));
+			subtree_del := LOOP(to_delete, max_level, ExplodeSubTree(ROWS(LEFT)));	// will erase whole subtrees of deleted nodes
+			pass_thru_nodes:= JOIN(all_nodes, subtree_del, LEFT.root_node= RIGHT.node_id AND LEFT.final_node=RIGHT.new_node_id, TRANSFORM(LEFT), LEFT ONLY);
+			return pass_thru_nodes + for_update;
+		END;
+		// Comparing branches to repo nodes,
+		// if repo node has smaller error estimated than branch, delete branch and replace
+		// else generate upper level branch node with NxErrEst updated
+		new_nodes:= LOOP(leaf_NxErrEst, max_level -1, loopbody2(ROWS(LEFT), max_level - COUNTER));
+		Splitf to_leaf(node_error ne):= TRANSFORM
+			SELF.node_id	:= ne.final_node;
+			SELF.level		:= ne.final_level;
+			SELF.number		:= 0;
+			SELF.value		:= ne.final_class;
+			SELF.new_node_id:= 0;
+		END;
+		// transforming results into Spliitf records to return
+		new_branches:= JOIN(nodes, new_nodes, LEFT.node_id = RIGHT.root_node AND LEFT.new_node_id = RIGHT.final_node, TRANSFORM(LEFT), LOOKUP);
+		new_leafs:= PROJECT(new_nodes(final_class > -1), to_leaf(LEFT));
+		return new_branches + new_leafs;
+	END;
+
+//Function that generates a DT and then prunes it using C45PruneTree
+//The function receives Independent and Dependet datasets,
+//	fold them into numFolds folds, minimum 3
+//	use numFolds - 1 folds to generate the unpruned DT,
+//	use 1 fold to prune to DT.
+//Return the pruned DT.
+	EXPORT SplitsIGR_Pruned(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep, INTEGER1 numFolds = 3, REAL z = 0.67449 ):=FUNCTION
+		folds:= ML.Sampling.DiscreteDepNFolds(Dep, MAX(3, numFolds));
+		trainIndep:= JOIN(Indep, folds(number = 1), LEFT.id = RIGHT.id, LEFT ONLY);
+		trainDep	:= JOIN(Dep, folds(number = 1), LEFT.id = RIGHT.id, LEFT ONLY);
+		testIndep	:= JOIN(Indep, folds(number > 1), LEFT.id = RIGHT.id, LEFT ONLY);
+		testDep		:= JOIN(Dep, folds(number > 1), LEFT.id = RIGHT.id, LEFT ONLY);
+		raw_tree:= SplitsInfoGainRatioBased(trainIndep, trainDep);
+
+		RETURN C45PruneTree(raw_tree, testIndep, testDep);
+	END;
+	
 END;
