@@ -1,10 +1,13 @@
-﻿// Types for the Parellel Block Basic Linear Algebra Sub-programs support
+// Types for the Parellel Block Basic Linear Algebra Sub-programs support
+// WARNING: attributes marked with WARNING can not be changed without making
+//corresponding changes to the C++ attributes.
 EXPORT Types := MODULE
   EXPORT dimension_t  := UNSIGNED4;     // WARNING: type used in C++ attributes
   EXPORT partition_t  := UNSIGNED2;
   EXPORT node_t       := UNSIGNED2;
-  EXPORT value_t      := REAL8;
-  EXPORT matrix_t     := SET OF REAL8;
+  EXPORT value_t      := REAL8;         // Warning: type used in C++ attribute
+  EXPORT matrix_t     := SET OF REAL8;  // Warning: type used in C++ attribute
+  EXPORT Triangle     := ENUM(UNSIGNED1, Upper=1, Lower=2); //Warning
   EXPORT array_enum   := ENUM(UNSIGNED1, Column_Major=1, Row_Major=2); //Warning
 
   // Sparse
