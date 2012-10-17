@@ -1,4 +1,4 @@
-﻿//void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
+//void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
 //                 const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
 //                 const int K, const double alpha, const double *A,
 //                 const int lda, const double *B, const int ldb,
@@ -9,11 +9,6 @@ array_enum  := Types.array_enum;
 value_t     := Types.value_t;
 matrix_t    := Types.matrix_t;
 
-// EXPORT matrix_t dgemm(array_enum layout, BOOLEAN transposeA, BOOLEAN transposeB,
-                      // dimension_t M, dimension_t N, dimension_t K,
-                      // REAL8 alpha, SET OF REAL8 A, dimension_t lda,
-                      // SET OF REAL8 B, dimension_t ldb,
-                      // REAL8 beta, SET OF REAL8 C, dimension_t ldc) := BEGINC++
 EXPORT matrix_t dgemm(array_enum layout, BOOLEAN transposeA, BOOLEAN transposeB,
                       dimension_t M, dimension_t N, dimension_t K,
                       value_t alpha, matrix_t A, matrix_t B,
