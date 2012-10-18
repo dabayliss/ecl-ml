@@ -1,4 +1,4 @@
-﻿//void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
+//void cblas_dtrsm(const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
 //                 const enum CBLAS_UPLO Uplo, const enum CBLAS_TRANSPOSE TransA,
 //                 const enum CBLAS_DIAG Diag, const int M, const int N,
 //                 const double alpha, const double *A, const int lda,
@@ -24,6 +24,7 @@ EXPORT matrix_t dtrsm(array_enum layout, Side side, Triangle tri,
 #define AX 1
 #define UNIT 1
 #define COLUMN_MAJOR 1
+#option library blas
 #body
   unsigned int ldb = (layout==COLUMN_MAJOR)  ? m  : n;
   __isAllResult = false;
