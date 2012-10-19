@@ -25,8 +25,8 @@ EXPORT Matrix_Map(dimension_t m_rows, dimension_t m_cols,
   // Functions.
   EXPORT row_block(dimension_t mat_row) := ((mat_row-1) DIV block_rows) + 1;
   EXPORT col_block(dimension_t mat_col) := ((mat_col-1) DIV block_cols) + 1;
-  EXPORT assigned_part(dimension_t rb, dimension_t cb) := ((rb-1) * col_blocks) + cb;
-  EXPORT assigned_node(partition_t p) := ((p-1) % nodes_used) + 1;
+  EXPORT assigned_part(dimension_t rb, dimension_t cb) := ((cb-1) * row_blocks) + rb;
+  EXPORT assigned_node(partition_t p) := ((p-1) % nodes_used);
   EXPORT first_row(partition_t p)   := (((p-1) DIV col_blocks) * block_rows) + 1;
   EXPORT first_col(partition_t p)   := (((p-1) % col_blocks) * block_cols) + 1;
   EXPORT part_rows(partition_t p)   := MIN(matrix_rows-first_row(p)+1, block_rows);
