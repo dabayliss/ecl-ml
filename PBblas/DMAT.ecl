@@ -9,14 +9,14 @@ Layout_Part := Types.Layout_Part;
 Layout_Cell := Types.Layout_Cell;
 IMPORT ML.Types AS ML_Types;
 
-EXPORT DMAT(PBblas.IMatrix_Map mat_map) := MODULE
+EXPORT DMAT := MODULE
   SHARED Work1 := RECORD(Types.Layout_Cell)
     Types.partition_t     partition_id;
     Types.node_t          node_id;
     Types.dimension_t     block_row;
     Types.dimension_t     block_col;
   END;
-  EXPORT FromCells(DATASET(Layout_Cell) cells,
+  EXPORT FromCells(PBblas.IMatrix_Map mat_map, DATASET(Layout_Cell) cells,
                    Types.dimension_t insert_columns=0,
                    Types.value_t insert_value=0.0d) := FUNCTION
     Work1 cvt_2_xcell(Layout_Cell lr) := TRANSFORM
@@ -76,6 +76,7 @@ EXPORT DMAT(PBblas.IMatrix_Map mat_map) := MODULE
 
   // From ML Types
   EXPORT FromNumericFieldDS(DATASET(ML_Types.NumericField) cells,
+                           PBblas.IMatrix_Map mat_map,
                            Types.dimension_t insert_columns=0,
                            Types.value_t insert_value=0.0d) := FUNCTION
     Layout_Cell cvt_2_cell(ML_Types.NumericField lr) := TRANSFORM
@@ -84,7 +85,7 @@ EXPORT DMAT(PBblas.IMatrix_Map mat_map) := MODULE
       SELF.v              := lr.value;
     END;
     d0 := PROJECT(cells, cvt_2_cell(LEFT));
-    rslt := FromCells(d0, insert_columns, insert_value);
+    rslt := FromCells(mat_map, d0, insert_columns, insert_value);
     RETURN rslt;
   END;
 
