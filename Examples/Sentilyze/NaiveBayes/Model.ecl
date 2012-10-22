@@ -1,4 +1,4 @@
-﻿/*****************************************************
+/*****************************************************
 * SENTILYZE - TWITTER SENTIMENT CLASSIFICATION
 * NAIVE BAYES CLASSIFIER - Model
 * DESCRIPTION: Creates a model for the ECL-ML 
@@ -64,7 +64,7 @@ SentiBag := SORT(ML.Docs.Trans(SentiO1).WordBag,id,word);
 //Train Classifier
 nfIndep := PROJECT(SentiBag,ToIndep(LEFT));
 dfIndep := ML.Discretize.ByRounding(nfIndep);
-nfDep := DEDUP(JOIN(nfIndep,SentiMerge,LEFT.id = RIGHT.id,ToDep(RIGHT)),LEFT.id = RIGHT.id);
+nfDep := PROJECT(SentiMerge,ToDep(LEFT));
 dfDep := ML.Discretize.ByRounding(nfDep);
 SentiModel := ML.Classify.NaiveBayes.LearnD(dfIndep,dfDep);
 
