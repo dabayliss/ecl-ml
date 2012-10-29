@@ -9,7 +9,6 @@ EXPORT Types := MODULE
   EXPORT matrix_t     := SET OF REAL8;  // Warning: type used in C++ attribute
   EXPORT Triangle     := ENUM(UNSIGNED1, Upper=1, Lower=2); //Warning
   EXPORT Diagonal     := ENUM(UNSIGNED1, UnitTri=1, NotUnitTri=2);  //Warning
-  EXPORT array_enum   := ENUM(UNSIGNED1, Column_Major=1, Row_Major=2); //Warning
   EXPORT Side         := ENUM(UNSIGNED1, Ax=1, xA=2);  //Warning
 
   // Sparse
@@ -28,7 +27,6 @@ EXPORT Types := MODULE
     dimension_t     end_row;
     dimension_t     begin_col;
     dimension_t     end_col;
-    array_enum      array_layout;
     matrix_t        mat_part;
   END;
   // Extended for routing

@@ -1,4 +1,4 @@
-// Implements result <- alpha*op(A)op(B) + beta*C.  op is No Transpose or Transpose.
+﻿// Implements result <- alpha*op(A)op(B) + beta*C.  op is No Transpose or Transpose.
 //Result has same matrix map as C.
 IMPORT PBblas.Types;
 IMPORT PBblas.IMatrix_Map;
@@ -62,8 +62,7 @@ EXPORT PB_dgemm(BOOLEAN transposeA, BOOLEAN transposeB, value_t alpha,
     SELF.end_row      := part_c_first_row + part_c_rows - 1;
     SELF.begin_col    := part_c_first_col;
     SELF.end_col      := part_c_first_col + part_c_cols -1;
-    SELF.array_layout := map_c.array_layout;
-    SELF.mat_part     := BLAS.dgemm(map_c.array_layout, transposeA, transposeB,
+    SELF.mat_part     := BLAS.dgemm(transposeA, transposeB,
                                     part_c_rows, part_c_cols, k,
                                     alpha, a_part.mat_part, b_part.mat_part,
                                     0.0, empty_array);

@@ -8,7 +8,6 @@
 
 IMPORT PBblas.Types;
 dimension_t := Types.dimension_t;
-array_enum  := Types.array_enum;
 Triangle    := Types.Triangle;
 value_t     := Types.value_t;
 matrix_t    := Types.matrix_t;
