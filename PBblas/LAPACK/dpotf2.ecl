@@ -45,8 +45,10 @@ EXPORT matrix_t dpotf2(Triangle tri, dimension_t r, matrix_t A,
     if ( j < r-1) {
       // y <- alpha*op(A)*x + beta*y
       cblas_dgemv(CblasColMajor,
-                  (tri==UPPER_TRIANGLE)  ? CblasTrans     : CblasNoTrans,
-                   j, r-1-j, -1.0,                // M, N, alpha
+                  (tri==UPPER_TRIANGLE)  ? CblasTrans  : CblasNoTrans,
+                  (tri==UPPER_TRIANGLE)  ? j           : r-1-j,    // M
+                  (tri==UPPER_TRIANGLE)  ? r-1-j       : j,        // N
+                   -1.0,                          // alpha
                    (new_a+a_pos), r,              //A
                    (new_a+x_pos), x_step,         //X
                    1.0, (new_a+y_pos), y_step);   // beta and Y

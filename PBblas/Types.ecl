@@ -1,4 +1,4 @@
-// Types for the Parellel Block Basic Linear Algebra Sub-programs support
+﻿// Types for the Parellel Block Basic Linear Algebra Sub-programs support
 // WARNING: attributes marked with WARNING can not be changed without making
 //corresponding changes to the C++ attributes.
 EXPORT Types := MODULE
@@ -30,11 +30,12 @@ EXPORT Types := MODULE
     matrix_t        mat_part;
   END;
   // Extended for routing
-  EXPORT Layout_Target := RECORD(Layout_Part)
+  EXPORT Layout_Target := RECORD
     partition_t     t_part_id;
     node_t          t_node_id;
     dimension_t     t_block_row;
     dimension_t     t_block_col;
     dimension_t     t_term;
+    Layout_Part;
   END;
 END;
