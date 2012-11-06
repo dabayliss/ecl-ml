@@ -1,4 +1,4 @@
-// Implements Cholesky factorization of A = U**T * U if Triangular.Upper requested
+﻿// Implements Cholesky factorization of A = U**T * U if Triangular.Upper requested
 //or A = L * L**T if Triangualr.Lower is requested.
 // The matrix A must be symmetric positive definite.
 //  | A11   A12 |      |  L11   0   |    | L11**T     L21**T |
@@ -92,14 +92,16 @@ EXPORT PB_dpotrf(Triangle tri, IMatrix_Map map_a, DATASET(Layout_Part) A) := FUN
       BeginCol          := map_a.first_col(lr.t_part_id);
       NumCols           := map_a.part_cols(lr.t_part_id);
       have_a            := EXISTS(rws(t_term=1));
+      idA               := rws(t_term=1)[1].partition_id;
       have_b            := EXISTS(rws(t_term=2));
       multiplyTerms     := have_a AND have_b;
-      tranA             := tri=Upper;
-      tranB             := tri=Lower;
+      tranA             := IF(tri=Upper, TRUE, FALSE);
+      tranB             := IF(tri=Lower, TRUE, FALSE);
       have_c            := EXISTS(rws(t_term=3));
       matrix_c          := IF(have_c, rws(t_term=3)[1].mat_part, empty_mat);
       matrix_a          := rws(t_term=1)[1].mat_part;
       matrix_b          := rws(t_term=2)[1].mat_part;
+      inside            := IF(tri=Upper, map_a.part_rows(idA), map_a.part_cols(idA));
       SELF.partition_id := lr.t_part_id;
       SELF.node_id      := map_a.assigned_node(lr.t_part_id);
       SELF.block_row    := lr.t_block_row;
@@ -109,7 +111,7 @@ EXPORT PB_dpotrf(Triangle tri, IMatrix_Map map_a, DATASET(Layout_Part) A) := FUN
       SELF.begin_col    := BeginCol;
       SELF.end_col      := NumCols + BeginCol - 1;
       SELF.mat_part     := IF(multiplyTerms,
-                              BLAS.dgemm(tranA, tranB, NumRows, NumCols, NumCols,
+                              BLAS.dgemm(tranA, tranB, NumRows, NumCols, inside,
                                         -1.0, matrix_a, matrix_b, 1.0, matrix_c),
                               matrix_c);
       SELF              := lr;
@@ -125,7 +127,7 @@ EXPORT PB_dpotrf(Triangle tri, IMatrix_Map map_a, DATASET(Layout_Part) A) := FUN
   workParts := A((tri=Upper AND block_row<=block_col) OR
                  (tri=Lower AND block_col<=block_row));
   work_d := SORT(workParts, partition_id);
-  triangleParts := LOOP(work_d, 1,  //map_a.row_blocks,
+  triangleParts := LOOP(work_d, map_a.row_blocks,
                        COUNTER<=LEFT.block_row AND COUNTER<=LEFT.block_col,
                        loopBody(ROWS(LEFT), COUNTER));
   rslt := SORT(DISTRIBUTE(triangleParts, node_id), partition_id, LOCAL);
