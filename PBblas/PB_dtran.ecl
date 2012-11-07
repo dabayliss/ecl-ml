@@ -1,5 +1,6 @@
 ﻿// Transpose a matrix and sum into base matrix
 // result <== alpha A**t  + beta C, A is n by m, C is m by n
+IMPORT PBblas;
 IMPORT PBblas.Types;
 IMPORT PBblas.IMatrix_Map;
 Layout_Part := Types.Layout_Part;
@@ -40,10 +41,11 @@ EXPORT PB_dtran(IMatrix_Map map_a, IMatrix_Map map_c,
                 value_t alpha, DATASET(Layout_Part) A,
                 value_t beta=0.0, DATASET(Layout_Part) C=emptyC) := FUNCTION
 // Need to check compatibility between map_a and map_c
-  a_checked := ASSERT(A, ASSERT(map_a.matrix_rows = map_c.matrix_cols AND
-                                map_a.matrix_cols = map_c.matrix_rows AND
-                                map_a.row_blocks  = map_c.col_blocks  AND
-                                map_a.col_blocks  = map_c.row_blocks));
+  a_checked := ASSERT(A, map_a.matrix_rows = map_c.matrix_cols AND
+                         map_a.matrix_cols = map_c.matrix_rows AND
+                         map_a.row_blocks  = map_c.col_blocks  AND
+                         map_a.col_blocks  = map_c.row_blocks,
+                      PBblas.Constants.Dimension_Incompat, FAIL);
   Layout_Target reLabel(Layout_Part lr) := TRANSFORM
     target_part       := map_c.assigned_part(lr.block_col, lr.block_row);
     SELF.t_term       := 0;   // not used for simple routing

@@ -1,4 +1,4 @@
-﻿// Implements Cholesky factorization of A = U**T * U if Triangular.Upper requested
+// Implements Cholesky factorization of A = U**T * U if Triangular.Upper requested
 //or A = L * L**T if Triangualr.Lower is requested.
 // The matrix A must be symmetric positive definite.
 //  | A11   A12 |      |  L11   0   |    | L11**T     L21**T |
@@ -11,6 +11,7 @@
 //     L21 = A21*L11**T**-1   which can be found by dtrsm on each column block
 //     A22' is A22 - L21*L21**T
 // Iterate through the diagonal blocks
+IMPORT PBblas;
 IMPORT PBblas.Types;
 IMPORT PBblas.IMatrix_Map;
 IMPORT PBBlas.BLAS;
@@ -124,8 +125,11 @@ EXPORT PB_dpotrf(Triangle tri, IMatrix_Map map_a, DATASET(Layout_Part) A) := FUN
     RETURN rslt;
   END;
   // Drop out parts that are not needed
-  workParts := A((tri=Upper AND block_row<=block_col) OR
-                 (tri=Lower AND block_col<=block_row));
+  a_checked := ASSERT(A, map_a.matrix_rows=map_a.matrix_cols AND
+                         map_a.row_blocks=map_a.col_blocks,
+                      PBblas.Constants.Not_Square, FAIL);
+  workParts := a_checked((tri=Upper AND block_row<=block_col) OR
+                         (tri=Lower AND block_col<=block_row));
   work_d := SORT(workParts, partition_id);
   triangleParts := LOOP(work_d, map_a.row_blocks,
                        COUNTER<=LEFT.block_row AND COUNTER<=LEFT.block_col,
