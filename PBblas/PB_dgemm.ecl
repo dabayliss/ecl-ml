@@ -1,4 +1,4 @@
-﻿// Implements result <- alpha*op(A)op(B) + beta*C.  op is No Transpose or Transpose.
+// Implements result <- alpha*op(A)op(B) + beta*C.  op is No Transpose or Transpose.
 //Result has same matrix map as C.
 IMPORT PBblas;
 IMPORT PBblas.Types;
@@ -28,14 +28,6 @@ EXPORT PB_dgemm(BOOLEAN transposeA, BOOLEAN transposeB, value_t alpha,
   c_matrix_cols := map_c.matrix_cols;
   c_row_blocks  := map_c.row_blocks;
   c_col_blocks  := map_c.col_blocks;
-  // AB_Test := ASSERT(a_matrix_cols=b_matrix_rows AND a_col_blocks=b_row_blocks,
-                    // 'A-B ' + PBblas.Constants.Dimension_Incompat, FAIL);
-  // AC_Test := ASSERT(a_matrix_rows=c_matrix_rows AND a_row_blocks=c_row_blocks,
-                    // 'A-C ' + PBblas.Constants.Dimension_Incompat, FAIL);
-  // BC_Test := ASSERT(b_matrix_cols=c_matrix_cols AND b_col_blocks=c_col_blocks,
-                    // 'B-C ' + PBblas.Constants.Dimension_Incompat, FAIL);
-  // A := ASSERT(A_in, AB_Test, AC_Test);
-  // B := ASSERT(B_in, AB_Test, BC_Test);
   A := ASSERT(A_in,
               ASSERT(a_matrix_cols=b_matrix_rows AND a_col_blocks=b_row_blocks,
                     'A-B ' + PBblas.Constants.Dimension_Incompat, FAIL),

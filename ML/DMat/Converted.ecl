@@ -9,7 +9,7 @@ Layout_Part := Types.Layout_Part;
 Layout_Cell := Types.Layout_Cell;
 IMPORT ML.Types AS ML_Types;
 
-EXPORT DMAT := MODULE
+EXPORT Converted := MODULE
   SHARED Work1 := RECORD(Types.Layout_Cell)
     Types.partition_t     partition_id;
     Types.node_t          node_id;

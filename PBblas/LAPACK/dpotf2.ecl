@@ -8,15 +8,21 @@
 //
 
 IMPORT PBblas.Types;
+IMPORT PBblas.Constants;
 dimension_t := Types.dimension_t;
 Triangle    := Types.Triangle;
 matrix_t    := Types.matrix_t;
+Not_PositiveDefZ := Constants.Not_PositiveDefZ;
+Not_PositiveDef  := Constants.Not_PositiveDef;
 
 EXPORT matrix_t dpotf2(Triangle tri, dimension_t r, matrix_t A,
-                       BOOLEAN clear=TRUE) := BEGINC++
+                       BOOLEAN clear=TRUE,
+                       UNSIGNED4 errCode=Not_PositiveDefZ,
+                       VARSTRING errMsg=Not_PositiveDef) := BEGINC++
 #include <cblas.h>
 #include <math.h>
 #define UPPER_TRIANGLE 1  // See PBblas Types Triangle
+#define Error_Code 7000
 #option library blas
 #body
   unsigned int cells = r*r;
@@ -24,7 +30,6 @@ EXPORT matrix_t dpotf2(Triangle tri, dimension_t r, matrix_t A,
   __lenResult = cells * sizeof(double);
   double *new_a = new double[cells];
   memcpy(new_a, a, __lenResult);
-  //Ignore errors for now
   double ajj;
   // x and y refer to the embedded vectors for the multiply, not an axis
   unsigned int diag, a_pos, x_pos, y_pos;
@@ -39,7 +44,8 @@ EXPORT matrix_t dpotf2(Triangle tri, dimension_t r, matrix_t A,
     y_pos = diag + y_step;
     // ddot.value <- x'*y
     ajj = new_a[diag] - cblas_ddot(j, (new_a+x_pos), x_step, (new_a+x_pos), x_step);
-    //if ajj is 0 or NaN, then error
+    //if ajj is 0, negative or NaN, then error
+    if (ajj <= 0.0) rtlFail(errcode, errmsg);
     ajj = sqrt(ajj);
     new_a[diag] = ajj;
     if ( j < r-1) {

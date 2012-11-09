@@ -1,4 +1,4 @@
-// Implements Cholesky factorization of A = U**T * U if Triangular.Upper requested
+﻿// Implements Cholesky factorization of A = U**T * U if Triangular.Upper requested
 //or A = L * L**T if Triangualr.Lower is requested.
 // The matrix A must be symmetric positive definite.
 //  | A11   A12 |      |  L11   0   |    | L11**T     L21**T |
