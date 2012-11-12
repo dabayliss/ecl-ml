@@ -1,4 +1,4 @@
-// Transpose a matrix and sum into base matrix
+﻿// Transpose a matrix and sum into base matrix
 // result <== alpha A**t  + beta C, A is n by m, C is m by n
 IMPORT PBblas;
 IMPORT PBblas.Types;
