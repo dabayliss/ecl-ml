@@ -9,7 +9,7 @@ Layout_Part := Types.Layout_Part;
 Layout_Cell := Types.Layout_Cell;
 IMPORT ML.Types AS ML_Types;
 
-EXPORT DMAT := MODULE
+EXPORT Converted := MODULE
   SHARED Work1 := RECORD(Types.Layout_Cell)
     Types.partition_t     partition_id;
     Types.node_t          node_id;
@@ -40,7 +40,6 @@ EXPORT DMAT := MODULE
       part_cols     := mat_map.part_cols(parent.partition_id);
       SELF.mat_part := PBblas.MakeR8Set(part_rows, part_cols, first_row, first_col,
                                         PROJECT(cells, Layout_Cell),
-                                        mat_map.array_layout,
                                         insert_columns, insert_value);
       SELF.partition_id:= parent.partition_id;
       SELF.node_id     := parent.node_id;
@@ -50,7 +49,6 @@ EXPORT DMAT := MODULE
       SELF.begin_col   := first_col;
       SELF.end_row     := first_row + part_rows - 1;
       SELF.end_col     := first_col + part_cols - 1;
-      SELF.array_layout:= mat_map.array_layout;
       SELF := [];
     END;
     rslt := ROLLUP(d3, GROUP, roll_cells(LEFT, ROWS(LEFT)));
@@ -58,15 +56,10 @@ EXPORT DMAT := MODULE
   END;
   // Convert from dense to sparse
   Layout_Cell cvtPart2Cell(Layout_Part pr, UNSIGNED4 c) := TRANSFORM
-    Column_Major := pr.array_layout=Types.array_enum.Column_Major;
     block_rows := pr.end_row - pr.begin_row + 1;
     block_cols := pr.end_col - pr.begin_col + 1;
-    col_major_row:= ((c-1)  %  block_rows) + 1;
-    row_major_row:= ((c-1) DIV block_cols) + 1;
-    row_in_block := IF(Column_Major, col_major_row, row_major_row);
-    col_major_col:= ((c-1) DIV block_rows) + 1;
-    row_major_col:= ((c-1)  %  block_cols) + 1;
-    col_in_block := IF(Column_Major, col_major_col, row_major_col);
+    row_in_block := ((c-1)  %  block_rows) + 1;
+    col_in_block := ((c-1) DIV block_rows) + 1;
     SELF.v  := pr.mat_part[c];
     SELF.x  := pr.begin_row + row_in_block - 1;
     SELF.y  := pr.begin_col + col_in_block - 1;

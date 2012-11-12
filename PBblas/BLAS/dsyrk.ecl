@@ -1,4 +1,4 @@
-﻿//void cblas_dsyrk(const enum CBLAS_ORDER Order, const enum CBLAS_UPLO Uplo,
+//void cblas_dsyrk(const enum CBLAS_ORDER Order, const enum CBLAS_UPLO Uplo,
 //                 const enum CBLAS_TRANSPOSE Trans, const int N, const int K,
 //                 const double alpha, const double *A, const int lda,
 //                 const double beta, double *C, const int ldc);
@@ -8,7 +8,6 @@
 
 IMPORT PBblas.Types;
 dimension_t := Types.dimension_t;
-array_enum  := Types.array_enum;
 Triangle    := Types.Triangle;
 value_t     := Types.value_t;
 matrix_t    := Types.matrix_t;

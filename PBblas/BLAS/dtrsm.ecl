@@ -8,14 +8,13 @@
 //
 IMPORT PBblas.Types;
 dimension_t := Types.dimension_t;
-array_enum  := Types.array_enum;
 Triangle    := Types.Triangle;
 Diagonal    := Types.Diagonal;
 Side        := Types.Side;
 value_t     := Types.value_t;
 matrix_t    := Types.matrix_t;
 
-EXPORT matrix_t dtrsm(array_enum layout, Side side, Triangle tri,
+EXPORT matrix_t dtrsm(Side side, Triangle tri,
                       BOOLEAN transposeA, Diagonal diag,
                       dimension_t M, dimension_t N,  dimension_t lda,
                       value_t alpha, matrix_t A, matrix_t B) := BEGINC++
@@ -23,15 +22,14 @@ EXPORT matrix_t dtrsm(array_enum layout, Side side, Triangle tri,
 #define UPPER 1
 #define AX 1
 #define UNIT 1
-#define COLUMN_MAJOR 1
 #option library blas
 #body
-  unsigned int ldb = (layout==COLUMN_MAJOR)  ? m  : n;
+  unsigned int ldb = m;
   __isAllResult = false;
   __lenResult = m * n * sizeof(double);
   double *new_b = new double[m*n];
   memcpy(new_b, b, __lenResult);
-  cblas_dtrsm(layout==COLUMN_MAJOR ? CblasColMajor  : CblasRowMajor,
+  cblas_dtrsm(CblasColMajor,
               side==AX ?  CblasLeft  : CblasRight,
               tri==UPPER  ? CblasUpper  : CblasLower,
               transposea ? CblasTrans : CblasNoTrans,

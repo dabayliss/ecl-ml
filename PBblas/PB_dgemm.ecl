@@ -1,5 +1,6 @@
 // Implements result <- alpha*op(A)op(B) + beta*C.  op is No Transpose or Transpose.
 //Result has same matrix map as C.
+IMPORT PBblas;
 IMPORT PBblas.Types;
 IMPORT PBblas.IMatrix_Map;
 IMPORT PBBlas.BLAS;
@@ -10,13 +11,33 @@ emptyC := DATASET([], Layout_Part);
 SET OF value_t empty_array := [];
 
 EXPORT PB_dgemm(BOOLEAN transposeA, BOOLEAN transposeB, value_t alpha,
-                IMatrix_Map map_a, DATASET(Layout_Part) A,
-                IMatrix_Map map_b, DATASET(Layout_Part) B,
+                IMatrix_Map map_a, DATASET(Layout_Part) A_in,
+                IMatrix_Map map_b, DATASET(Layout_Part) B_in,
                 IMatrix_Map map_c, DATASET(Layout_Part) C=emptyC,
                 value_t beta=0.0) := FUNCTION
-// First check maps for compatability, must be all the same layout
-//and dimensions must be consistent, partitions and partition contents
-// Perform transpositions as required to achieve layout compatability.
+// First check maps for compatability.  Normalize for transpose operations.
+  a_matrix_rows := IF(transposeA, map_a.matrix_cols, map_a.matrix_rows);
+  a_matrix_cols := IF(transposeA, map_a.matrix_rows, map_a.matrix_cols);
+  a_row_blocks  := IF(transposeA, map_a.col_blocks,  map_a.row_blocks);
+  a_col_blocks  := IF(transposeA, map_a.row_blocks,  map_a.col_blocks);
+  b_matrix_rows := IF(transposeB, map_b.matrix_cols, map_b.matrix_rows);
+  b_matrix_cols := IF(transposeB, map_b.matrix_rows, map_b.matrix_cols);
+  b_row_blocks  := IF(transposeB, map_b.col_blocks,  map_b.row_blocks);
+  b_col_blocks  := IF(transposeB, map_b.row_blocks,  map_b.col_blocks);
+  c_matrix_rows := map_c.matrix_rows;
+  c_matrix_cols := map_c.matrix_cols;
+  c_row_blocks  := map_c.row_blocks;
+  c_col_blocks  := map_c.col_blocks;
+  A := ASSERT(A_in,
+              ASSERT(a_matrix_cols=b_matrix_rows AND a_col_blocks=b_row_blocks,
+                    'A-B ' + PBblas.Constants.Dimension_Incompat, FAIL),
+              ASSERT(a_matrix_rows=c_matrix_rows AND a_row_blocks=c_row_blocks,
+                    'A-C ' + PBblas.Constants.Dimension_Incompat, FAIL));
+  B := ASSERT(B_in,
+              ASSERT(a_matrix_cols=b_matrix_rows AND a_col_blocks=b_row_blocks,
+                    'A-B ' + PBblas.Constants.Dimension_Incompat, FAIL),
+              ASSERT(b_matrix_cols=c_matrix_cols AND b_col_blocks=c_col_blocks,
+                    'B-C ' + PBblas.Constants.Dimension_Incompat, FAIL));
 //
   Layout_Target cvt(Layout_Part par, INTEGER c,
                     BOOLEAN transpose, BOOLEAN keepRow) := TRANSFORM
@@ -62,8 +83,7 @@ EXPORT PB_dgemm(BOOLEAN transposeA, BOOLEAN transposeB, value_t alpha,
     SELF.end_row      := part_c_first_row + part_c_rows - 1;
     SELF.begin_col    := part_c_first_col;
     SELF.end_col      := part_c_first_col + part_c_cols -1;
-    SELF.array_layout := map_c.array_layout;
-    SELF.mat_part     := BLAS.dgemm(map_c.array_layout, transposeA, transposeB,
+    SELF.mat_part     := BLAS.dgemm(transposeA, transposeB,
                                     part_c_rows, part_c_cols, k,
                                     alpha, a_part.mat_part, b_part.mat_part,
                                     0.0, empty_array);
