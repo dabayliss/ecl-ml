@@ -22,7 +22,7 @@ EXPORT matrix_t dgemm(BOOLEAN transposeA, BOOLEAN transposeB,
    __lenResult = m * n * sizeof(double);
    double *result = new double[m * n];
    // populate if provided
-   if (__lenResult==lenC) for(int i=0; i<m*n; i++) result[i] = ((double*)c)[i];
+   for(int i=0; i<m*n; i++) result[i] = (__lenResult==lenC) ?((double*)c)[i] :0.0;
    cblas_dgemm(CblasColMajor,
                transposea ? CblasTrans : CblasNoTrans,
                transposeb ? CblasTrans : CblasNoTrans,
