@@ -116,6 +116,7 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
       have_b  := EXISTS(blocks(t_term=BaseTerm));
       b_set   := IF(have_b, blocks(t_term=BaseTerm)[1].mat_part, EmptyMat);
       lft_set := blocks(t_term=LeftTerm)[1].mat_part;
+      lft_cols:= EVALUATE(blocks(t_term=LeftTerm)[1], end_col-begin_col+1);
       rgt_set := blocks(t_term=RightTerm)[1].mat_part;
       part_id := blocks[1].t_part_id;   //all records have same value
       SELF.node_id  := blocks[1].t_node_id; // all records have the same
@@ -130,7 +131,7 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
                             BLAS.dgemm(FALSE, FALSE,
                                     b_map.part_rows(part_id),   // M
                                     b_map.part_cols(part_id),   // N
-                                    a_map.part_cols(part_id),   // K
+                                    lft_cols,                   // K
                                     -1.0, lft_set, rgt_set, 1.0, b_set),
                             b_set);
       SELF.t_node_id  := blocks[1].t_node_id;
