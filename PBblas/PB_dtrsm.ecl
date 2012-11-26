@@ -23,6 +23,9 @@ Dimension := Types.dimension_t;
 Distribution_Error := PBblas.Constants.Distribution_Error;
 Dimension_Incompat := PBblas.Constants.Dimension_Incompat;
 Not_Square         := PBblas.Constants.Not_Square;
+BaseTerm := 1;
+RightTerm := 3;
+LeftTerm := 2;
 
 EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
                 value_t alpha,
@@ -47,6 +50,7 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
     rght2lft:= IF(tri=Upper, s=Side.Ax, s=Side.xA);
     rc_pos  := IF(rght2lft, 1 + a_map.row_blocks - loop_c, loop_c);
     remaining := a_map.row_blocks - loop_c;  // Rows or Columns same
+    // Solve the B blocks for diag co-efficient entry
     Part solveBlock(Part b_rec, Part a_rec) := TRANSFORM
       SELF.mat_part := BLAS.dtrsm(s, tri, transposeA, diag,
                                   b_map.part_rows(b_rec.partition_id),
@@ -55,26 +59,31 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
                                   alpha, a_rec.mat_part, b_rec.mat_part);
       SELF := b_rec;
     END;
+    // for solve, only diag coeff.  Transpose same as no transpose.
     solved := JOIN(parts, a_checked(block_row=rc_pos AND block_col=rc_pos),
                       (s=Side.Ax AND LEFT.block_row=RIGHT.block_row)
                    OR (s=Side.xA AND LEFT.block_col=RIGHT.block_col),
                    solveBlock(LEFT, RIGHT), LOOKUP);
+    // Base parts stay in place, just need routing for transform
     Target prepBase(Part base) := TRANSFORM
       SELF.t_part_id  := base.partition_id;
       SELF.t_node_id  := base.node_id;
       SELF.t_block_row:= base.block_row;
       SELF.t_block_col:= base.block_col;
-      SELF.t_term     := 1;   // base
+      SELF.t_term     := BaseTerm;
       SELF            := base;
     END;
+    //Solved blocks not in update, loop filter has removed prior solves
     parts4update := parts(  (s=Side.Ax AND block_row <> rc_pos)
                          OR (s=Side.xA AND block_col <> rc_pos)  );
     need_upd := PROJECT(parts4update, prepBase(LEFT));
     //Replicate the solved blocks up or down for Ax or left or right for xA
-    //or a co-efficient block to the other columns in the row or rows in the column
+    //or co-efficient blocks to the other columns in the row or rows in the
+    //column.  Brings the newly solved X partition and the co-efficient
+    //together to update the remaining sum value.
     Target repPart(Part inPart, Dimension repl, BOOLEAN isA) := TRANSFORM
-      row_base          := IF(NOT isA AND Lower_Ax, rc_pos, 0);
-      col_base          := IF(NOT isA AND Upper_xA, rc_pos, 0);
+      row_base          := IF(Lower_Ax AND NOT isA, rc_pos, 0);
+      col_base          := IF(Upper_xA AND NOT isA, rc_pos, 0);
       row_use_repl      := IF(s=Side.xA, isA, NOT isA);
       col_use_repl      := IF(s=Side.Ax, isA, NOT isA);
       t_row             := IF(row_use_repl, repl+row_base, inPart.block_row);
@@ -84,7 +93,10 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
       SELF.t_node_id    := b_map.assigned_node(t_part);
       SELF.t_block_row  := t_row;
       SELF.t_block_col  := t_col;
-      SELF.t_term       := IF(isA AND s=Side.Ax, 2, 3);   //set left and right term
+      SELF.t_term		:= MAP(isA AND s=Side.Ax	=> LeftTerm,
+                           isA                => RightTerm,
+                           s=Side.Ax          => RightTerm,
+                           LeftTerm);
       SELF              := inPart;
     END;
     s0_repl  := NORMALIZE(solved, remaining, repPart(LEFT, COUNTER, FALSE));
@@ -98,13 +110,14 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
     // Update the matrix
     Target updatePart(DATASET(Target) blocks) := TRANSFORM
       matrix_t EmptyMat := [];
-      have_a  := EXISTS(blocks(t_term = 2));
-      have_x  := EXISTS(blocks(t_term = 3));
-      do_mult := have_a AND have_x;
-      b_set   := IF(EXISTS(blocks(t_term=1)), blocks(t_term=1)[1].mat_part, EmptyMat);
-      a_set   := blocks(t_term=2)[1].mat_part;
-      x_set   := blocks(t_term=3)[1].mat_part;
-      part_id := blocks[1].t_part_id;
+      have_lft:= EXISTS(blocks(t_term = LeftTerm));
+      have_rgt:= EXISTS(blocks(t_term = RightTerm));
+      do_mult := have_lft AND have_rgt;
+      have_b  := EXISTS(blocks(t_term=BaseTerm));
+      b_set   := IF(have_b, blocks(t_term=BaseTerm)[1].mat_part, EmptyMat);
+      lft_set := blocks(t_term=LeftTerm)[1].mat_part;
+      rgt_set := blocks(t_term=RightTerm)[1].mat_part;
+      part_id := blocks[1].t_part_id;   //all records have same value
       SELF.node_id  := blocks[1].t_node_id; // all records have the same
       SELF.partition_id := part_id; // all records have the same
       SELF.block_row  := blocks[1].t_block_row;
@@ -118,7 +131,7 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
                                     b_map.part_rows(part_id),   // M
                                     b_map.part_cols(part_id),   // N
                                     a_map.part_cols(part_id),   // K
-                                    -1.0, a_set, x_set, 1.0, b_set),
+                                    -1.0, lft_set, rgt_set, 1.0, b_set),
                             b_set);
       SELF.t_node_id  := blocks[1].t_node_id;
       SELF.t_part_id  := blocks[1].t_part_id;
@@ -144,5 +157,5 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
             (Upper_xA AND COUNTER <= LEFT.block_col) OR
             (Lower_xA AND 1 + a_map.col_blocks - COUNTER >= LEFT.block_col),
             loopBody(ROWS(LEFT), COUNTER));
-  RETURN x; //SORT(DISTRIBUTE(x, node_id), partition_id, LOCAL);
+  RETURN SORT(DISTRIBUTE(x, node_id), partition_id, LOCAL);
 END;
