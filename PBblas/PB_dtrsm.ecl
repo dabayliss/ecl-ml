@@ -116,17 +116,17 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
       have_b  := EXISTS(blocks(t_term=BaseTerm));
       b_set   := IF(have_b, blocks(t_term=BaseTerm)[1].mat_part, EmptyMat);
       lft_set := blocks(t_term=LeftTerm)[1].mat_part;
-      lft_cols:= EVALUATE(blocks(t_term=LeftTerm)[1], end_col-begin_col+1);
+      lft_cols:= blocks(t_term=LeftTerm)[1].part_cols;
       rgt_set := blocks(t_term=RightTerm)[1].mat_part;
       part_id := blocks[1].t_part_id;   //all records have same value
       SELF.node_id  := blocks[1].t_node_id; // all records have the same
       SELF.partition_id := part_id; // all records have the same
       SELF.block_row  := blocks[1].t_block_row;
       SELF.block_col  := blocks[1].t_block_col;
-      SELF.begin_row  := b_map.first_row(part_id);
-      SELF.end_row    := b_map.first_row(part_id) + b_map.part_rows(part_id) - 1;
-      SELF.begin_col  := b_map.first_col(part_id);
-      SELF.end_col    := b_map.first_col(part_id) + b_map.part_cols(part_id) - 1;
+      SELF.first_row  := b_map.first_row(part_id);
+      SELF.part_rows  := b_map.part_rows(part_id);
+      SELF.first_col  := b_map.first_col(part_id);
+      SELF.part_cols  := b_map.part_cols(part_id);
       SELF.mat_part   := IF(do_mult,
                             BLAS.dgemm(FALSE, FALSE,
                                     b_map.part_rows(part_id),   // M

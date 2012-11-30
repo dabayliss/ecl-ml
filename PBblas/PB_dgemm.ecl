@@ -67,9 +67,9 @@ EXPORT PB_dgemm(BOOLEAN transposeA, BOOLEAN transposeB, value_t alpha,
   // Multiply
   Layout_Part mul(Layout_Target a_part, Layout_Target b_part):=TRANSFORM
     part_id     := a_part.t_part_id;    //arbitrary choice
-    part_a_cols := a_part.end_col - a_part.begin_col + 1;
-    part_a_rows := a_part.end_row - a_part.begin_row + 1;
-    part_b_rows := b_part.end_row - b_part.begin_row + 1;
+    part_a_cols := a_part.part_cols;
+    part_a_rows := a_part.part_rows;
+    part_b_rows := b_part.part_rows;
     part_c_rows := map_c.part_rows(part_id);
     part_c_cols := map_c.part_cols(part_id);
     part_c_first_row  := map_c.first_row(part_id);
@@ -79,10 +79,10 @@ EXPORT PB_dgemm(BOOLEAN transposeA, BOOLEAN transposeB, value_t alpha,
     SELF.node_id      := a_part.t_node_id;
     SELF.block_row    := a_part.t_block_row;
     SELF.block_col    := a_part.t_block_col;
-    SELF.begin_row    := part_c_first_row;
-    SELF.end_row      := part_c_first_row + part_c_rows - 1;
-    SELF.begin_col    := part_c_first_col;
-    SELF.end_col      := part_c_first_col + part_c_cols -1;
+    SELF.first_row    := map_c.first_row(part_id);
+    SELF.part_rows    := part_c_rows;
+    SELF.first_col    := part_c_first_col;
+    SELF.part_cols    := part_c_cols;
     SELF.mat_part     := BLAS.dgemm(transposeA, transposeB,
                                     part_c_rows, part_c_cols, k,
                                     alpha, a_part.mat_part, b_part.mat_part,

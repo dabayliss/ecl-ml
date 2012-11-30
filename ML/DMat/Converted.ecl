@@ -1,4 +1,4 @@
-﻿//Take a dataset of cells for a partition and pack into a dense matrix.  Specify Row
+//Take a dataset of cells for a partition and pack into a dense matrix.  Specify Row
 // or Column major for the layout of te cells in a block.
 //First row and first column are one based.
 //Insert is used insert columns with a spacific value.  Typical use is building a matrix
@@ -45,10 +45,10 @@ EXPORT Converted := MODULE
       SELF.node_id     := parent.node_id;
       SELF.block_row   := parent.block_row;
       SELF.block_col   := parent.block_col;
-      SELF.begin_row   := first_row;
-      SELF.begin_col   := first_col;
-      SELF.end_row     := first_row + part_rows - 1;
-      SELF.end_col     := first_col + part_cols - 1;
+      SELF.first_row   := first_row;
+      SELF.part_rows   := part_rows;
+      SELF.first_col   := first_col;
+      SELF.part_cols   := part_cols;
       SELF := [];
     END;
     rslt := ROLLUP(d3, GROUP, roll_cells(LEFT, ROWS(LEFT)));
@@ -56,13 +56,11 @@ EXPORT Converted := MODULE
   END;
   // Convert from dense to sparse
   Layout_Cell cvtPart2Cell(Layout_Part pr, UNSIGNED4 c) := TRANSFORM
-    block_rows := pr.end_row - pr.begin_row + 1;
-    block_cols := pr.end_col - pr.begin_col + 1;
-    row_in_block := ((c-1)  %  block_rows) + 1;
-    col_in_block := ((c-1) DIV block_rows) + 1;
+    row_in_block := ((c-1)  %  pr.part_rows) + 1;
+    col_in_block := ((c-1) DIV pr.part_rows) + 1;
     SELF.v  := pr.mat_part[c];
-    SELF.x  := pr.begin_row + row_in_block - 1;
-    SELF.y  := pr.begin_col + col_in_block - 1;
+    SELF.x  := pr.first_row + row_in_block - 1;
+    SELF.y  := pr.first_col + col_in_block - 1;
   END;
   EXPORT FromPart2Cell(DATASET(Layout_Part) part_recs) :=
     NORMALIZE(part_recs, COUNT(LEFT.mat_part), cvtPart2Cell(LEFT, COUNTER));

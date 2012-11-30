@@ -10,6 +10,9 @@
 // So, use Cholesky on the first block to get L11.
 //     L21 = A21*L11**T**-1   which can be found by dtrsm on each column block
 //     A22' is A22 - L21*L21**T
+// Based upon PB-BLAS: A set of parallel block basic linear algebra subprograms
+// by Choi and Dongarra
+//
 // Iterate through the diagonal blocks
 IMPORT PBblas;
 IMPORT PBblas.Types;
@@ -31,8 +34,8 @@ EXPORT PB_dpotrf(Triangle tri, IMatrix_Map map_a, DATASET(Layout_Part) A) := FUN
     // Select diagonal block, use dpotf2 in PROJECT to produce L11 or U11
     A_11 := SORTED(parts(block_row=rc_pos AND block_col=rc_pos), partition_id);
     Layout_Part factorBlock(Layout_Part part) := TRANSFORM
-      r := part.end_row + 1 - part.begin_row;
-      // still need an error check here
+      r := part.part_rows;
+      // dpotf2 throws error if factoring fails
       SELF.mat_part := LAPACK.dpotf2(tri, r, part.mat_part);
       SELF := part;
     END;
@@ -88,9 +91,7 @@ EXPORT PB_dpotrf(Triangle tri, IMatrix_Map map_a, DATASET(Layout_Part) A) := FUN
     Term2_d  := SORT(IF(tri=Lower, X_L_21T, X_U_12), t_part_id);
     // Bring together sub-matrix parts and perform rank update
     Layout_Target updMat(Layout_Target lr, DATASET(Layout_Target) rws):=TRANSFORM
-      BeginRow          := map_a.first_row(lr.t_part_id);
       NumRows           := map_a.part_rows(lr.t_part_id);
-      BeginCol          := map_a.first_col(lr.t_part_id);
       NumCols           := map_a.part_cols(lr.t_part_id);
       have_a            := EXISTS(rws(t_term=1));
       idA               := rws(t_term=1)[1].partition_id;
@@ -107,10 +108,10 @@ EXPORT PB_dpotrf(Triangle tri, IMatrix_Map map_a, DATASET(Layout_Part) A) := FUN
       SELF.node_id      := map_a.assigned_node(lr.t_part_id);
       SELF.block_row    := lr.t_block_row;
       SELF.block_col    := lr.t_block_col;
-      SELF.begin_row    := BeginRow;
-      SELF.end_row      := NumRows + BeginRow - 1;
-      SELF.begin_col    := BeginCol;
-      SELF.end_col      := NumCols + BeginCol - 1;
+      SELF.first_row    := map_a.first_row(lr.t_part_id);
+      SELF.part_rows    := NumRows;
+      SELF.first_col    := map_a.first_col(lr.t_part_id);
+      SELF.part_cols    := NumCols;
       SELF.mat_part     := IF(multiplyTerms,
                               BLAS.dgemm(tranA, tranB, NumRows, NumCols, inside,
                                         -1.0, matrix_a, matrix_b, 1.0, matrix_c),

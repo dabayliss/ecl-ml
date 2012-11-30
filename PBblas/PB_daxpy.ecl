@@ -16,17 +16,15 @@ EXPORT PB_daxpy(value_t alpha, DATASET(Part) X, DATASET(Part) Y) := FUNCTION
   y_check := ASSERT(Y, node_id=Thorlib.node(), Constants.Distribution_Error, FAIL);
 
   Part addPart(Part xrec, Part yrec) := TRANSFORM
-    haveX := IF(xrec.begin_col=0, FALSE, TRUE);
-    haveY := IF(yrec.begin_col=0, FALSE, TRUE);
-    begin_col := IF(haveX, xrec.begin_col, yrec.begin_col);
-    end_col   := IF(haveX, xrec.end_col, yrec.end_col);
-    begin_row := IF(haveX, xrec.begin_row, yrec.begin_row);
-    end_row   := IF(haveX, xrec.end_row, yrec.end_row);
-    block_cols:= IF(NOT haveY OR (begin_col=yrec.begin_col AND end_col=yrec.end_col),
-                    end_col - begin_col + 1,
+    haveX := IF(xrec.part_cols=0, FALSE, TRUE);
+    haveY := IF(yrec.part_cols=0, FALSE, TRUE);
+    part_cols := IF(haveX, xrec.part_cols, yrec.part_cols);
+    part_rows := IF(haveX, xrec.part_rows, yrec.part_rows);
+    block_cols:= IF(NOT haveY OR part_cols=yrec.part_cols,
+                    part_cols,
                     FAIL(UNSIGNED4, Dimension_IncompatZ, Dimension_Incompat));
-    block_rows:= IF(NOT haveY OR (begin_row=yrec.begin_row AND end_row=yrec.end_row),
-                    end_row - begin_row + 1,
+    block_rows:= IF(NOT haveY OR part_rows=yrec.part_rows,
+                    part_rows,
                     FAIL(UNSIGNED4, Dimension_IncompatZ, Dimension_Incompat));
     cell_count := block_rows * block_cols;
     axpy := BLAS.daxpy(cell_count, alpha, xrec.mat_part, 1, yrec.mat_part, 1);

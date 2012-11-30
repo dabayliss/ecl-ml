@@ -1,4 +1,4 @@
-﻿// Transpose a matrix and sum into base matrix
+// Transpose a matrix and sum into base matrix
 // result <== alpha A**t  + beta C, A is n by m, C is m by n
 IMPORT PBblas;
 IMPORT PBblas.Types;
@@ -72,10 +72,10 @@ EXPORT PB_dtran(IMatrix_Map map_a, IMatrix_Map map_c,
     SELF.node_id := map_c.assigned_node(part_id);
     SELF.block_row := block_row;
     SELF.block_col := block_col;
-    SELF.begin_row := map_c.first_row(part_id);
-    SELF.end_row := map_c.first_row(part_id) + part_rows - 1;
-    SELF.begin_col := map_c.first_col(part_id);
-    SELF.end_col := map_c.first_col(part_id) + part_cols - 1;
+    SELF.first_row := map_c.first_row(part_id);
+    SELF.part_rows := part_rows;
+    SELF.first_col := map_c.first_col(part_id);
+    SELF.part_cols := part_cols;
   END;
   rslt := JOIN(a_dist, C, LEFT.t_part_id=RIGHT.partition_id,
                transpose(LEFT, RIGHT), FULL OUTER, LOCAL, LIMIT(1), NOSORT);
