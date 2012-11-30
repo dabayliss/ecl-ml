@@ -7,14 +7,17 @@ IMPORT ML.Mat.Vec AS Vec;
 
 EXPORT Sampling := MODULE
 	SHARED g_Method := ENUM(Zeroing, Randomizing);
-	SHARED idListRec := RECORD
+	EXPORT idListRec := RECORD
 		t_RecordID id;
 		t_RecordID oldId;
-  END;
+	END;
+	EXPORT idListGroupRec := RECORD(idListRec)
+		UNSIGNED gNum := 0;
+	END;
 	SHARED idFoldRec := RECORD
 		t_FieldNumber fold;
 		t_RecordID id;
-  END;
+	END;
 	SHARED NumericField CreateIdRecs(NumericField L, INTEGER C, INTEGER origSize, t_Discrete method = g_Method.Zeroing) := TRANSFORM
 		SELF.id := c;
 		SELF.number := 0;
@@ -37,6 +40,16 @@ EXPORT Sampling := MODULE
 	END;
 	SHARED dsDiscRecRnd := RECORD(DiscreteField)
 		Types.t_FieldNumber rnd:= 0;	
+	END;
+
+	EXPORT GenerateNSampleList(t_Count N, t_Count origSize, t_Count sampleSize = 100) := FUNCTION
+		seed:= PROJECT(Vec.From(sampleSize),TRANSFORM(idListGroupRec, SELF.id:=LEFT.x, SELF.oldid := 0));
+		loopBody(SET OF DATASET(idListGroupRec) ds, UNSIGNED4 c) := FUNCTION
+			out:= PROJECT(ds[0],    //ds[0]=original input
+			TRANSFORM(idListGroupRec, SELF.id:=LEFT.id + (c-1)*sampleSize, SELF.oldid := RANDOM()%origSize + 1, SELF.gNum:= c));
+			return if (c = 1, out, ds[c-1] + out);
+		END;
+		return GRAPH(seed,N,loopBody(ROWSET(LEFT),COUNTER));
 	END;
 	
 //	Method used to return results from various sampling methods.

@@ -1,6 +1,9 @@
 ﻿IMPORT ML;
 IMPORT * FROM $;
 IMPORT $.Mat;
+IMPORT * FROM ML.Types;
+IMPORT * FROM ML.Sampling;
+
 EXPORT Trees := MODULE
   SHARED t_node := INTEGER4; // Assumes a maximum of 32 levels presently
 	SHARED t_level := INTEGER1; // Would allow up to 2^256 levels
@@ -15,13 +18,21 @@ EXPORT Trees := MODULE
 		ML.Types.t_Discrete depend; // The dependant value
     ML.Types.DiscreteField;
   END;
+	SHARED gNode := RECORD
+		wNode;
+		t_count group_id;
+	END;	
 	EXPORT SplitF := RECORD		// data structure for splitting results
 		t_node node_id; // The node that is being split
 		t_level level;  // The level the split is occuring
 		ML.Types.t_FieldNumber number; // The column used to split
 		ML.Types.t_Discrete value; // The value for the column in question
 		t_node new_node_id; // The new node that value goes to
-	END;  
+	END;
+  EXPORT gSplitF := RECORD
+		SplitF;
+		t_count group_id;
+	END;
 	SHARED final_node := RECORD
 		Types.t_RecordID root_node		:= 0; 	// parent node id
 		INTEGER1 				 root_level		:= 0; 	// parent node level
@@ -45,6 +56,18 @@ EXPORT Trees := MODULE
 		SELF.final_node		:= l.new_node_id;
 		SELF.final_level	:= l.level + 1;
 	END;
+	SHARED NxKoutofM(t_count N, t_FieldNumber K, t_FieldNumber M) := FUNCTION
+		rndFeatRec:= RECORD
+			t_count	gNum;
+			t_FieldNumber number;
+			t_FieldReal rnd;
+		END;
+		seed:= DATASET([{0,0,0}], rndFeatRec);
+		allFields:= NORMALIZE(seed, M*N, TRANSFORM(rndFeatRec, SELF.gNum:= ((COUNTER -1) DIV M) +1, SELF.number:= (COUNTER % M) +1, SELF.rnd:=RANDOM()));
+		raw_set:= ENTH(SORT(allFields, gNum, rnd), K, M, 1);
+		return TABLE(raw_set, {gNum, number});
+	END;
+
 
 /*
 	The NodeIds within a KdTree follow a natural pattern - all the node-ids will have the same number of bits - corresponding to the
@@ -291,8 +314,7 @@ EXPORT Trees := MODULE
 			SELF.depend := ri.value;	// Actually copies the dependant value to EVERY node - paying memory to avoid downstream cycles
 			SELF := le;
 		END;
-//		ind1 := JOIN(ind, dep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
-// I guess should use ind0 that is ind after FatD, please confirm
+
 		ind1 := JOIN(ind0, dep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
 		res := LOOP(ind1, Depth, PartitionGiniImpurityBased(ROWS(LEFT), COUNTER));
 		nodes := PROJECT(res(id=0),TRANSFORM(SplitF, SELF.new_node_id := LEFT.value, SELF.value := LEFT.depend, SELF := LEFT)); // The split points used to partition each node i
@@ -426,6 +448,16 @@ EXPORT Trees := MODULE
 			return dedup1;
 	END;
 	
+	EXPORT gSplitInstances(DATASET(gSplitf) mod, DATASET(ML.Types.DiscreteField) Indep) := FUNCTION
+		splits:= mod(new_node_id <> 0);	// separate split or branches
+		leafs := mod(new_node_id = 0);	// from final nodes
+		join0 := JOIN(Indep, splits, LEFT.number = RIGHT.number AND LEFT.value = RIGHT.value, LOOKUP, MANY);
+		sort0 := SORT(join0, group_id, id, level, number, node_id, new_node_id);
+		dedup0:= DEDUP(sort0, LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
+		dedup1:= DEDUP(dedup0, LEFT.id = RIGHT.id AND LEFT.new_node_id = RIGHT.node_id, KEEP 1, RIGHT);
+		return dedup1;
+	END;
+
 //Function that prune a Decision Tree based on Estimated Error (C4.5 Quinlan)
 //Inputs:
 //		- nodes dataset from a learning process
@@ -554,4 +586,88 @@ EXPORT Trees := MODULE
 		RETURN C45PruneTree(raw_tree, testIndep, testDep);
 	END;
 	
+// Function to split a set of nodes based on Feature Selection and Gini Impurity,
+// the nodes received were generated sampling with replacement nTrees times.
+// Note: it selects kFeatSel out of mTotFeats features for each sample, features must start at 1 and cannot exist a gap in the numeration.
+	EXPORT RndFeatSelPartitionGIBased(DATASET(gNode) nodes, t_Count nTrees, t_Count kFeatSel, t_Count mTotFeats, t_Count p_level, REAL Purity=1.0):= FUNCTION
+		this_set_all := nodes(level = p_level);
+	  node_base := MAX(this_set_all, node_id);           // Start allocating new node-ids from the highest previous
+		featSet:= NxKoutofM(nTrees, kFeatSel, mTotFeats);  // generating list of features selected for each tree
+		minFeats := TABLE(featSet, {gNum, minNumber := MIN(GROUP, number)}, gNum, FEW); // chose the min feature number from the sample
+		this_minFeats:= JOIN(this_set_all, minFeats, LEFT.group_id = RIGHT.gNum AND LEFT.number= RIGHT.minNumber, LEFT ONLY, LOOKUP);
+		Purities := ML.Utils.Gini(this_minFeats, node_id, depend); // Compute the purities for each node
+		PureEnough := Purities(1-Purity >= gini);
+		pass_thru    := JOIN(this_set_all, PureEnough, LEFT.node_id=RIGHT.node_id, TRANSFORM(LEFT), LOOKUP);
+		this_set_out := JOIN(this_set_all, PureEnough, LEFT.node_id=RIGHT.node_id, TRANSFORM(LEFT), LEFT ONLY,LOOKUP);
+		this_set  := JOIN(this_set_out, featSet, LEFT.group_id = RIGHT.gNum AND LEFT.number= RIGHT.number, TRANSFORM(LEFT), LOOKUP);
+		agg       := TABLE(this_set, {group_id, node_id, number, value, depend,Cnt := COUNT(GROUP)}, group_id, node_id, number, value, depend, MERGE);
+		aggc      := TABLE(agg, {group_id, node_id, number, value, TCnt := SUM(GROUP, Cnt)}, group_id, node_id, number, value, MERGE);
+		r := RECORD
+		  agg;
+			REAL4 Prop; // Proportion pertaining to this dependant value
+		END;
+		prop := JOIN(agg, aggc, LEFT.group_id = RIGHT.group_id AND LEFT.node_id = RIGHT.node_id
+		        AND LEFT.number=RIGHT.number AND LEFT.value = RIGHT.value,
+		        TRANSFORM(r, SELF.Prop := LEFT.Cnt/RIGHT.Tcnt, SELF := LEFT), HASH);
+		gini_per := TABLE(prop, {group_id, node_id, number, value, tcnt := SUM(GROUP,Cnt),val := SUM(GROUP,Prop*Prop)}, group_id, node_id, number, value);
+		gini     := TABLE(gini_per, {group_id, node_id, number, gini_t := SUM(GROUP,tcnt*val)/SUM(GROUP,tcnt)}, group_id, node_id, number, FEW);
+		splt     := DEDUP( SORT( DISTRIBUTE( gini, HASH(group_id, node_id) ), group_id, node_id, -gini_t, LOCAL ), group_id, node_id, LOCAL );
+		node_cand0 := JOIN(aggc, splt, LEFT.group_id = RIGHT.group_id AND LEFT.node_id = RIGHT.node_id AND LEFT.number = RIGHT.number, TRANSFORM(LEFT), LOOKUP);
+		node_cand  := PROJECT(node_cand0, TRANSFORM({node_cand0, t_node new_nodeid}, SELF.new_nodeid := node_base + COUNTER, SELF := LEFT));
+		nc0 := PROJECT(node_cand, TRANSFORM(gNode, SELF.value := LEFT.new_nodeid, SELF.depend := LEFT.value, SELF.level := p_level, SELF := LEFT, SELF := []));
+		r1 := RECORD
+		  ML.Types.t_Recordid id;
+			t_node nodeid;
+		END;
+		mapp := JOIN(this_set, node_cand, LEFT.group_id = RIGHT.group_id AND LEFT.node_id=RIGHT.node_id AND LEFT.number=RIGHT.number AND LEFT.value=RIGHT.value,
+		        TRANSFORM(r1, SELF.id := LEFT.id, SELF.nodeid:=RIGHT.new_nodeid ),LOOKUP);
+		// Now use the mapping to actually reset all the points
+		J := JOIN(this_set_out, mapp,LEFT.id=RIGHT.id,TRANSFORM(gNode, SELF.node_id:=RIGHT.nodeid, SELF.level:=LEFT.level+1, SELF := LEFT),LOCAL);
+		RETURN J + nc0 + nodes(level < p_level) + pass_thru;
+	END;
+
+	SHARED DepGroupedRec := RECORD(DiscreteField)
+		UNSIGNED group_id := 0;
+		t_RecordID new_id := 0;
+	END;
+	SHARED DepGroupedRec GroupDepRecords (DiscreteField l, idListGroupRec r) := TRANSFORM
+		SELF.group_id 	:= r.gNum;
+		SELF.new_id			:= r.id;
+		SELF						:= l;
+	END;
+	
+// Function used in Random Forest classifier learning
+// Note: it selects fsNum out of total number of features, they must start at 1 and cannot exist a gap in the numeration.
+// more info http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#overview
+	EXPORT SplitFeatureSampleGI(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep, t_Count treeNum, t_Count fsNum, REAL Purity=1.0) := FUNCTION
+		N:= MAX(Dep, id);		// Number of instances
+		totFeat:= COUNT(Indep(id=N)); // Number of features
+		// sampling with replacement the original dataset to generate treeNum datasets
+		grList:= ML.Sampling.GenerateNSampleList(treeNum, N, N); // the number of records will be N * treeNum, however the record consist of 3 Unsigned fields
+		groupDep:= JOIN(Dep, grList, LEFT.id = RIGHT.oldId, GroupDepRecords(LEFT, RIGHT)); // if grList were not too big we should use lookup
+		// groupDep:= JOIN(Dep, grList, LEFT.id = RIGHT.oldId, GroupDepRecords(LEFT, RIGHT), MANY LOOKUP); 
+		ind0 := ML.Utils.FatD(Indep); // Ensure no sparsity in independents
+		gNode init(DiscreteField ind, DepGroupedRec depG) := TRANSFORM
+			SELF.group_id := depG.group_id;
+			SELF.node_id := depG.group_id;
+			SELF.level := 1;
+			SELF.depend := depG.value;	// Actually copies the dependant value to EVERY node - paying memory to avoid downstream cycles
+			SELF.id := depG.new_id;
+			SELF := ind;
+		END;
+		ind1 := JOIN(ind0, groupDep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
+		// generating best feature_selection-gini_impurity splits, limiting the max number of iterations to 126 levels
+		res := LOOP(ind1, MAX(ROWS(LEFT), level)>= COUNTER AND COUNTER < 126, RndFeatSelPartitionGIBased(ROWS(LEFT), treeNum, fsNum, totFeat, COUNTER, Purity));
+		nodes := PROJECT(res(id=0),TRANSFORM(gSplitF, SELF.new_node_id := LEFT.value, SELF.value := LEFT.depend, SELF := LEFT)); // The split points used to partition each node i
+			mode_r := RECORD
+				res.group_id;
+				res.node_id;
+				res.level;
+				res.depend;
+				Cnt := COUNT(GROUP);
+			END;
+			nsplits := TABLE(res(id<>0, number=1),mode_r, group_id, node_id, level, depend, FEW);
+			leafs:= PROJECT(nsplits, TRANSFORM(gSplitF, SELF.number:=0, SELF.value:= LEFT.depend, SELF.new_node_id:=0, SELF:= LEFT));
+			RETURN nodes + leafs;
+	END;
 END;
