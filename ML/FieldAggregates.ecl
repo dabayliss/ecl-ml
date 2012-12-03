@@ -1,4 +1,4 @@
-IMPORT * FROM $;
+﻿IMPORT * FROM $;
 EXPORT FieldAggregates(DATASET(Types.NumericField) d) := MODULE
 
 SingleField := RECORD
@@ -25,7 +25,7 @@ Utils.mac_SequenceInField(T,Number,Pos,P)
 
 EXPORT SimpleRanked := P;
 
-dMedianPos:=TABLE(SimpleRanked,{number;SET OF UNSIGNED pos:=IF(MAX(GROUP,pos)%2=0,[MAX(GROUP,pos)/2],[(MAX(GROUP,pos)-1)/2,(MAX(GROUP,pos)-1)/2+1]);},number,FEW);
+dMedianPos:=TABLE(SimpleRanked,{number;SET OF UNSIGNED pos:=IF(MAX(GROUP,pos)%2=0,[(MAX(GROUP,pos))/2,(MAX(GROUP,pos))/2+1],[(MAX(GROUP,pos)/2)+1]);},number,FEW);
 dMedianValues:=JOIN(SimpleRanked,dMedianPos,LEFT.number=RIGHT.number AND LEFT.pos IN RIGHT.pos,TRANSFORM({RECORDOF(SimpleRanked) AND NOT [id,pos];},SELF:=LEFT;),LOOKUP);
 EXPORT Medians:=TABLE(dMedianValues,{number;TYPEOF(dMedianValues.value) median:=IF(COUNT(GROUP)=1,MIN(GROUP,value),SUM(GROUP,value)/2);},number,FEW);
 
