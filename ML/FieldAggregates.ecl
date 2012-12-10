@@ -64,7 +64,7 @@ AveRanked Into(D le,T ri) := 	TRANSFORM
 EXPORT Ranked := JOIN(D,T,LEFT.Number=RIGHT.Number AND LEFT.Value = RIGHT.Value,Into(LEFT,RIGHT));	
 
 {RECORDOF(Ranked);Types.t_Discrete ntile;} tNTile(Ranked L,Simple R,Types.t_Discrete n):=TRANSFORM
-  SELF.ntile:=IF(L.pos=R.countval,n,(Types.t_Discrete)(n*(L.pos/R.countval))+1);
+  SELF.ntile:=IF(L.pos=R.countval,n,(Types.t_Discrete)(n*((L.pos-1)/R.countval))+1);
   SELF:=L;
 END;
 EXPORT NTiles(Types.t_Discrete n):=JOIN(Ranked,Simple,LEFT.number=RIGHT.number,tNTile(LEFT,RIGHT,n),LOOKUP);
