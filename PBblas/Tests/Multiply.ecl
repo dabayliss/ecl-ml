@@ -63,4 +63,4 @@ test3 := Tests.DiffReport.Compare_Parts('C - BtB', t_BtB_C_1, t_BtB_C_9);
 
 // Report
 rpt := test1 + test2 + test3;
-OUTPUT(rpt, NAMED('Multiply_Test'));
+EXPORT Multiply := rpt;

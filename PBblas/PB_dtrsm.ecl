@@ -29,8 +29,11 @@ LeftTerm := 2;
 
 EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
                 value_t alpha,
-                PBblas.IMatrix_Map a_map, DATASET(Part) inA,
+                PBblas.IMatrix_Map a_map, DATASET(Part) rawA,
                 PBblas.IMatrix_Map b_map, DATASET(Part) inB) := FUNCTION
+  // Fix transpose of A if required.  This should not be required with more complex
+  //conditions.
+  inA := IF(transposeA, PBBlas.PB_dtran(a_map, a_map, 1.0, rawA), rawA);
   // First verify compatible maps
   ab_ok := a_map.matrix_rows=b_map.matrix_cols AND a_map.row_blocks=b_map.col_blocks;
   ba_ok := b_map.matrix_rows=a_map.matrix_cols AND b_map.row_blocks=a_map.col_blocks;
@@ -52,7 +55,7 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
     remaining := a_map.row_blocks - loop_c;  // Rows or Columns same
     // Solve the B blocks for diag co-efficient entry
     Part solveBlock(Part b_rec, Part a_rec) := TRANSFORM
-      SELF.mat_part := BLAS.dtrsm(s, tri, transposeA, diag,
+      SELF.mat_part := BLAS.dtrsm(s, tri, FALSE, diag,
                                   b_map.part_rows(b_rec.partition_id),
                                   b_map.part_cols(b_rec.partition_id),
                                   a_map.part_rows(a_rec.partition_id),
@@ -103,8 +106,8 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
     replSolv := SORT(DISTRIBUTE(s0_repl, t_node_id), t_part_id, LOCAL);
     neededCf := a_checked((Upper_Ax AND block_col=rc_pos AND block_row<rc_pos)
                        OR (Lower_Ax AND block_col=rc_pos AND block_row>rc_pos)
-                       OR (Upper_xA AND block_row=rc_pos AND block_row>rc_pos)
-                       OR (Lower_xA AND block_row=rc_pos AND block_row<rc_pos));
+                       OR (Upper_xA AND block_row=rc_pos AND block_col>rc_pos)
+                       OR (Lower_xA AND block_row=rc_pos AND block_col<rc_pos));
     c0_repl  := NORMALIZE(neededCf, a_map.col_blocks, repPart(LEFT, COUNTER, TRUE));
     replCoef := SORT(DISTRIBUTE(c0_repl, t_node_id), t_part_id, LOCAL);
     // Update the matrix
@@ -152,7 +155,7 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
     RETURN rslt;
   END;  // loopBody
   // Run the solver
-  x := LOOP(inB, a_map.row_blocks,  // A is square, so xA and Ax same count
+  x := LOOP(b_checked, a_map.row_blocks,  // A is square, so xA and Ax same count
             (Upper_Ax AND 1 + a_map.row_blocks - COUNTER >= LEFT.block_row) OR
             (Lower_Ax AND COUNTER <= LEFT.block_row) OR
             (Upper_xA AND COUNTER <= LEFT.block_col) OR
