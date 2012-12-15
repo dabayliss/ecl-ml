@@ -22,10 +22,10 @@ EXPORT DATASET(Part) Identity(IMatrix_Map i_map) := FUNCTION
     SELF.node_id      := i_map.assigned_node(part_id);
     SELF.block_row    := c;
     SELF.block_col    := c;
-    SELF.begin_row    := i_map.first_row(part_id);
-    SELF.end_row      := i_map.first_row(part_id) + i_map.part_rows(part_id) - 1;
-    SELF.begin_col    := i_map.first_col(part_id);
-    SELF.end_col      := i_map.first_col(part_id) + i_map.part_cols(part_id) - 1;
+    SELF.first_row    := i_map.first_row(part_id);
+    SELF.part_rows    := i_map.part_rows(part_id);
+    SELF.first_col    := i_map.first_col(part_id);
+    SELF.part_cols    := i_map.part_cols(part_id);
     SELF.mat_part     := popBlock(i_map.part_rows(part_id));
   END;
   d0 := NORMALIZE(seed, LEFT.dim, generate(LEFT,COUNTER));
