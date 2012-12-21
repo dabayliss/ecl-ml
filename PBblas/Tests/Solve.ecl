@@ -1,4 +1,4 @@
-﻿// Test the triangular solver.  Can be left or right, and transposed.
+// Test the triangular solver.  Can be left or right, and transposed.
 IMPORT PBblas;
 IMPORT PBblas.BLAS;
 IMPORT PBblas.LAPACK;

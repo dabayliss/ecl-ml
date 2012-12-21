@@ -8,6 +8,7 @@ IMPORT PBblas.Types;
 Layout_Part := Types.Layout_Part;
 Layout_Cell := Types.Layout_Cell;
 IMPORT ML.Types AS ML_Types;
+IMPORT ML.Mat.Types AS Mat_Types;
 
 EXPORT Converted := MODULE
   SHARED Work1 := RECORD(Types.Layout_Cell)
@@ -29,7 +30,9 @@ EXPORT Converted := MODULE
       SELF.block_col      := block_col;
       SELF := lr;
     END;
-    d0 := PROJECT(cells, cvt_2_xcell(LEFT));
+    inMatrix := cells.x BETWEEN 1 AND mat_map.matrix_rows
+            AND cells.y BETWEEN 1 AND mat_map.matrix_cols - insert_columns;
+    d0 := PROJECT(cells(inMatrix), cvt_2_xcell(LEFT));
     d1 := DISTRIBUTE(d0, node_id);
     d2 := SORT(d1, partition_id, y, x, LOCAL);    // prep for column major
     d3 := GROUP(d2, partition_id, LOCAL);
@@ -86,6 +89,25 @@ EXPORT Converted := MODULE
     SELF.number           := cell.y;
     SELF.value            := cell.v;
   END;
-  EXPORT FromPartDS(DATASET(Layout_Part) part_recs) :=
+  EXPORT FromPart2DS(DATASET(Layout_Part) part_recs) :=
     PROJECT(FromPart2Cell(part_recs), cvt2NF(LEFT));
+
+  // From Mat types
+  Layout_Cell cvt(Mat_Types.Element elm) := TRANSFORM
+    SELF.v  := elm.value;
+    SELF    := elm;
+  END;
+  EXPORT FromElement(DATASET(Mat_Types.Element) elms,
+                     PBblas.IMatrix_Map mat_map,
+                     Types.dimension_t ins_cols=0,
+                     Types.value_t ins_val=0.0d)
+        := FromCells(mat_map, PROJECT(elms, cvt(LEFT)), ins_cols, ins_val);
+
+  // To Mat types
+  Mat_Types.Element cvt(Layout_Cell cell) := TRANSFORM
+    SELF.value := cell.v;
+    SELF := cell;
+  END;
+  EXPORT FromPart2Elm(DATASET(Layout_Part) part_recs) :=
+    PROJECT(FromPart2Cell(part_recs), cvt(LEFT));
 END;
