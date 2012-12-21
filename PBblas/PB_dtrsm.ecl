@@ -35,8 +35,8 @@ EXPORT PB_dtrsm(Side s, Triangle tri, BOOLEAN transposeA, Diagonal diag,
   //conditions.
   inA := IF(transposeA, PBBlas.PB_dtran(a_map, a_map, 1.0, rawA), rawA);
   // First verify compatible maps
-  ab_ok := a_map.matrix_rows=b_map.matrix_cols AND a_map.row_blocks=b_map.col_blocks;
-  ba_ok := b_map.matrix_rows=a_map.matrix_cols AND b_map.row_blocks=a_map.col_blocks;
+  ab_ok := a_map.matrix_cols=b_map.matrix_rows AND a_map.col_blocks=b_map.row_blocks;
+  ba_ok := b_map.matrix_cols=a_map.matrix_rows AND b_map.col_blocks=a_map.row_blocks;
   a_sq  := a_map.matrix_rows=a_map.matrix_cols AND a_map.row_blocks=a_map.col_blocks;
   compatible:= IF(s=Side.Ax, ab_ok, ba_ok);
   a_checked := ASSERT(inA, ASSERT(compatible, Dimension_Incompat, FAIL),

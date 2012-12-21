@@ -30,7 +30,9 @@ EXPORT Converted := MODULE
       SELF.block_col      := block_col;
       SELF := lr;
     END;
-    d0 := PROJECT(cells, cvt_2_xcell(LEFT));
+    inMatrix := cells.x BETWEEN 1 AND mat_map.matrix_rows
+            AND cells.y BETWEEN 1 AND mat_map.matrix_cols - insert_columns;
+    d0 := PROJECT(cells(inMatrix), cvt_2_xcell(LEFT));
     d1 := DISTRIBUTE(d0, node_id);
     d2 := SORT(d1, partition_id, y, x, LOCAL);    // prep for column major
     d3 := GROUP(d2, partition_id, LOCAL);

@@ -1,6 +1,14 @@
 IMPORT * FROM $;
 IMPORT Std.Str ;
 IMPORT ML.mat as Mat;
+IMPORT PBblas as PBblas;
+IMPORT ML.DMat as DMat;
+NotCompat := PBblas.Constants.Dimension_Incompat;
+Matrix_Map:= PBblas.Matrix_Map;
+LowerTri  := PBblas.Types.Triangle.Lower;
+UpperTri  := PBblas.Types.Triangle.Upper;
+NotUnit   := PBblas.Types.Diagonal.NotUnitTri;
+Side      := PBblas.Types.Side;
 /*
 	The object of the regression module is to generate a regression model.
   A regression model relates the dependent variable Y to a function of
@@ -33,7 +41,29 @@ EXPORT OLS(DATASET(Types.NumericField) X,DATASET(Types.NumericField) Y) := MODUL
 			fsub := Mat.Decomp.f_sub(mL,Mat.Mul(mXt, mY));
 			EXPORT DATASET(Mat.Types.Element) Betas := Mat.Decomp.b_sub(Mat.Trans(mL), fsub);
 		 END;
-	
+	     EXPORT Dense_Cholesky := MODULE(Default)
+	       x_stats := Mat.Has(mX).Stats;
+	       y_stats := Mat.Has(mY).Stats;
+	       mX_ok := ASSERT(mX, ASSERT(x_stats.XMax=y_stats.XMax, NotCompat, FAIL));
+	       mY_ok := ASSERT(mY, ASSERT(y_stats.XMax=x_stats.XMax, NotCompat, FAIL));
+	       block_rows := MIN(PBblas.Constants.Block_Vec_Rows, x_stats.XMax);
+	       x_map := Matrix_Map(x_stats.XMax, x_stats.YMax, block_rows, x_stats.YMax);
+	       y_map := Matrix_Map(y_stats.XMax, y_stats.YMax, block_rows, y_stats.YMax);
+	       b_map := Matrix_Map(x_stats.YMax, y_stats.YMax, x_stats.YMax, y_stats.YMax);
+	       z_map := Matrix_Map(x_stats.Ymax, x_stats.YMax, x_stats.YMax, x_stats.YMax);
+	       x_part:= DMat.Converted.FromElement(mX, x_map);
+	       y_part:= DMat.Converted.FromElement(mY, y_map);
+	       XtX_p := PBblas.PB_dbvrk(TRUE, 1.0, x_map, x_part, z_map);
+	       XtY_p := PBblas.PB_dbvmm(TRUE, FALSE, 1.0, x_map, x_part, y_map, y_part,
+	                                b_map);
+	       L_p   := PBblas.PB_dpotrf(LowerTri, z_map, XtX_p);
+	       s1_p  := PBblas.PB_dtrsm(Side.Ax, LowerTri, FALSE, NotUnit, 1.0,
+	                                z_map, L_p, b_map, XtY_p);
+	       b_part:= PBblas.PB_dtrsm(Side.Ax, UpperTri, TRUE, NotUnit, 1.0,
+	                                z_map, L_p, b_map, s1_p);
+	       b_elem:= DMat.Converted.FromPart2Elm(b_part);
+	       EXPORT DATASET(Mat.Types.Element) Betas := b_elem;
+	     END;
 	END;
 
 	EXPORT Beta(MDM.Default Control = MDM.Cholesky) := FUNCTION
