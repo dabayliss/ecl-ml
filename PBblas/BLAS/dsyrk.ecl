@@ -16,9 +16,11 @@ EXPORT matrix_t dsyrk(Triangle tri, BOOLEAN transposeA,
             dimension_t N, dimension_t K,
             value_t alpha, matrix_t A,
             value_t beta, matrix_t C, BOOLEAN clear=FALSE) := BEGINC++
+extern "C" {
 #include <cblas.h>
+}
 #define UPPER 1
-#option library blas
+#option library cblas
 #body
   __isAllResult = false;
   __lenResult = n * n * sizeof(double);

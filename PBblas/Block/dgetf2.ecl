@@ -16,7 +16,9 @@ Not_PositiveDef  := Constants.Not_PositiveDef;
 EXPORT matrix_t dgetf2(dimension_t m, dimension_t n, matrix_t a,
                        UNSIGNED4 errCode=Not_PositiveDefZ,
                        VARSTRING errMsg=Not_PositiveDef) := BEGINC++
+extern "C" {
 #include <cblas.h>
+}
 #include <math.h>
 #body
   //double sfmin = dlamch('S');   // get safe minimum

@@ -18,11 +18,13 @@ EXPORT matrix_t dtrsm(Side side, Triangle tri,
                       BOOLEAN transposeA, Diagonal diag,
                       dimension_t M, dimension_t N,  dimension_t lda,
                       value_t alpha, matrix_t A, matrix_t B) := BEGINC++
+extern "C" {
 #include <cblas.h>
+}
 #define UPPER 1
 #define AX 1
 #define UNIT 1
-#option library blas
+#option library cblas
 #body
   unsigned int ldb = m;
   __isAllResult = false;
