@@ -19,11 +19,13 @@ EXPORT matrix_t dpotf2(Triangle tri, dimension_t r, matrix_t A,
                        BOOLEAN clear=TRUE,
                        UNSIGNED4 errCode=Not_PositiveDefZ,
                        VARSTRING errMsg=Not_PositiveDef) := BEGINC++
+extern "C" {
 #include <cblas.h>
+}
 #include <math.h>
 #define UPPER_TRIANGLE 1  // See PBblas Types Triangle
 #define Error_Code 7000
-#option library blas
+#option library cblas
 #body
   unsigned int cells = r*r;
   __isAllResult = false;

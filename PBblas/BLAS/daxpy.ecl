@@ -7,8 +7,10 @@ matrix_t    := Types.matrix_t;
 
 EXPORT matrix_t daxpy(dimension_t N, value_t alpha, matrix_t x,
                       dimension_t incX, matrix_t Y, incY) := BEGINC++
+extern "C" {
 #include <cblas.h>
-#option library blas
+}
+#option library cblas
 #body
   __isAllResult = false;
   __lenResult = n * sizeof(double);

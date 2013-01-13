@@ -12,8 +12,10 @@ EXPORT matrix_t dgemm(BOOLEAN transposeA, BOOLEAN transposeB,
                       dimension_t M, dimension_t N, dimension_t K,
                       value_t alpha, matrix_t A, matrix_t B,
                       value_t beta, matrix_t C=[]) := BEGINC++
+extern "C" {
 #include <cblas.h>
-#option library blas
+}
+#option library cblas
 #body
    unsigned int lda = transposea==0 ? m  : k;
    unsigned int ldb = transposeb==0 ? k  : n;

@@ -7,8 +7,10 @@ matrix_t    := Types.matrix_t;
 
 EXPORT matrix_t dscal(dimension_t N, value_t alpha, matrix_t X,
                       dimension_t incX) := BEGINC++
+extern "C" {
 #include <cblas.h>
-#option library blas
+}
+#option library cblas
 #body
   __isAllResult = false;
   __lenResult = n * sizeof(double);
