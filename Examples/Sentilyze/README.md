@@ -13,14 +13,10 @@ Sentiment is determined by counting the number of negative and positive words in
 ###Naïve Bayes Classifier
 Sentiment is determined by a supervised, multinomial (bag-of-words) Naïve Bayes Classifer.
 
-###Language Classifier
-Filters tweets by language using Rank Ordered Unigrams ([Ahmed et al., Pace University](http://www.csis.pace.edu/~ctappert/srd2004/paper12.pdf))
-
 ----------
 
 ##Sentilyze Requirments
 - Machine Learning Library 
-- Synset and Similar data from [Princeton's WordNet](http://wordnet.princeton.edu "Princeton's Wordnet")
 - Tweets
 
 ###Aqcuiring Tweets From Twitter
@@ -40,28 +36,15 @@ The parameters for a properly formatted CSV file are:
 
 ###Training Classifiers
 
-####Language Classifier
-Currently, filtering tweets by language is unavailable using Twitter's Streaming API. Twitter's Search API has language-filtering capabilities but results may vary. Therefore, it may be necessary for language-specific sentiment analysis to filter out tweets that are not in the target language(s). 
-
-The Language Classifier classifies tweets into two groups, Keep and Filter and returns tweets marked as "Keep". 
-
-#####Training the Language Classifier Walkthrough
-Record sets of language(s) to keep and filter are required to train the Language Classifier
-
-- Expand the ***Language*** folder and open ***Trainer.ecl***
-- Find "File String Definitions" and replace strings with the appropiate logical file names of trainer datasets. 
-
 ####Naïve Bayes Sentiment Classifier
-
-- Expand the ***NaiveBayes*** folder and open ***Model.ecl***
-- Find "File String Definitions" and replace strings with the appropiate logical file names of trainer datasets. 
+- In Strings.ecl, under "Naive Bayes Sentiment Classifier" replace strings with the appropiate logical file names of trainer datasets. The ***BayesModel*** and ***BayesVocab*** will be created when the Naive Bayes Sentiment Classifier is run for the first time.
 
 ####Keyword Count Sentiment Classifier
 Datasets of Positive and Negative words are required to train the Keyword Count Classifier
 
 #####Generating Word Lists
 
-***Generate.ecl*** can be used to create lists of seed words to be used for training the Keyword Count classifier. It uses two methods of weighting words, Term Frequency-Inverse Document Frequency (TF-IDF) and Mutual Information. 
+***Generate.ecl*** can be used to create lists of keywords to be used with the Keyword Count classifier. It uses two methods of weighting words, Term Frequency-Inverse Document Frequency (TF-IDF) and Mutual Information. 
 
 > IMPORT Sentilyze;
 
@@ -69,13 +52,13 @@ Datasets of Positive and Negative words are required to train the Keyword Count 
 
 > tweetsNegative := DATASET('~SENTILYZE::NEGATIVE',Sentilyze.Types.TweetType,CSV);
 
-> rawPositive := Sentilyze.PreProcess.ToRaw(tweetsPositive);
+> rawPositive := Sentilyze.PreProcess.ConvertToRaw(tweetsPositive);
 
-> rawNegative := Sentilyze.PreProcess.ToRaw(tweetsNegative);
+> rawNegative := Sentilyze.PreProcess.ConvertToRaw(tweetsNegative);
 
-> processPositive := Sentilyze.PreProcess.ForTraining(rawPositive);
+> processPositive := Sentilyze.PreProcess.RemoveTraining(rawPositive);
 
-> processNegative := Sentilyze.PreProcess.ForTraining(rawNegative);
+> processNegative := Sentilyze.PreProcess.RemoveTraining(rawNegative);
 
 > positiveWordsTfidf := Sentilyze.KeywordCount.Generate(processPositive,200).Keywords_tfidf;
 
@@ -90,8 +73,7 @@ Datasets of Positive and Negative words are required to train the Keyword Count 
 >OUTPUT(sentimentWordsMI,all,NAMED('SentimentMI_Words'));
 
 #####Training Keyword Count Classifier
-- Expand the ***KeywordCount*** folder and open ***Trainer.ecl***
-- Find "File String Definitions" and replace strings with the appropiate logical file names of trainer datasets. 
+- In Strings.ecl, under "KeywordCount Sentiment Classifier" replace strings with the appropiate logical file names of keyword datasets. 
 
 ----------
 
@@ -102,9 +84,9 @@ Below is an example of a dataset of tweets that are classified using both Keywor
 
 >Tweets := DATASET('~SENTILYZE::TWEETS',Sentilyze.Types.TweetType.CSV);
 
->rawTweets := Sentilyze.PreProcess.ToRaw(Tweets);
+>rawTweets := Sentilyze.PreProcess.ConvertToRaw(Tweets);
 
->processTweets := Sentilyze.PreProcess.ForAnalysis(rawTweets)
+>processTweets := Sentilyze.PreProcess.RemoveAnalysis(rawTweets)
 
 >kcSentiment := Sentilyze.KeywordCount.Classify(processTweets);
 
@@ -117,25 +99,6 @@ Below is an example of a dataset of tweets that are classified using both Keywor
 ----------
 
 ##Sentilyze Functions Appendix
-
-###Language Classifier (Sentilyze.Language)
-
-####Classify
-Sentilyze.Language.Classify(*recordset[,language]*)
-
-<table>
-<tr>
-<td>recordset</td><td>The set of <em>Raw</em> (ML.Docs.Types.Raw) records to process</td>
-</tr>
-<tr>
-<td>language</td><td>An integer representing the group of tweets to return. 1 = 'Keep', -1 'Discard'. Default: 1</td>
-</tr>
-<tr>
-<td>Return:</td><td><strong><em>Classify</em></strong> returns a <em>Raw</em> record set</td>
-</tr>
-</table>
-
-----------
 
 ###Keyword Count Sentiment Classifier (Sentilyze.KeywordCount)
 
@@ -203,35 +166,40 @@ Sentilyze.NaiveBayes.Classify(*recordset*)
 
 ###Pre-Processing Module (Sentilyze.PreProcess)
 
-####ForAnalysis
-ForAnalysis(*recordset*)
+####ReplaceAnalysis and RemoveAnalysis
+ReplaceAnalysis(*recordset*) or RemoveAnalysis(*recordset*)
 <table>
 <tr>
 <td>recordset</td><td>The set of <em>Raw</em> (ML.Docs.Types.Raw) records to process</td>
 </tr>
 <tr>
-<td>Return:</td><td><strong><em>ForAnalysis</em></strong> returns a Raw record set.</td>
+<td>Return:</td><td><strong><em>ReplaceAnalysis</em></strong> and <em><strong>RemoveAnalysis</strong></em> returns a Raw record set.</td>
 </tr>
 </table>
 
-The ***ForAnalysis*** function replaces:
+The ***ReplaceAnalysis*** function replaces:
 
 - Repeated Letters and Strings (omggggg caaaaatssss to omggg caaatsss; hahahahaha to hahaha)
 
 - Twitter artifacts: Usernames, Links, Hashtags with 'TWITTERUSER', 'TWITTERLINK', 'TWITTERHASHTAG'
 
-####ForTraining
-ForTraining(*recordset*)
+The ***RemoveAnalysis*** function removes:
+
+- Twitter artifacts
+- Repeated Letters and Strings (omggggg caaaaatssss to omggg caaatsss; hahahahaha to hahaha)
+
+####ReplaceTraining and RemoveTraining
+ReplaceTraining(*recordset*) or RemoveTraining(*recordset*)
 <table>
 <tr>
 <td>recordset</td><td>The set of <em>Raw</em> (ML.Docs.Types.Raw) records to process</td>
 </tr>
 <tr>
-<td>Return:</td><td><strong><em>ForTraining</em></strong> returns a <em>Raw</em> record set.</td>
+<td>Return:</td><td><strong><em>ReplaceTraining</em></strong> and <strong><em>RemoveTraining</em></strong> returns a <em>Raw</em> record set.</td>
 </tr>
 </table>
 
-The ***ForTraining*** function replaces
+The ***ReplaceTraining*** function replaces
 - Repeated Letters and Strings (omggggg caaaaatssss to omggg caaatsss; hahahahaha to hahaha)
 
 - Twitter artifacts: Usernames, Links, Hashtags with 'TWITTERUSER', 'TWITTERLINK', 'TWITTERHASHTAG'
@@ -240,37 +208,22 @@ and removes
 
 - retweets (Tweets marked with RT/MT) and duplicate tweets
 
-####ToRaw
-ToRaw(*recordset*)
+The ***RemoveTraining*** function removes
+- Repeated Letters and Strings (omggggg caaaaatssss to omggg caaatsss; hahahahaha to hahaha)
+
+- Twitter artifacts: Usernames, Links, Hashtags
+
+- retweets (Tweets marked with RT/MT) and duplicate tweets
+
+
+####ConvertToRaw
+ConvertToRaw(*recordset*)
 <table>
 <tr>
 <td><em>recordset</em></td><td>The set of <em>TweetType</em> (Sentilyze.Types.TweetType) records to process</td>
 </tr>
 <tr>
-<td>Return:</td><td><strong><em>ToRaw</em></strong> returns a <em>Raw</em> (ML.Docs.Types.Raw) record set</td>
-</tr>
-</table>
-
-----------
-
-###WordNet Query Module (Sentilyze.WordNet.Query)
-####GetSimilar
-Sentilyze.WordNet.Query.GetSimilar(*recordset*)
-<table>
-<tr>
-<td><em>recordset</em></td><td>The set of <em>WordType</em> (Sentilyze.Types.WordType) records to process.</td>
-</tr>
-<td>Return:</td><td><strong><em>GetSimilar</em></strong> returns a <em>WordType</em> record set.</td>
-</tr>
-</table>
-
-####ExpandList
-Sentilyze.WordNet.Query.ExpandList(*recordset*)
-<table>
-<tr>
-<td><em>recordset</em></td><td>The set of <em>WordType</em> (Sentilyze.Types.WordType) records to process.</td>
-</tr>
-<td>Return:</td><td><strong><em>ExpandList</em></strong> returns a <em>WordType</em> record set.</td>
+<td>Return:</td><td><strong><em>ConvertToRaw</em></strong> returns a <em>Raw</em> (ML.Docs.Types.Raw) record set</td>
 </tr>
 </table>
 

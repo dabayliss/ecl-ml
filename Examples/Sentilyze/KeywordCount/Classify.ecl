@@ -27,10 +27,9 @@ EXPORT Classify(DATASET(ML.Docs.Types.Raw) T)	:= FUNCTION
 		SELF.Sentiment := MAP(R.Sentiment > 0 => 1, R.Sentiment < 0 => -1,0);
 	END;
 
-	dNegative := Sentilyze.KeywordCount.Trainer.Negative;
-	dPositive := Sentilyze.KeywordCount.Trainer.Positive;
-	dLanguage := Sentilyze.Language.Classify(T);
-	dTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dLanguage));
+	dNegative := DATASET(Sentilyze.Strings.NegativeKeywords,Sentilyze.Types.WordType,CSV);
+	dPositive := DATASET(Sentilyze.Strings.PositiveKeywords,Sentilyze.Types.WordType,CSV);
+	dTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(T));
 	dNegaTokens := JOIN(dTokens,dNegative,LEFT.Word = RIGHT.Word,IdSentiment(LEFT,-1),LOOKUP);
 	dPosiTokens := JOIN(dTokens,dPositive,LEFT.Word = RIGHT.Word,IdSentiment(LEFT,1),LOOKUP);
 	dSentiMerge := dNegaTokens + dPosiTokens;
