@@ -26,8 +26,7 @@ EXPORT Classify(DATASET(ML.Docs.Types.Raw) T) := FUNCTION
 	END;
 
 	//Pre-Process Tweets
-	dLanguage := Sentilyze.Language.Classify(T);
-	dTokens	:= ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dLanguage));
+	dTokens	:= ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(T));
 
 	//Get Vocabulary and Model
 	TrainModel := Sentilyze.NaiveBayes.Model.Model; 

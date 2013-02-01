@@ -8,9 +8,7 @@ IMPORT Examples.Sentilyze AS Sentilyze;
 IMPORT ML;
 
 EXPORT Generate(DATASET(ML.Docs.Types.Raw) T,UNSIGNED nWords=100) := MODULE
-
-	SHARED dLanguage := Sentilyze.Language.Classify(T);
-	SHARED dTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(dLanguage));
+	SHARED dTokens := ML.Docs.Tokenize.Split(ML.Docs.Tokenize.Clean(T));
 	SHARED dLexicon := ML.Docs.Tokenize.Lexicon(dTokens);
 
 	EXPORT Keywords_TFIDF := FUNCTION
@@ -27,8 +25,7 @@ EXPORT Generate(DATASET(ML.Docs.Types.Raw) T,UNSIGNED nWords=100) := MODULE
 	END;
 	
 	EXPORT Keywords_MI(DATASET(ML.Docs.Types.Raw) O, UNSIGNED nThreshold=0,UNSIGNED units=2) := FUNCTION
-		oLanguage := Sentilyze.Language.Classify(O);
-		dMi := ML.Docs.CoLocation.MutualInfo(dLanguage,oLanguage,nThreshold,units);
+		dMi := ML.Docs.CoLocation.MutualInfo(T,O,nThreshold,units);
 		RETURN TOPN(dMI,nWords,-mi);
 	END;
 

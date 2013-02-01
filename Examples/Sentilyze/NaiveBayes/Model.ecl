@@ -31,24 +31,18 @@ ML.Types.NumericField ToDep(Sentilyze.Types.SentimentType L) := TRANSFORM
 	SELF.value := L.sentiment;
 END;
 
-// FILE STRING DEFINITIONS
-sPosiTrainer := '~SENTILYZE::TRAINER::POSITIVE'; //Logical File Name of Positive Tweets
-sNegaTrainer := '~SENTILYZE::TRAINER::NEGATIVE'; //Logical File Name of Negative Tweets
-sModelPersist := '~SENTILYZE::PERSIST::TRAINER::MODEL'; //Logical File Name of Classifier Model
-sVocabPersist := '~SENTILYZE::PERSIST::TRAINER::VOCABULARY'; //Logical File Name of Classifier Vocabulary
-
 //Pre-Process Training Data
-dPosiTrainer := DATASET(sPosiTrainer,Sentilyze.Types.TweetType,CSV);
-dPosiRaw := Sentilyze.PreProcess.ToRaw(dPosiTrainer);
-dPosiProcess := Sentilyze.PreProcess.ForTraining(dPosiRaw);
-dPosiLanguage := Sentilyze.Language.Classify(dPosiProcess);
-dPosiTagged := PROJECT(dPosiLanguage,TRANSFORM(Sentilyze.Types.SentimentType,SELF.id := LEFT.id;SELF.tweet := LEFT.txt;SELF.sentiment := 1));
+dPosiTrainer := DATASET(Sentilyze.Strings.PositiveTweets,Sentilyze.Types.TweetType,CSV);
+dPosiRaw := Sentilyze.PreProcess.ConvertToRaw(dPosiTrainer);
+dPosiProcess := Sentilyze.PreProcess.RemoveTraining(dPosiRaw);
+//dPosiProcess := Sentilyze.PreProcess.ReplaceTraining(dPosiRaw);
+dPosiTagged := PROJECT(dPosiProcess,TRANSFORM(Sentilyze.Types.SentimentType,SELF.id := LEFT.id;SELF.tweet := LEFT.txt;SELF.sentiment := 1));
 
-dNegaTrainer := DATASET(sNegaTrainer,Sentilyze.Types.TweetType,CSV);
-dNegaRaw := Sentilyze.PreProcess.ToRaw(dNegaTrainer);
-dNegaProcess := Sentilyze.PreProcess.ForTraining(dNegaRaw);
-dNegaLanguage := Sentilyze.Language.Classify(dNegaProcess);
-dNegaTagged := PROJECT(dNegaLanguage,TRANSFORM(Sentilyze.Types.SentimentType,SELF.id := LEFT.id;SELF.tweet := LEFT.txt;SELF.sentiment := -1));
+dNegaTrainer := DATASET(Sentilyze.Strings.NegativeTweets,Sentilyze.Types.TweetType,CSV);
+dNegaRaw := Sentilyze.PreProcess.ConvertToRaw(dNegaTrainer);
+dNegaProcess := Sentilyze.PreProcess.RemoveTraining(dNegaRaw);
+//dNegaProcess := Sentilyze.PreProcess.ReplaceTraining(dNegaRaw);
+dNegaTagged := PROJECT(dNegaProcess,TRANSFORM(Sentilyze.Types.SentimentType,SELF.id := LEFT.id;SELF.tweet := LEFT.txt;SELF.sentiment := -1));
 
 SentiMerge := PROJECT((dPosiTagged + dNegaTagged),TRANSFORM(Sentilyze.Types.SentimentType, SELF.id := COUNTER;SELF := LEFT));
 SentiRaw := PROJECT(SentiMerge,TRANSFORM(ML.Docs.Types.Raw,SELF.id := LEFT.id;SELF.txt := LEFT.tweet));
@@ -69,6 +63,6 @@ dfDep := ML.Discretize.ByRounding(nfDep);
 SentiModel := ML.Classify.NaiveBayes.LearnD(dfIndep,dfDep);
 
 EXPORT Model := MODULE
-	EXPORT Vocab := Senticon:PERSIST(sVocabPersist);
-	EXPORT Model := SentiModel:PERSIST(sModelPersist);
+	EXPORT Vocab := Senticon:PERSIST(Sentilyze.Strings.BayesVocab);
+	EXPORT Model := SentiModel:PERSIST(Sentilyze.Strings.BayesModel);
 END;
