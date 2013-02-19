@@ -6,6 +6,7 @@ IMPORT * FROM ML.Sampling;
 
 EXPORT Trees := MODULE
   SHARED t_node := INTEGER4; // Assumes a maximum of 32 levels presently
+	SHARED t_Index:= INTEGER4;
 	SHARED t_level := INTEGER1; // Would allow up to 2^256 levels
   EXPORT Node := RECORD
     t_node node_id; // The node-id for a given point
@@ -56,16 +57,18 @@ EXPORT Trees := MODULE
 		SELF.final_node		:= l.new_node_id;
 		SELF.final_level	:= l.level + 1;
 	END;
-	SHARED NxKoutofM(t_count N, t_FieldNumber K, t_FieldNumber M) := FUNCTION
+	EXPORT NxKoutofM(t_Index N, t_FieldNumber K, t_FieldNumber M) := FUNCTION
 		rndFeatRec:= RECORD
-			t_count	gNum;
-			t_FieldNumber number;
-			t_FieldReal rnd;
+			t_count	      gNum   :=0;
+			t_FieldNumber number :=0;
+			t_FieldReal   rnd    :=0;
 		END;
 		seed:= DATASET([{0,0,0}], rndFeatRec);
-		allFields:= NORMALIZE(seed, M*N, TRANSFORM(rndFeatRec, SELF.gNum:= ((COUNTER -1) DIV M) +1, SELF.number:= (COUNTER % M) +1, SELF.rnd:=RANDOM()));
-		raw_set:= ENTH(SORT(allFields, gNum, rnd), K, M, 1);
-		return TABLE(raw_set, {gNum, number});
+		group_seed:= DISTRIBUTE(NORMALIZE(seed, N,TRANSFORM(rndFeatRec, SELF.gNum:= COUNTER)), gNum);
+		allFields:= NORMALIZE(group_seed, M, TRANSFORM(rndFeatRec, SELF.number:= (COUNTER % M) +1, SELF.rnd:=RANDOM(), SELF:=LEFT),LOCAL);
+		allSorted:= SORT(allFields, gNum, rnd, LOCAL);
+		raw_set:= ENTH(allSorted, K, M, 1);
+		RETURN TABLE(raw_set, {gNum, number});
 	END;
 
 
@@ -412,7 +415,7 @@ EXPORT Trees := MODULE
 						TRANSFORM(r1,SELF.id := LEFT.id,SELF.nodeid:=RIGHT.new_nodeid),LOOKUP);
 		// Now use the mapping to actually reset all the points		
 		J := JOIN(final_set, mapp, LEFT.id=RIGHT.id, TRANSFORM(wNode,SELF.node_id:=RIGHT.nodeid,SELF.level:=LEFT.level+1,SELF := LEFT),LOCAL);
-		return J + new_nodes + nodes(level < p_level) + pass_thru;
+		RETURN J + new_nodes + nodes(level < p_level) + pass_thru;
 	END;
 
 // Splitting Function Based on Information Gain Ratio,
@@ -445,7 +448,7 @@ EXPORT Trees := MODULE
 			sort0 := SORT(join0, id, level, number, node_id, new_node_id);
 			dedup0:= DEDUP(sort0, LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
 			dedup1:= DEDUP(dedup0, LEFT.id = RIGHT.id AND LEFT.new_node_id = RIGHT.node_id, KEEP 1, RIGHT);
-			return dedup1;
+			RETURN dedup1;
 	END;
 	
 	EXPORT gSplitInstances(DATASET(gSplitf) mod, DATASET(ML.Types.DiscreteField) Indep) := FUNCTION
@@ -453,9 +456,9 @@ EXPORT Trees := MODULE
 		leafs := mod(new_node_id = 0);	// from final nodes
 		join0 := JOIN(Indep, splits, LEFT.number = RIGHT.number AND LEFT.value = RIGHT.value, LOOKUP, MANY);
 		sort0 := SORT(join0, group_id, id, level, number, node_id, new_node_id);
-		dedup0:= DEDUP(sort0, LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
-		dedup1:= DEDUP(dedup0, LEFT.id = RIGHT.id AND LEFT.new_node_id = RIGHT.node_id, KEEP 1, RIGHT);
-		return dedup1;
+		dedup0:= DEDUP(sort0, LEFT.group_id = RIGHT.group_id AND LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
+		dedup1:= DEDUP(dedup0, LEFT.group_id = RIGHT.group_id AND LEFT.id = RIGHT.id AND LEFT.new_node_id = RIGHT.node_id, KEEP 1, RIGHT);
+		RETURN dedup1;
 	END;
 
 //Function that prune a Decision Tree based on Estimated Error (C4.5 Quinlan)
@@ -519,7 +522,7 @@ EXPORT Trees := MODULE
 				SELF:= r;
 			END;
 			join1:= JOIN(nodes, this_set, left.new_node_id = right.root_node, trx(LEFT, RIGHT));
-			return nodes_inst + join1;
+			RETURN nodes_inst + join1;
 		END;
 		// Generating possible replacing nodes for each branch -> repo nodes
 		acc_split:= LOOP(real_class, max_level, loopbody1(ROWS(LEFT), max_level - COUNTER)); //  instance splits accumulated
@@ -550,7 +553,7 @@ EXPORT Trees := MODULE
 			to_delete:=PROJECT(for_delete, TRANSFORM(SplitF, SELF.node_id:=LEFT.root_node, SELF.level:= LEFT.root_level, SELF.new_node_id:=LEFT.final_node, SELF:=[]));
 			subtree_del := LOOP(to_delete, max_level, ExplodeSubTree(ROWS(LEFT)));	// will erase whole subtrees of deleted nodes
 			pass_thru_nodes:= JOIN(all_nodes, subtree_del, LEFT.root_node= RIGHT.node_id AND LEFT.final_node=RIGHT.new_node_id, TRANSFORM(LEFT), LEFT ONLY);
-			return pass_thru_nodes + for_update;
+			RETURN pass_thru_nodes + for_update;
 		END;
 		// Comparing branches to repo nodes,
 		// if repo node has smaller error estimated than branch, delete branch and replace
@@ -566,7 +569,7 @@ EXPORT Trees := MODULE
 		// transforming results into Spliitf records to return
 		new_branches:= JOIN(nodes, new_nodes, LEFT.node_id = RIGHT.root_node AND LEFT.new_node_id = RIGHT.final_node, TRANSFORM(LEFT), LOOKUP);
 		new_leafs:= PROJECT(new_nodes(final_class > -1), to_leaf(LEFT));
-		return new_branches + new_leafs;
+		RETURN new_branches + new_leafs;
 	END;
 
 //Function that generates a DT and then prunes it using C45PruneTree
@@ -590,18 +593,20 @@ EXPORT Trees := MODULE
 // the nodes received were generated sampling with replacement nTrees times.
 // Note: it selects kFeatSel out of mTotFeats features for each sample, features must start at 1 and cannot exist a gap in the numeration.
 	EXPORT RndFeatSelPartitionGIBased(DATASET(gNode) nodes, t_Count nTrees, t_Count kFeatSel, t_Count mTotFeats, t_Count p_level, REAL Purity=1.0):= FUNCTION
-		this_set_all := nodes(level = p_level);
+		this_set_all := DISTRIBUTE(nodes, HASH(group_id, node_id));
 	  node_base := MAX(this_set_all, node_id);           // Start allocating new node-ids from the highest previous
 		featSet:= NxKoutofM(nTrees, kFeatSel, mTotFeats);  // generating list of features selected for each tree
 		minFeats := TABLE(featSet, {gNum, minNumber := MIN(GROUP, number)}, gNum, FEW); // chose the min feature number from the sample
-		this_minFeats:= JOIN(this_set_all, minFeats, LEFT.group_id = RIGHT.gNum AND LEFT.number= RIGHT.minNumber, LEFT ONLY, LOOKUP);
+		this_minFeats:= JOIN(this_set_all, minFeats, LEFT.group_id = RIGHT.gNum AND LEFT.number= RIGHT.minNumber, LOOKUP);
 		Purities := ML.Utils.Gini(this_minFeats, node_id, depend); // Compute the purities for each node
 		PureEnough := Purities(1-Purity >= gini);
-		pass_thru    := JOIN(this_set_all, PureEnough, LEFT.node_id=RIGHT.node_id, TRANSFORM(LEFT), LOOKUP);
-		this_set_out := JOIN(this_set_all, PureEnough, LEFT.node_id=RIGHT.node_id, TRANSFORM(LEFT), LEFT ONLY,LOOKUP);
+		// just need one match to create a leaf node, all similar instances will fall into the same leaf nodes
+		pass_thru  := JOIN(PureEnough, this_set_all , LEFT.node_id=RIGHT.node_id, TRANSFORM(gNode, SELF.id:=0, SELF.number:=0, SELF.value:=0, SELF:=RIGHT), PARTITION RIGHT, KEEP(1));
+		// splitting the instances that did not reach a leaf node
+		this_set_out:= JOIN(this_set_all, PureEnough, LEFT.node_id=RIGHT.node_id, TRANSFORM(LEFT), LEFT ONLY, LOOKUP);
 		this_set  := JOIN(this_set_out, featSet, LEFT.group_id = RIGHT.gNum AND LEFT.number= RIGHT.number, TRANSFORM(LEFT), LOOKUP);
-		agg       := TABLE(this_set, {group_id, node_id, number, value, depend,Cnt := COUNT(GROUP)}, group_id, node_id, number, value, depend, MERGE);
-		aggc      := TABLE(agg, {group_id, node_id, number, value, TCnt := SUM(GROUP, Cnt)}, group_id, node_id, number, value, MERGE);
+		agg       := TABLE(this_set, {group_id, node_id, number, value, depend,Cnt := COUNT(GROUP)}, group_id, node_id, number, value, depend, LOCAL);
+		aggc      := TABLE(agg, {group_id, node_id, number, value, TCnt := SUM(GROUP, Cnt)}, group_id, node_id, number, value, LOCAL);
 		r := RECORD
 		  agg;
 			REAL4 Prop; // Proportion pertaining to this dependant value
@@ -609,21 +614,23 @@ EXPORT Trees := MODULE
 		prop := JOIN(agg, aggc, LEFT.group_id = RIGHT.group_id AND LEFT.node_id = RIGHT.node_id
 		        AND LEFT.number=RIGHT.number AND LEFT.value = RIGHT.value,
 		        TRANSFORM(r, SELF.Prop := LEFT.Cnt/RIGHT.Tcnt, SELF := LEFT), HASH);
-		gini_per := TABLE(prop, {group_id, node_id, number, value, tcnt := SUM(GROUP,Cnt),val := SUM(GROUP,Prop*Prop)}, group_id, node_id, number, value);
-		gini     := TABLE(gini_per, {group_id, node_id, number, gini_t := SUM(GROUP,tcnt*val)/SUM(GROUP,tcnt)}, group_id, node_id, number, FEW);
-		splt     := DEDUP( SORT( DISTRIBUTE( gini, HASH(group_id, node_id) ), group_id, node_id, -gini_t, LOCAL ), group_id, node_id, LOCAL );
-		node_cand0 := JOIN(aggc, splt, LEFT.group_id = RIGHT.group_id AND LEFT.node_id = RIGHT.node_id AND LEFT.number = RIGHT.number, TRANSFORM(LEFT), LOOKUP);
+		gini_per := TABLE(prop, {group_id, node_id, number, value, tcnt := SUM(GROUP,Cnt),val := SUM(GROUP,Prop*Prop)}, group_id, node_id, number, value, LOCAL);
+		gini     := TABLE(gini_per, {group_id, node_id, number, gini_t := SUM(GROUP,tcnt*val)/SUM(GROUP,tcnt)}, group_id, node_id, number, FEW, LOCAL);
+		splt     := DEDUP(SORT(gini, group_id, node_id, -gini_t, LOCAL), group_id, node_id, LOCAL);
+		node_cand0 := JOIN(aggc, splt, LEFT.group_id = RIGHT.group_id AND LEFT.node_id = RIGHT.node_id AND LEFT.number = RIGHT.number, TRANSFORM(LEFT), LOOKUP, LOCAL);
 		node_cand  := PROJECT(node_cand0, TRANSFORM({node_cand0, t_node new_nodeid}, SELF.new_nodeid := node_base + COUNTER, SELF := LEFT));
-		nc0 := PROJECT(node_cand, TRANSFORM(gNode, SELF.value := LEFT.new_nodeid, SELF.depend := LEFT.value, SELF.level := p_level, SELF := LEFT, SELF := []));
+		// new split nodes found
+		nc0      := PROJECT(node_cand, TRANSFORM(gNode, SELF.value := LEFT.new_nodeid, SELF.depend := LEFT.value, SELF.level := p_level, SELF := LEFT, SELF := []), LOCAL);
+    // Assignig instances that didn't reach a leaf node to (new) node-ids (by joining to the sampled data)
 		r1 := RECORD
 		  ML.Types.t_Recordid id;
 			t_node nodeid;
 		END;
 		mapp := JOIN(this_set, node_cand, LEFT.group_id = RIGHT.group_id AND LEFT.node_id=RIGHT.node_id AND LEFT.number=RIGHT.number AND LEFT.value=RIGHT.value,
-		        TRANSFORM(r1, SELF.id := LEFT.id, SELF.nodeid:=RIGHT.new_nodeid ),LOOKUP);
+		        TRANSFORM(r1, SELF.id := LEFT.id, SELF.nodeid:=RIGHT.new_nodeid ),LOOKUP, LOCAL);
 		// Now use the mapping to actually reset all the points
 		J := JOIN(this_set_out, mapp,LEFT.id=RIGHT.id,TRANSFORM(gNode, SELF.node_id:=RIGHT.nodeid, SELF.level:=LEFT.level+1, SELF := LEFT),LOCAL);
-		RETURN J + nc0 + nodes(level < p_level) + pass_thru;
+		RETURN pass_thru + nc0 + J;   // returning leaf nodes, new splits nodes and reassigned instances 
 	END;
 
 	SHARED DepGroupedRec := RECORD(DiscreteField)
@@ -638,12 +645,14 @@ EXPORT Trees := MODULE
 	
 // Function used in Random Forest classifier learning
 // Note: it selects fsNum out of total number of features, they must start at 1 and cannot exist a gap in the numeration.
+//       Gini Impurity's default parameters: Purity = 1.0 and maxLevel (Depth) = 32 (up to 126 max iterations)
 // more info http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#overview
-	EXPORT SplitFeatureSampleGI(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep, t_Count treeNum, t_Count fsNum, REAL Purity=1.0) := FUNCTION
-		N:= MAX(Dep, id);		// Number of instances
-		totFeat:= COUNT(Indep(id=N)); // Number of features
-		// sampling with replacement the original dataset to generate treeNum datasets
-		grList:= ML.Sampling.GenerateNSampleList(treeNum, N, N); // the number of records will be N * treeNum, however the record consist of 3 Unsigned fields
+	EXPORT SplitFeatureSampleGI(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep, t_Index treeNum, t_Count fsNum, REAL Purity=1.0, t_level maxLevel=32) := FUNCTION
+		N       := MAX(Dep, id);       // Number of Instances
+		totFeat := COUNT(Indep(id=N)); // Number of Features
+		depth   := MIN(126, maxLevel); // Max number of iterations when building trees (max 126 levels)
+		// sampling with replacement the original dataset to generate treeNum Datasets
+		grList:= ML.Sampling.GenerateNSampleList(treeNum, N); // the number of records will be N * treeNum
 		groupDep:= JOIN(Dep, grList, LEFT.id = RIGHT.oldId, GroupDepRecords(LEFT, RIGHT)); // if grList were not too big we should use lookup
 		// groupDep:= JOIN(Dep, grList, LEFT.id = RIGHT.oldId, GroupDepRecords(LEFT, RIGHT), MANY LOOKUP); 
 		ind0 := ML.Utils.FatD(Indep); // Ensure no sparsity in independents
@@ -656,18 +665,22 @@ EXPORT Trees := MODULE
 			SELF := ind;
 		END;
 		ind1 := JOIN(ind0, groupDep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
-		// generating best feature_selection-gini_impurity splits, limiting the max number of iterations to 126 levels
-		res := LOOP(ind1, MAX(ROWS(LEFT), level)>= COUNTER AND COUNTER < 126, RndFeatSelPartitionGIBased(ROWS(LEFT), treeNum, fsNum, totFeat, COUNTER, Purity));
-		nodes := PROJECT(res(id=0),TRANSFORM(gSplitF, SELF.new_node_id := LEFT.value, SELF.value := LEFT.depend, SELF := LEFT)); // The split points used to partition each node i
-			mode_r := RECORD
-				res.group_id;
-				res.node_id;
-				res.level;
-				res.depend;
-				Cnt := COUNT(GROUP);
-			END;
-			nsplits := TABLE(res(id<>0, number=1),mode_r, group_id, node_id, level, depend, FEW);
-			leafs:= PROJECT(nsplits, TRANSFORM(gSplitF, SELF.number:=0, SELF.value:= LEFT.depend, SELF.new_node_id:=0, SELF:= LEFT));
-			RETURN nodes + leafs;
+		// generating best feature_selection-gini_impurity splits, loopfilter level = COUNTER let pass only the nodes to be splitted for any current level
+		res := LOOP(ind1, LEFT.level=COUNTER, COUNTER < depth , RndFeatSelPartitionGIBased(ROWS(LEFT), treeNum, fsNum, totFeat, COUNTER, Purity));
+		splits := PROJECT(res(id=0, number>0),TRANSFORM(gSplitF, SELF.new_node_id := LEFT.value, SELF.value := LEFT.depend, SELF := LEFT));    // node splits
+		leafs1 := PROJECT(res(id=0, number=0),TRANSFORM(gSplitF, SELF.number:=0, SELF.value:= LEFT.depend, SELF.new_node_id:=0, SELF:= LEFT)); // leafs nodes
+		mode_r := RECORD
+			res.group_id;
+			res.node_id;
+			res.level;
+			res.depend;
+			Cnt := COUNT(GROUP);
+		END;
+		// Taking care instances (id>0) that reached maximum level and did not turn into a leaf yet
+		depCnt      := TABLE(res(id>0, number=1),mode_r, group_id, node_id, level, depend, FEW);
+		depCntSort  := SORT(depCnt, group_id, node_id, cnt); // if more than one dependent value for node_id
+		depCntDedup := DEDUP(depCntSort, group_id, node_id);     // the class value with more counts is selected
+		leafs2:= PROJECT(depCntDedup, TRANSFORM(gSplitF, SELF.number:=0, SELF.value:= LEFT.depend, SELF.new_node_id:=0, SELF:= LEFT));
+			RETURN splits + leafs1+ leafs2;
 	END;
 END;

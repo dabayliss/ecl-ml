@@ -35,7 +35,7 @@ depData := ML.Discretize.ByRounding(pr_dep);
 OUTPUT(indepData, NAMED('indepData'), ALL);
 OUTPUT(depData, NAMED('depData'), ALL);
 
-learner := Classify.RandomForest(5,3); // generating a random forest of 5 trees selecting 3 features for splits and defalut impurity:=1
+learner := Classify.RandomForest(25, 3, 1.0, 10); // generating a random forest of 25 trees selecting 3 features for splits using impurity:=1.0 and max depth:= 10
 result := learner.learnd(IndepData, DepData); // model to use when classifying
 model:= learner.model(result);  // transforming model to a easier way to read it
 OUTPUT(SORT(model, group_id, node_id),NAMED('model'), ALL); // group_id represent number of tree
