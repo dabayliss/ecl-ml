@@ -42,36 +42,29 @@ EXPORT Sampling := MODULE
 	SHARED dsDiscRecRnd := RECORD(DiscreteField)
 		Types.t_FieldNumber rnd:= 0;	
 	END;
-/*
-	EXPORT GenerateNSampleList(t_Count N, t_Count origSize, t_Count sampleSize = 100) := FUNCTION
-		seed:= PROJECT(Vec.From(sampleSize),TRANSFORM(idListGroupRec, SELF.id:=LEFT.x, SELF.oldid := 0));
-		loopBody(SET OF DATASET(idListGroupRec) ds, UNSIGNED4 c) := FUNCTION
-			out:= PROJECT(ds[0],    //ds[0]=original input
-			TRANSFORM(idListGroupRec, SELF.id:=LEFT.id + (c-1)*sampleSize, SELF.oldid := RANDOM()%origSize + 1, SELF.gNum:= c));
-			RETURN if (c = 1, out, ds[c-1] + out);
+// Used for sampling with replacement.
+// Generates a list of N x origSize size,
+// each new record maps to the original dataset id's and has a gNum group identifier.
+// In order to get the complete dataset JOIN with original dataset is needed.
+	EXPORT GenerateNSampleList(t_Index N, t_RecordID origSize) := FUNCTION
+		seed := DATASET([{0,0,0}], idListGroupRec);
+		PerCluster := ROUNDUP(N*origSize/CLUSTERSIZE);
+		idListGroupRec addOffsetId(idListGroupRec L, t_Index c) := TRANSFORM
+			SELF.id := (c-1)*PerCluster ;
+			SELF.oldid:= 0;
 		END;
-		RETURN GRAPH(seed,N,loopBody(ROWSET(LEFT),COUNTER));
+		// Create and distribute one seed per node
+		one_per_node := DISTRIBUTE(NORMALIZE(seed, CLUSTERSIZE, addOffsetId(LEFT, COUNTER)), id DIV PerCluster);
+		idListGroupRec fillRec(idListGroupRec L, UNSIGNED4 c) := TRANSFORM
+			SELF.id := l.id + c;
+			SELF.oldId := RANDOM()%origSize + 1;
+			SELF.gNum  := (l.id + c -1) DIV origSize + 1;
+		END;
+		// Generate records on each node
+		// Filter extra nodes generated: (PerCluster * CLUSTERSIZE >= N*origSize) 
+		m := NORMALIZE(one_per_node, PerCluster, fillRec(LEFT,COUNTER))(gNum <= N);
+		RETURN m;
 	END;
-*/
-EXPORT GenerateNSampleList(t_Index N, t_RecordID origSize) := FUNCTION
-	seed := DATASET([{0,0,0}], idListGroupRec);
-  PerCluster := ROUNDUP(N*origSize/CLUSTERSIZE);
-	idListGroupRec addOffsetId(idListGroupRec L, t_Index c) := TRANSFORM
-    SELF.id := (c-1)*PerCluster ;
-		SELF.oldid:= 0;
-  END;
-	// Create and distribute one seed per node
-	one_per_node := DISTRIBUTE(NORMALIZE(seed, CLUSTERSIZE, addOffsetId(LEFT, COUNTER)), id DIV PerCluster);
-	idListGroupRec fillRec(idListGroupRec L, UNSIGNED4 c) := TRANSFORM
-		SELF.id := l.id + c;
-		SELF.oldId := RANDOM()%origSize + 1;
-		SELF.gNum  := (l.id + c -1) DIV origSize + 1;
-	END;
-	// Generate records on each node
-	// Filter extra nodes generated: (PerCluster * CLUSTERSIZE >= N*origSize) 
-	m := NORMALIZE(one_per_node, PerCluster, fillRec(LEFT,COUNTER))(gNum <= N);
-	RETURN m;
-END;
 	
 //	Method used to return results from various sampling methods.
 //	Receives a dataset with a list of Ids and the original dataset.
