@@ -1,4 +1,4 @@
-//    Ordinary least squares regression using dense matrix structures.
+﻿//    Ordinary least squares regression using dense matrix structures.
 //
 //The object of the regression module is to generate a regression model.
 //A regression model relates the dependent variable Y to a function of
@@ -15,16 +15,14 @@ IMPORT PBblas as PBblas;
 IMPORT ML.DMat as DMat;
 NotCompat := PBblas.Constants.Dimension_Incompat;
 Matrix_Map:= PBblas.Matrix_Map;
-LowerTri  := PBblas.Types.Triangle.Lower;
-UpperTri  := PBblas.Types.Triangle.Upper;
-NotUnit   := PBblas.Types.Diagonal.NotUnitTri;
-Side      := PBblas.Types.Side;
 Part      := PBblas.Types.Layout_Part;
 NumericField := Types.NumericField;
 
 EXPORT Regress_OLS_Dn(DATASET(NumericField) X,DATASET(NumericField) Y)
 := MODULE(ML.IRegression)
-  // Calculate the model beta matrix
+  SHARED DATASET(NumericField) Independents := X;
+  SHARED DATASET(NumericField) Dependents := Y;
+  // Describe the matrices involved
   SHARED x_rows:= MAX(X, id);
   SHARED x_cols:= MAX(X, number) + 1;    // add constant for intercept
   SHARED y_rows:= MAX(Y, id);
@@ -38,15 +36,9 @@ EXPORT Regress_OLS_Dn(DATASET(NumericField) X,DATASET(NumericField) Y)
   SHARED x_part:= DMat.Converted.FromNumericFieldDS(x_OK, x_map, 1, 1.0);
   y_OK  := ASSERT(Y, x_rows=y_rows, NotCompat, FAIL);
   SHARED y_part:= DMat.Converted.FromNumericFieldDS(y_OK, y_map);
-  XtX_p := PBblas.PB_dbvrk(TRUE, 1.0, x_map, x_part, z_map);
-  XtY_p := PBblas.PB_dbvmm(TRUE, FALSE, 1.0, x_map, x_part, y_map, y_part,
-                          b_map);
-  L_p   := PBblas.PB_dpotrf(LowerTri, z_map, XtX_p);
-  s1_p  := PBblas.PB_dtrsm(Side.Ax, LowerTri, FALSE, NotUnit, 1.0,
-                          z_map, L_p, b_map, XtY_p);
-  b_part:= PBblas.PB_dtrsm(Side.Ax, UpperTri, TRUE, NotUnit, 1.0,
-                          z_map, L_p, b_map, s1_p);
-  EXPORT DATASET(Part) BetasAsPartition := b_part;
+
+  // The beta values for the model
+  EXPORT DATASET(Part) BetasAsPartition;
   b_elem:= DMat.Converted.FromPart2Elm(BetasAsPartition);
   EXPORT DATASET(Mat.Types.Element) BetasAsElements := b_elem;
   b_nf  := DMat.Converted.FromPart2DS(BetasAsPartition);
@@ -84,10 +76,11 @@ EXPORT Regress_OLS_Dn(DATASET(NumericField) X,DATASET(NumericField) Y)
   y_even := PROJECT(y, remapColumn(LEFT, 0));    // make even
   y_odd  := PROJECT(modelY, remapColumn(LEFT, 1));  // make odd
   corr_ds := ML.Correlate(y_even+y_odd).Simple;
+  y_yhat := corr_ds(left_number&1=0,left_number+1=right_number);
   // remap correlations of he pairs back to columns
   CoRec makeRSQ(corr_ds cov_cor) := TRANSFORM
     SELF.number := cov_cor.left_number DIV 2;
     SELF.RSquared := cov_cor.pearson * cov_cor.pearson;
   END;
-  EXPORT DATASET(CoRec)  RSquared := PROJECT(corr_ds, makeRSQ(LEFT));
+  EXPORT DATASET(CoRec)  RSquared := PROJECT(y_yhat, makeRSQ(LEFT));
 END;

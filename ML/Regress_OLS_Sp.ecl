@@ -1,4 +1,4 @@
-IMPORT ML;
+﻿IMPORT ML;
 IMPORT ML.Types AS Types;
 IMPORT Std.Str ;
 IMPORT ML.mat as Mat;
@@ -16,14 +16,16 @@ NumericField := Types.NumericField;
 // Beta = (Inv(X'*X)*X')*Y
 EXPORT Regress_OLS_Sp(DATASET(NumericField) X,DATASET(NumericField) Y)
 := MODULE(ML.IRegression)
+  SHARED DATASET(NumericField) Independents := X;
+  SHARED DATASET(NumericField) Dependents := Y;
   mX_0 := Types.ToMatrix(X);
   SHARED mX := Mat.InsertColumn(mX_0, 1, 1.0); // Insert X1=1 column
   SHARED mXt := Mat.Trans(mX);
   SHARED mY := Types.ToMatrix(Y);
   // Calculate Betas for model
-  mL := Mat.Decomp.Cholesky(Mat.Mul(mXt, mX));
-  fsub := Mat.Decomp.f_sub(mL,Mat.Mul(mXt, mY));
-  SHARED mBetas := Mat.Decomp.b_sub(Mat.Trans(mL), fsub);
+  // mL := Mat.Decomp.Cholesky(Mat.Mul(mXt, mX));
+  // fsub := Mat.Decomp.f_sub(mL,Mat.Mul(mXt, mY));
+  SHARED DATASET(Mat.Types.Element) mBetas; // := Mat.Decomp.b_sub(Mat.Trans(mL), fsub);
   // We want to return the data so that the ID field reflects the 'column number' of
   //the variable we were targeting
   rBetas := Types.FromMatrix( Mat.Trans(mBetas) );
@@ -60,47 +62,4 @@ EXPORT Regress_OLS_Sp(DATASET(NumericField) X,DATASET(NumericField) Y)
   // It estimates the fraction of the variance in Y that is explained by X
   rslt := PROJECT(corr_ds(left_number&1=0,left_number+1=right_number), getResult(LEFT));
   EXPORT DATASET(CoRec) RSquared := rslt;
-
-  K := COUNT(ML.FieldAggregates(X).Cardinality); // # of independent (explanatory) variables
-  Singles := ML.FieldAggregates(Y).Simple;
-  tmpRec := RECORD
-    RECORDOF(Singles);
-    Types.t_fieldreal  RSquared;
-  END;
-
-  Singles1 := JOIN(Singles, RSquared, LEFT.number=RIGHT.number,
-          TRANSFORM(tmpRec,  SELF.RSquared := RIGHT.RSquared, SELF := LEFT));
-
-  AnovaRec := RECORD
-    Types.t_fieldnumber   number;
-    Types.t_RecordID      Model_DF; // Degrees of Freedom
-    Types.t_fieldreal      Model_SS; // Sum of Squares
-    Types.t_fieldreal      Model_MS; // Mean Square
-    Types.t_fieldreal      Model_F;  // F-value
-    Types.t_RecordID      Error_DF; // Degrees of Freedom
-    Types.t_fieldreal      Error_SS;
-    Types.t_fieldreal      Error_MS;
-    Types.t_RecordID      Total_DF; // Degrees of Freedom
-    Types.t_fieldreal      Total_SS;  // Sum of Squares
-  END;
-
-  AnovaRec getResult(tmpRec le) :=TRANSFORM
-    SST := le.var*le.countval;
-    SSM := SST*le.RSquared;
-
-    SELF.number := le.number;
-    SELF.Total_SS := SST;
-    SELF.Model_SS := SSM;
-    SELF.Error_SS := SST - SSM;
-    SELF.Model_DF := k;
-    SELF.Error_DF := le.countval-k-1;
-    SELF.Total_DF := le.countval-1;
-    SELF.Model_MS := SSM/k;
-    SELF.Error_MS := (SST - SSM)/(le.countval-k-1);
-    SELF.Model_F := (SSM/k)/((SST - SSM)/(le.countval-k-1));
-  END;
-
-  // http://www.stat.yale.edu/Courses/1997-98/101/anovareg.htm
-  // Tested using the "Healthy Breakfast" dataset
-  EXPORT Anova := PROJECT(Singles1, getResult(LEFT));
 END;

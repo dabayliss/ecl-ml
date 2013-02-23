@@ -1,7 +1,9 @@
 ﻿IMPORT * FROM ML;
 
-// OLS2Use := ML.Regress_OLS_Dn;
-OLS2Use := ML.Regress_OLS_Sp;
+//OLS2Use := ML.Regress_OLS_2_Dn;
+//OLS2Use := ML.Regress_OLS_LU_Dn;
+// OLS2Use := ML.Regress_OLS_2_Sp;
+OLS2Use := ML.Regress_OLS_LU_Sp;
 
 /*
 Healthy  Breakfast: a subset of data about different brands of cerial
