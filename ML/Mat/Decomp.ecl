@@ -94,7 +94,11 @@ EXPORT DATASET(Types.Element) LU(DATASET(Types.Element) matrix) := FUNCTION
 	RETURN LOOP(matrix, n-1, loopBody(ROWS(LEFT),COUNTER));
 END;
 
-EXPORT LComp(DATASET(Types.Element) l_u) := PROJECT(l_u,TRANSFORM(Types.Element, SELF.Value := IF(LEFT.x=LEFT.y, 1, IF(LEFT.x>LEFT.y, LEFT.value, 0));SELF := LEFT));
+Types.Element unitDiag(Types.Element elm) := TRANSFORM
+  SELF.value := IF(elm.x=elm.y, 1, elm.value);
+  SELF := elm;
+END;
+EXPORT LComp(DATASET(Types.Element) l_u) := PROJECT(LowerTriangle(l_u), unitDiag(LEFT));
 EXPORT UComp(DATASET(Types.Element) l_u) := UpperTriangle(l_u);
 
 

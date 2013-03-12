@@ -1,4 +1,4 @@
-IMPORT * FROM ML;
+﻿IMPORT * FROM ML;
 /*
  Poly Tests:
 		Use different seed column distributions dx (1,2,3..., 10,20,30..., 100, 200, 300..., 1, 10, 100...)
@@ -17,20 +17,20 @@ poly2 := Generate.toPoly(d2,6);
 poly3 := Generate.toPoly(d3,6);
 poly4 := Generate.toPoly(d4,6);
 
-r1:= Regression.Poly(d1,poly1).Beta;
+r1:= Regress_Poly_X(d1,poly1).Beta;
 OUTPUT(r1(id = Generate.tp_Method.LogX), named('LogX_Beta'));
-OUTPUT(Regression.Poly(d1,poly1(number=Generate.tp_Method.LogX)).RSquared, named('LogX_RSquared'));
+OUTPUT(Regress_Poly_X(d1,poly1(number=Generate.tp_Method.LogX)).RSquared, named('LogX_RSquared'));
 
-r2:= Regression.Poly(d2,poly2).Beta;
+r2:= Regress_Poly_X(d2,poly2).Beta;
 OUTPUT(r2(id = Generate.tp_Method.X), named('X_Beta'));
-OUTPUT(Regression.Poly(d2,poly2(number=Generate.tp_Method.X)).RSquared, named('X_RSquared'));
+OUTPUT(Regress_Poly_X(d2,poly2(number=Generate.tp_Method.X)).RSquared, named('X_RSquared'));
 
-r3:=Regression.Poly(d3,poly3).Beta;
+r3:=Regress_Poly_X(d3,poly3).Beta;
 OUTPUT(r3(id = Generate.tp_Method.XLogX), named('XLogX_Beta'));
-OUTPUT(Regression.Poly(d3,poly3(number=Generate.tp_Method.XLogX)).RSquared, named('XLogX_RSquared'));
+OUTPUT(Regress_Poly_X(d3,poly3(number=Generate.tp_Method.XLogX)).RSquared, named('XLogX_RSquared'));
 
-r4:=Regression.Poly(d4,poly4).Beta;
+r4:=Regress_Poly_X(d4,poly4).Beta;
 OUTPUT(r4(id = Generate.tp_Method.XX), named('XX_Beta'));
-OUTPUT(Regression.Poly(d4,poly4(number=Generate.tp_Method.XX)).RSquared, named('XX_RSquared'));
+OUTPUT(Regress_Poly_X(d4,poly4(number=Generate.tp_Method.XX)).RSquared, named('XX_RSquared'));
 
 

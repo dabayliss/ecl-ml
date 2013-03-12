@@ -1,4 +1,4 @@
-//Take a dataset of cells for a partition and pack into a dense matrix.  Specify Row
+﻿//Take a dataset of cells for a partition and pack into a dense matrix.  Specify Row
 // or Column major for the layout of te cells in a block.
 //First row and first column are one based.
 //Insert is used insert columns with a spacific value.  Typical use is building a matrix

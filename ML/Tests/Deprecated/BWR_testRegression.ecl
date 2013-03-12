@@ -1,4 +1,9 @@
-IMPORT * FROM ML;
+﻿IMPORT * FROM ML;
+
+//OLS2Use := ML.Regress_OLS_2_Dn;
+//OLS2Use := ML.Regress_OLS_LU_Dn;
+// OLS2Use := ML.Regress_OLS_2_Sp;
+OLS2Use := ML.Regress_OLS_LU_Sp;
 
 /*
 Healthy  Breakfast: a subset of data about different brands of cerial
@@ -107,14 +112,11 @@ mLL := Mat.Decomp.Cholesky(mTst);
 choleskyTst := Mat.Thin(Mat.RoundDelta(Mat.Sub(Mat.Mul(mLL, Mat.Trans(mLL)),mTst)));
 OUTPUT(choleskyTst, named('CholeskyTest_zeroMatrix'));
 
-// Beta test: LU vs Cholesky decomposition
-ols := Regression.OLS(X,Y);
-cholesky := Mat.Thin(Mat.RoundDelta(Types.ToMatrix(ols.Beta())));
-lu := Mat.Thin(Mat.RoundDelta(Types.ToMatrix(ols.Beta(ols.MDM.LU))));
-OUTPUT(choleskyTst, named('RegressionBetaTest_zeroMatrix'));
 
 // http://www.stat.yale.edu/Courses/1997-98/101/anovareg.htm
 //Rating = 61.1 - 2.21 Sugars - 3.07 Fat
+ols := OLS2Use(X,Y);
+cholesky := Mat.Thin(Mat.RoundDelta(Types.ToMatrix(ols.Betas)));
 OUTPUT(cholesky, named('RegressionBetaTest_betaResult'));
 
 // r^2=0.622, indicating that 62.2% of the variability
@@ -134,7 +136,7 @@ Error        74      5671.5        76.6
 Total        76     14996.8
 
 */
-anova := ols.Anova;
-OUTPUT(anova, named('RegressionAnovaTest'));
+// anova := ols.Anova;
+// OUTPUT(anova, named('RegressionAnovaTest'));
 
 
