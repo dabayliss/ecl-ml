@@ -9,9 +9,9 @@ EXPORT Regress_OLS_LU_Sp(DATASET(NumericField) X,DATASET(NumericField) Y)
 := MODULE(ML.Regress_OLS_Sp(X,Y))
   // Use LU factorization
   mLU := Mat.Decomp.LU(Mat.Mul(mXt, mX));
-  mL  := Mat.Decomp.LComp(mLU);
-  mU  := Mat.Decomp.UComp(mLU);
-  fsub := Mat.Decomp.f_sub(mL,Mat.Mul(mXt, mY));
-  rslt := Mat.Decomp.b_sub(mU, fsub);
+  mL_ := Mat.Decomp.LComp(mLU);
+  mU_ := Mat.Decomp.UComp(mLU);
+  fsub := Mat.Decomp.f_sub(mL_,Mat.Mul(mXt, mY));
+  rslt := Mat.Decomp.b_sub(mU_, fsub);
   SHARED DATASET(Mat.Types.Element) mBetas := rslt;
 END;

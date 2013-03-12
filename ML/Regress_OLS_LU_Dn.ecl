@@ -1,4 +1,4 @@
-﻿//Extension of the OLS regression using dense matrices that performs an
+//Extension of the OLS regression using dense matrices that performs an
 //LU decomposition
 IMPORT ML;
 IMPORT ML.Types AS Types;
@@ -24,10 +24,10 @@ EXPORT Regress_OLS_LU_Dn(DATASET(NumericField) X,DATASET(NumericField) Y)
   XtX_p := PBblas.PB_dbvrk(TRUE, 1.0, x2_map, x_part, z2_map);
   XtY_p := PBblas.PB_dbvmm(TRUE, FALSE, 1.0, x2_map, x_part, y2_map, y_part,
                           b2_map);
-  L_p   := PBblas.PB_dgetrf(z2_map, XtX_p);
+  LU_p  := PBblas.PB_dgetrf(z2_map, XtX_p);
   s1_p  := PBblas.PB_dtrsm(Side.Ax, LowerTri, FALSE, Unit, 1.0,
-                          z2_map, L_p, b2_map, XtY_p);
+                          z2_map, LU_p, b2_map, XtY_p);
   b_part:= PBblas.PB_dtrsm(Side.Ax, UpperTri, FALSE, NotUnit, 1.0,
-                          z2_map, L_p, b2_map, s1_p);
+                          z2_map, LU_p, b2_map, s1_p);
   EXPORT DATASET(Part) BetasAsPartition := b_part;
 END;

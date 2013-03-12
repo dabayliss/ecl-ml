@@ -1,4 +1,4 @@
-IMPORT ML;
+﻿IMPORT ML;
 TestSize := 1000;
 a1 := ML.Distribution.Uniform(0,100,10000);
 b1 := ML.Distribution.GenData(TestSize,a1,1); // Field 1 Uniform
@@ -8,7 +8,7 @@ D := b1+b2; // This is the test data
 Agg := ML.FieldAggregates(D);
 Agg.Simple;
 Agg.SimpleRanked;
-Agg.Ranked;
+Agg.RankedInput;
 Agg.Modes;
 Agg.Medians;
 Agg.NTiles(4);

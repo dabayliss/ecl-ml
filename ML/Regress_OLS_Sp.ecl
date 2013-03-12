@@ -23,9 +23,7 @@ EXPORT Regress_OLS_Sp(DATASET(NumericField) X,DATASET(NumericField) Y)
   SHARED mXt := Mat.Trans(mX);
   SHARED mY := Types.ToMatrix(Y);
   // Calculate Betas for model
-  // mL := Mat.Decomp.Cholesky(Mat.Mul(mXt, mX));
-  // fsub := Mat.Decomp.f_sub(mL,Mat.Mul(mXt, mY));
-  SHARED DATASET(Mat.Types.Element) mBetas; // := Mat.Decomp.b_sub(Mat.Trans(mL), fsub);
+  SHARED DATASET(Mat.Types.Element) mBetas;
   // We want to return the data so that the ID field reflects the 'column number' of
   //the variable we were targeting
   rBetas := Types.FromMatrix( Mat.Trans(mBetas) );

@@ -1,4 +1,4 @@
-﻿//    Ordinary least squares regression using dense matrix structures.
+//    Ordinary least squares regression using dense matrix structures.
 //
 //The object of the regression module is to generate a regression model.
 //A regression model relates the dependent variable Y to a function of
@@ -42,7 +42,11 @@ EXPORT Regress_OLS_Dn(DATASET(NumericField) X,DATASET(NumericField) Y)
   b_elem:= DMat.Converted.FromPart2Elm(BetasAsPartition);
   EXPORT DATASET(Mat.Types.Element) BetasAsElements := b_elem;
   b_nf  := DMat.Converted.FromPart2DS(BetasAsPartition);
-  EXPORT DATASET(Types.NumericField) betas := b_nf;
+  NumericField remapCol(NumericField lr) := TRANSFORM
+    SELF.number := lr.number - 1;
+    SELF := lr;
+  END;
+  EXPORT DATASET(Types.NumericField) betas := PROJECT(b_nf, remapCol(LEFT));
 
   // the model Y values.
   y_est := PBblas.PB_dgemm(FALSE, FALSE, 1.0, x_map, x_part, b_map,

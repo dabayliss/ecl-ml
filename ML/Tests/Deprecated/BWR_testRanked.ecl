@@ -1,5 +1,6 @@
-IMPORT * FROM $;
-IMPORT ML,ML.TestML, ML.Types;
+﻿IMPORT * FROM $;
+IMPORT ML, ML.Types;
+IMPORT ML.Tests.Deprecated AS TestML;
 
 output(TestML.ChickWeight,named('CheckWeight'));
 /*
@@ -40,5 +41,5 @@ T := TABLE(SimpleRankedChickWeight2NumericFieldDS,MR,Number,Value);
 output(T,named('T'));
 */
 
-RankedChickWeight2NumericFieldDS := ML.FieldAggregates(ChickWeight2NumericFieldDS).Ranked;
+RankedChickWeight2NumericFieldDS := ML.FieldAggregates(ChickWeight2NumericFieldDS).RankedInput;
 output(sort(RankedChickWeight2NumericFieldDS,-number,pos),named('RankedChickWeight2NumericFieldDS'));
