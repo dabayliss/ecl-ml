@@ -5,8 +5,8 @@ IMPORT Std.Str ;
 IMPORT ML.mat as Mat;
 NumericField := Types.NumericField;
 
-EXPORT Regress_OLS_LU_Sp(DATASET(NumericField) X,DATASET(NumericField) Y)
-:= MODULE(ML.Regress_OLS_Sp(X,Y))
+EXPORT OLS_LU(DATASET(NumericField) X,DATASET(NumericField) Y)
+:= MODULE(ML.Regression.Sparse.OLS(X,Y))
   // Use LU factorization
   mLU := Mat.Decomp.LU(Mat.Mul(mXt, mX));
   mL_ := Mat.Decomp.LComp(mLU);
