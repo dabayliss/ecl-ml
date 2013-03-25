@@ -1,9 +1,9 @@
 ﻿IMPORT * FROM ML;
 
-//OLS2Use := ML.Regress_OLS_2_Dn;
-//OLS2Use := ML.Regress_OLS_LU_Dn;
-// OLS2Use := ML.Regress_OLS_2_Sp;
-OLS2Use := ML.Regress_OLS_LU_Sp;
+OLS2Use := ML.Regression.Sparse.OLS_Cholesky;
+//OLS2Use := ML.Regression.Sparse.OLS_LU;
+//OLS2Use := ML.Regression.Dense.OLS_LU;
+//OLS2Use := ML.Regression.Dense.OLS_Cholesky;
 
 /*
 Healthy  Breakfast: a subset of data about different brands of cerial
@@ -99,25 +99,14 @@ cerial := DATASET([{1,1,6,68.402973},
 // Turn into regular NumericField file (with continuous variables)
 ToField(cerial,o);
 X := O(Number in [1,2]); // Pull out fat and sugars
-Y := O(Number IN [3]); // See if you can predict the rating
-
-// Matrix inverse test (implicit LU decomposition test)
-mX := Types.ToMatrix(X);
-mTst := Mat.Mul(Mat.Trans(mX), mX);
-invTest := Mat.Thin(Mat.RoundDelta(Mat.Mul(Mat.Inv(mTst),mTst)));
-OUTPUT(invTest, named('InvTest_identityMatrix'));
-
-// Cholesky decomposition test	
-mLL := Mat.Decomp.Cholesky(mTst);
-choleskyTst := Mat.Thin(Mat.RoundDelta(Mat.Sub(Mat.Mul(mLL, Mat.Trans(mLL)),mTst)));
-OUTPUT(choleskyTst, named('CholeskyTest_zeroMatrix'));
-
+// See if you can predict the rating
+Y := PROJECT(O(Number IN [3]), TRANSFORM(Types.NumericField, SELF.Number:=1, SELF:=LEFT));
 
 // http://www.stat.yale.edu/Courses/1997-98/101/anovareg.htm
 //Rating = 61.1 - 2.21 Sugars - 3.07 Fat
 ols := OLS2Use(X,Y);
-cholesky := Mat.Thin(Mat.RoundDelta(Types.ToMatrix(ols.Betas)));
-OUTPUT(cholesky, named('RegressionBetaTest_betaResult'));
+Betas := Mat.Thin(Mat.RoundDelta(Types.ToMatrix(ols.Betas)));
+OUTPUT(Betas, named('RegressionTest_betaResult'));
 
 // r^2=0.622, indicating that 62.2% of the variability
 // in the "Ratings" variable is explained by the "Sugars" and "Fat" variables
@@ -136,7 +125,7 @@ Error        74      5671.5        76.6
 Total        76     14996.8
 
 */
-// anova := ols.Anova;
-// OUTPUT(anova, named('RegressionAnovaTest'));
+anova := ols.Anova;
+OUTPUT(anova, named('RegressionAnovaTest'));
 
 

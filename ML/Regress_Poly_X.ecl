@@ -1,8 +1,9 @@
-IMPORT ML;
+﻿IMPORT ML;
 IMPORT ML.Types AS Types;
 IMPORT ML.Utils AS Utils;
 IMPORT Std.Str;
-OLS2Use := ML.Regress_OLS_LU_Sp;
+// OLS2Use := ML.Regression.Sparse.OLS_LU;
+OLS2Use := ML.Regression.Dense.OLS_LU;
 
 EXPORT Regress_Poly_X(DATASET(Types.NumericField) X,
                       DATASET(Types.NumericField) Y,
