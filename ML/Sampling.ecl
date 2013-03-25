@@ -7,14 +7,18 @@ IMPORT ML.Mat.Vec AS Vec;
 
 EXPORT Sampling := MODULE
 	SHARED g_Method := ENUM(Zeroing, Randomizing);
-	SHARED idListRec := RECORD
+	SHARED t_Index := UNSIGNED4;
+	EXPORT idListRec := RECORD
 		t_RecordID id;
 		t_RecordID oldId;
-  END;
+	END;
+	EXPORT idListGroupRec := RECORD(idListRec)
+		UNSIGNED gNum := 0;
+	END;
 	SHARED idFoldRec := RECORD
 		t_FieldNumber fold;
 		t_RecordID id;
-  END;
+	END;
 	SHARED NumericField CreateIdRecs(NumericField L, INTEGER C, INTEGER origSize, t_Discrete method = g_Method.Zeroing) := TRANSFORM
 		SELF.id := c;
 		SELF.number := 0;
@@ -37,6 +41,29 @@ EXPORT Sampling := MODULE
 	END;
 	SHARED dsDiscRecRnd := RECORD(DiscreteField)
 		Types.t_FieldNumber rnd:= 0;	
+	END;
+// Used for sampling with replacement.
+// Generates a list of N x origSize size,
+// each new record maps to the original dataset id's and has a gNum group identifier.
+// In order to get the complete dataset JOIN with original dataset is needed.
+	EXPORT GenerateNSampleList(t_Index N, t_RecordID origSize) := FUNCTION
+		seed := DATASET([{0,0,0}], idListGroupRec);
+		PerCluster := ROUNDUP(N*origSize/CLUSTERSIZE);
+		idListGroupRec addOffsetId(idListGroupRec L, t_Index c) := TRANSFORM
+			SELF.id := (c-1)*PerCluster ;
+			SELF.oldid:= 0;
+		END;
+		// Create and distribute one seed per node
+		one_per_node := DISTRIBUTE(NORMALIZE(seed, CLUSTERSIZE, addOffsetId(LEFT, COUNTER)), id DIV PerCluster);
+		idListGroupRec fillRec(idListGroupRec L, UNSIGNED4 c) := TRANSFORM
+			SELF.id := l.id + c;
+			SELF.oldId := RANDOM()%origSize + 1;
+			SELF.gNum  := (l.id + c -1) DIV origSize + 1;
+		END;
+		// Generate records on each node
+		// Filter extra nodes generated: (PerCluster * CLUSTERSIZE >= N*origSize) 
+		m := NORMALIZE(one_per_node, PerCluster, fillRec(LEFT,COUNTER))(gNum <= N);
+		RETURN m;
 	END;
 	
 //	Method used to return results from various sampling methods.
@@ -124,7 +151,7 @@ EXPORT Sampling := MODULE
 		dRnd := PROJECT(originalData, TRANSFORM(dsDiscRecRnd, SELF.rnd := RANDOM(), SELF:= LEFT));
 		dRndSorted := SORT(dRnd, value, rnd);
 		ds_part := PROJECT(dRndSorted, TRANSFORM(DiscreteField, SELF.number := COUNTER%num_part + 1, SELF:= LEFT));
-		return SORT(ds_part, number);
+		RETURN SORT(ds_part, number);
 	END;
 
 //	Folds a dataset in N partitions.

@@ -1,6 +1,8 @@
 ﻿IMPORT ML;
 IMPORT * FROM $;
 IMPORT $.Mat;
+IMPORT * FROM ML.Types;
+
 /*
 		The object of the classify module is to generate a classifier.
     A classifier is an 'equation' or 'algorithm' that allows the 'class' of an object to be imputed based upon other properties
@@ -662,4 +664,56 @@ The model  is used to predict the class from new examples.
 		END;
 	END; // DecisionTree Module
 	
+	
+/* From http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#overview
+   "... Random Forests grows many classification trees.
+   To classify a new object from an input vector, put the input vector down each of the trees in the forest.
+   Each tree gives a classification, and we say the tree "votes" for that class.
+   The forest chooses the classification having the most votes (over all the trees in the forest).
+
+   Each tree is grown as follows:
+   - If the number of cases in the training set is N, sample N cases at random - but with replacement, from the original data.
+     This sample will be the training set for growing the tree.
+   - If there are M input variables, a number m<<M is specified such that at each node, m variables are selected at random out of the M
+     and the best split on these m is used to split the node. The value of m is held constant during the forest growing.
+   - Each tree is grown to the largest extent possible. There is no pruning. ..."
+
+Configuration Input
+   treeNum    number of trees to generate
+   fsNum      number of features to sample each iteration
+   Purity     p <= 1.0
+   Depth      max tree level
+*/
+	EXPORT RandomForest(t_Count treeNum, t_Count fsNum, REAL Purity=1.0, INTEGER1 Depth=32):= MODULE
+		EXPORT model_Map :=	DATASET([{'id','ID'},{'node_id','1'},{'level','2'},{'number','3'},{'value','4'},{'new_node_id','5'},{'group_id',6}], {STRING orig_name; STRING assigned_name;});
+		EXPORT STRING model_fields := 'node_id,level,number,value,new_node_id,group_id';	// need to use field map to call FromField later
+		EXPORT LearnD(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep) := FUNCTION
+			nodes := Trees.SplitFeatureSampleGI(Indep, Dep, treeNum, fsNum, Purity, Depth);
+			AppendID(nodes, id, model);
+			ToField(model, out_model, id, model_fields);
+			RETURN out_model;
+		END;
+		EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
+			ML.FromField(mod, Trees.gSplitF, o, model_Map);
+			RETURN o;
+		END;
+		EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+			ML.FromField(mod, Trees.gSplitF, nodes, model_Map);	// need to use model_Map previously build when Learning (ToField)
+			leafs := nodes(new_node_id = 0);	// from final nodes
+			splitData_raw:= Trees.gSplitInstances(nodes, Indep);
+			splitData:= DISTRIBUTE(splitData_raw, id);
+			l_result final_class(RECORDOF(splitData) l, RECORDOF(leafs) r ):= TRANSFORM
+				SELF.id     := l.id;
+				SELF.number := 1;
+				SELF.value  := r.value;
+				SELF.conf   := 0;		// store percentaje of voting over total number of trees
+				SELF.closest_conf:= 0;	// added to fit in l_result, not used so far
+			END;
+			gClass:= JOIN(splitData, leafs, LEFT.new_node_id = RIGHT.node_id AND LEFT.group_id = RIGHT.group_id, final_class(LEFT, RIGHT), LOOKUP, LOCAL);
+			accClass:= TABLE(gClass, {id, number, value, cnt:= COUNT(GROUP)}, id, number, value, LOCAL);
+			sClass := SORT(accClass, id, -cnt, LOCAL);
+			finalClass:=DEDUP(sClass, id, LOCAL);
+			RETURN PROJECT(finalClass, TRANSFORM(l_result, SELF.conf:= LEFT.cnt/treeNum, SELF:= LEFT, SELF:=[]), LOCAL);
+		END;
+	END; // RandomTree module
 END;
