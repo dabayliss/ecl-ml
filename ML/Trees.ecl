@@ -5,13 +5,18 @@ IMPORT * FROM ML.Types;
 IMPORT * FROM ML.Sampling;
 
 EXPORT Trees := MODULE
-  SHARED t_node := INTEGER4; // Assumes a maximum of 32 levels presently
+  EXPORT t_node := INTEGER4; // Assumes a maximum of 32 levels presently
 	SHARED t_Index:= INTEGER4;
-	SHARED t_level := INTEGER1; // Would allow up to 2^256 levels
+	EXPORT t_level := INTEGER1; // Would allow up to 2^256 levels
   EXPORT Node := RECORD
     t_node node_id; // The node-id for a given point
     t_level level; // The level for a given point
     ML.Types.NumericField;
+  END;
+  EXPORT sNode:= RECORD
+    t_RecordID splitId:=0;
+    Node;
+    BOOLEAN HighBranch:= FALSE;
   END;
   EXPORT wNode := RECORD
     t_node node_id; // The node-id for a given point
@@ -70,8 +75,6 @@ EXPORT Trees := MODULE
 		raw_set:= ENTH(allSorted, K, M, 1);
 		RETURN TABLE(raw_set, {gNum, number});
 	END;
-
-
 /*
 	The NodeIds within a KdTree follow a natural pattern - all the node-ids will have the same number of bits - corresponding to the
   depth of the tree+1. The left-most will always be 1. Moving from left to right a 0 always implies taking the 'low' decision at a node
@@ -86,20 +89,33 @@ EXPORT Trees := MODULE
 		// It is assumed that all of the data-nodes are distributed by HASH(id) throughout
   Split(DATASET(Node) nodes, t_level p_level) := FUNCTION
     working_nodes:=nodes(level=p_level);
-		// For every node_id this computes the maximum and minimum extent of the space
-		spans := TABLE(working_nodes,{ minv := MIN(GROUP,value); maxv := MAX(GROUP,value); node_id,number }, node_id,number, MERGE);
-		// Now find the split points - that is the number with the largest span for each node_id
-		sp := DEDUP( SORT( DISTRIBUTE(spans, HASH(node_id)),node_id,minv-maxv,LOCAL), node_id, LOCAL );
-		// Here we compute the split point based upon the mean of the range
-		splits_mean := PROJECT( sp, TRANSFORM(Node,SELF.Id := 0, SELF.level := p_level, SELF.value := (LEFT.maxv+LEFT.minv)/2,SELF := LEFT) );
+/*
+    // For every node_id this computes the maximum and minimum extent of the space
+    spans := TABLE(working_nodes,{ minv := MIN(GROUP,value); maxv := MAX(GROUP,value); cnt := COUNT(GROUP); node_id,number }, node_id,number, MERGE);
+*/
+    // For every node_id this computes the maximum and minimum extent of the space and variance
+    spans := TABLE(working_nodes,{ minv := MIN(GROUP,value); maxv := MAX(GROUP,value); var:= VARIANCE(GROUP,value); cnt := COUNT(GROUP); node_id,number }, node_id,number, MERGE);
+    leafspans:= spans(cnt=1);
+    onlyvalspan:= spans(cnt>1 and maxv = minv);
+    splitwannabes:= spans(cnt>1 and maxv > minv);
+/*
+    // Now find the split points - that is the number with the largest span for each node_id, excluding leafs and only one value spans
+    sp := DEDUP( SORT( DISTRIBUTE(splitwannabes, HASH(node_id)),node_id,minv-maxv,LOCAL), node_id, LOCAL );// Here we compute the split point based upon the mean of the range
+*/
+    // Now find the split points - that is the number with the largest variance (more balanced tree) for each node_id, excluding leafs and only one value spans
+    sp := DEDUP( SORT( DISTRIBUTE(splitwannabes, HASH(node_id)),node_id, -var,LOCAL), node_id, LOCAL );// Here we compute the split point based upon the variance
+    pass:= JOIN(onlyvalspan, sp, LEFT.node_id = RIGHT.node_id, LEFT ONLY, LOOKUP);
+    // Here we compute the split point based upon the mean of the range
+    splits_mean := PROJECT( sp, TRANSFORM(Node,SELF.Id := 0, SELF.level := p_level, SELF.value := (LEFT.maxv+LEFT.minv)/2, SELF := LEFT));
 		// Here we create split points based upon the median
 		// this gives even split points - but it adds an NLgN process into the loop ...
 		// Method currently uses field aggregates - which requires the node-id to fit into 16 bits
-		into_med := JOIN(working_nodes,sp,LEFT.node_id=RIGHT.node_id AND LEFT.number=RIGHT.number,TRANSFORM(ML.Types.NumericField,SELF.Number := LEFT.node_id,SELF := LEFT),LOOKUP);
-		// Transform into splits format - but oops - field is missing
-		s_median := PROJECT( ML.FieldAggregates(into_med).medians, TRANSFORM(Node, SELF.Id := 0, SELF.level := p_level, SELF.node_id:=LEFT.number, SELF.value := LEFT.median, SELF.number := 0));
-		splits_median := JOIN(s_median,sp,LEFT.node_id=RIGHT.node_id,TRANSFORM(Node,SELF.number := RIGHT.number,SELF := LEFT),FEW);
-		splits := IF ( p_level < MedDepth, splits_median, splits_mean );
+    into_med := JOIN(working_nodes,sp,LEFT.node_id=RIGHT.node_id AND LEFT.number=RIGHT.number,TRANSFORM(ML.Types.NumericField,SELF.Number := LEFT.node_id,SELF := LEFT),LOOKUP);
+    // Transform into splits format - but oops - field is missing
+    // When median = minval we use nextval instead of median to avoid endless right-node propagation (all points >= than split value)
+    s_median := PROJECT( ML.FieldAggregates(into_med).minMedNext, TRANSFORM(Node, SELF.Id := 0, SELF.level := p_level, SELF.node_id:=LEFT.number, SELF.value := IF(LEFT.median = LEFT.minval, LEFT.nextval, LEFT.median), SELF.number := 0));
+    splits_median := JOIN(s_median,sp,LEFT.node_id=RIGHT.node_id,TRANSFORM(Node,SELF.number := RIGHT.number,SELF := LEFT),FEW);
+    splits := IF ( p_level < MedDepth, splits_median, splits_mean );
 		// based upon the split points we now partition the data - note the split information is assumed to fit inside RAM
 		// First we perform the split on field to get record_id/node_id pairs
 		r := RECORD
@@ -114,10 +130,11 @@ EXPORT Trees := MODULE
 		ndata := JOIN(working_nodes,splits,LEFT.node_id = RIGHT.node_id AND LEFT.number=RIGHT.number,NoteNI(LEFT,RIGHT),LOOKUP);
 		// The we apply those record_id/node_id pairs back to the original data / we can use local because of the ,LOOKUP above
 		patched := JOIN(working_nodes,ndata,LEFT.id=RIGHT.id,TRANSFORM(Node,SELF.node_id := RIGHT.node_id, SELF.level := LEFT.level+1,SELF := LEFT),LOCAL);
-		RETURN nodes(level<p_level)+splits+patched;
+    // leafs
+    leafs1 := JOIN(working_nodes, leafspans, LEFT.node_id = RIGHT.node_id AND LEFT.number = RIGHT.number, TRANSFORM(LEFT), LOOKUP);
+    leafs2 := JOIN(working_nodes, pass, LEFT.node_id = RIGHT.node_id AND LEFT.number = RIGHT.number, TRANSFORM(LEFT), LOOKUP);
+    RETURN nodes(level<p_level)+leafs1+ leafs2+splits+patched;
   END;
-
-
 	  d1 := DISTRIBUTE(PROJECT(ML.Utils.Fat(f,0),TRANSFORM(Node,SELF.Level := 1, SELF.node_id := 1,SELF := LEFT)),HASH(id));
 		SHARED Res := LOOP(D1,Depth,Split(ROWS(LEFT),COUNTER));
 		EXPORT Splits := Res(id=0); // The split points used to partition each node id
@@ -126,6 +143,48 @@ EXPORT Trees := MODULE
 		EXPORT CountMean := AVE(Counts,Cnt);
 		EXPORT CountVariance := VARIANCE(Counts,Cnt);
 		EXPORT Extents := TABLE(Partitioned,{ node_id, number, MinV := MIN(GROUP,Value), MaxV := MAX(GROUP,Value) }, node_id, number, FEW);
+    completeTree(DATASET(Node) nodes):= FUNCTION
+      leftChildren:= PROJECT(nodes, TRANSFORM(node, SELF.node_id:= LEFT.node_id << 1, SELF.level := LEFT.level+1, SELF:=[]), LOCAL);
+      rightChildren:=PROJECT(nodes, TRANSFORM(node, SELF.node_id:= (LEFT.node_id << 1) + 1, SELF.level := LEFT.level+1, SELF:=[]), LOCAL);
+      x:=JOIN(splits, leftChildren + rightChildren, LEFT.node_id = RIGHT.node_id, TRANSFORM(RIGHT), RIGHT ONLY);
+      return nodes + x;
+    END;
+    EXPORT FullTree := DISTRIBUTE(completeTree(Splits),HASH(node_id)); ;  // All splits nodes must have 2 children (another split or leaf node)
+    nodeBoundaries(DATASET(Node) nodes):= FUNCTION
+      loopbody(DATASET(sNode) nodes):= FUNCTION
+        itself:= PROJECT(nodes, TRANSFORM(sNode, SELF.Id:= LEFT.node_id *2 + IF(LEFT.HighBranch, 1, 0), SELF:=LEFT), LOCAL);
+        parentNodeID := PROJECT(nodes, TRANSFORM(sNode, SELF.node_id:= LEFT.node_id DIV 2, SELF.HighBranch:= (LEFT.node_id % 2)=1, SELF:=LEFT), LOCAL);
+        parentData := JOIN(splits, parentNodeID, LEFT.node_id=RIGHT.NODE_id, TRANSFORM(sNode, SELF.splitId:= RIGHT.splitId, SELF.HighBranch:= RIGHT.HighBranch, SELF:= LEFT));
+        return itself + parentData;
+      END;
+      loop0:= PROJECT(nodes,TRANSFORM(sNode, SELF.splitId:= LEFT.node_id, SELF:=LEFT), LOCAL);
+      allBounds := LOOP(loop0, LEFT.id=0 AND LEFT.level>0,loopbody(ROWS(LEFT)));
+      LowBounds := DEDUP(SORT(allBounds(node_id<>splitId, HighBranch=FALSE), splitId, number, -level),splitId, number);
+      UpBounds  := DEDUP(SORT(allBounds(node_id<>splitId, HighBranch=TRUE) , splitId, number, -level),splitId, number);
+      return SORT(LowBounds + UpBounds, splitId, -level); //(node_id<>splitId)
+    END;
+    EXPORT Boundaries:= nodeBoundaries(FullTree);
+    EXPORT LowBounds:=  Boundaries(HighBranch=TRUE);
+    EXPORT UpBounds:=   Boundaries(HighBranch=FALSE);
+		EXPORT NewInstances(DATASET(NumericField) newData, DATASET(Node) model= Splits):= MODULE
+			maxLevel:= MAX(model, level);
+			instSplitRec := RECORD
+				t_node node_id; // The node-id for a given point
+				t_level level;
+				t_FieldNumber snumber;
+				t_FieldReal svalue;
+				NumericField;
+			END;
+			loopbody(DATASET(Node) nodes, t_level p_level) := FUNCTION
+				allresult:= JOIN(newData, nodes, LEFT.id = RIGHT.id, TRANSFORM(Node, SELF.number:= LEFT.number, SELF.value:= LEFT.value, SELF:=RIGHT), MANY LOOKUP);
+				joinall := JOIN(allresult, model, LEFT.number = RIGHT.number AND LEFT.node_id = RIGHT.node_id AND RIGHT.level= p_level, TRANSFORM(instSplitRec, SELF.node_id:= RIGHT.node_id, SELF.level:= RIGHT.level, SELF.snumber:= RIGHT.number, SELF.svalue:= RIGHT.value, SELF:= LEFT), ALL);
+				leaf:= JOIN(nodes, model, LEFT.node_id = RIGHT.node_id, LOOKUP, LEFT ONLY);
+				split:= PROJECT(joinall, TRANSFORM(Node, SELF.node_id := (LEFT.node_id << 1) + IF(LEFT.value < LEFT.svalue,0,1), SELF.level:= LEFT.level + 1, SELF:= LEFT));
+				RETURN leaf + split;
+			END;
+			root:= PROJECT(newData(number=1), TRANSFORM(Node, SELF.level:= 1, SELF.node_id:=1, SELF:= LEFT));
+			EXPORT Locations:= LOOP(root, maxLevel, loopbody(ROWS(LEFT),COUNTER));
+		END;
 	END;
 	
 // Previously implemented in Decision MODULE by David Bayliss
