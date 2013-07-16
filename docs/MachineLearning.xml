@@ -32,14 +32,14 @@
       <para></para>
     </legalnotice>
 
-    <releaseinfo>© 2012 HPCC Systems. All rights reserved</releaseinfo>
+    <releaseinfo>© 2013 HPCC Systems. All rights reserved</releaseinfo>
 
-    <date>January 2012 Version 1.2.0B</date>
+    <date>July 2013 Version 1.2.0C</date>
 
     <corpname>HPCC Systems</corpname>
 
     <copyright>
-      <year>2012 HPCC Systems. All rights reserved</year>
+      <year>2013 HPCC Systems. All rights reserved</year>
     </copyright>
 
     <mediaobject role="logo">
@@ -50,8 +50,7 @@
   </bookinfo>
 
   <chapter id="Introduction_Installation">
-    <title id="Introduction_Installation">Introduction and
-    Installation</title>
+    <title>Introduction and Installation</title>
 
     <para>LexisNexis Risk Solutions is an industry leader in data content,
     data aggregation, and information services which has independently
@@ -78,7 +77,7 @@
     url="http://hpccsystems.com/community/docs/aws-install-thor">http://hpccsystems.com/community/docs/aws-install-thor</ulink>.</para>
 
     <sect1 id="HPCC_Platform">
-      <title id="HPCC_Platform">The HPCC Platform</title>
+      <title>The HPCC Platform</title>
 
       <para>HPCC is fast, flexible and highly scalable. It can be used for any
       data-centric task and can meet the needs of any database regardless of
@@ -226,7 +225,7 @@
     </sect1>
 
     <sect1 id="ECL_IDE">
-      <title id="ECL_IDE">ECL IDE</title>
+      <title>ECL IDE</title>
 
       <para>ECL IDE is an ECL programmer's tool. Its main use is to create
       queries and ECL files and is designed to make ECL coding as easy as
@@ -479,8 +478,7 @@ OUTPUT(X3);
   </chapter>
 
   <chapter id="Machine_Learning_Algorithms">
-    <title id="Machine_Learning_Algorithms">Machine Learning
-    Algorithms</title>
+    <title>Machine Learning Algorithms</title>
 
     <para>The HPCC Systems Machine Learning libraries contain an extensible
     collection of machine learning routines which are easy and efficient to
@@ -550,7 +548,7 @@ OUTPUT(X3);
     url="http://hpccsystems.com/">http://hpccsystems.com/</ulink></ulink>.</para>
 
     <sect1 id="ML_Data_Models">
-      <title id="ML_Data_Models">The ML Data Models</title>
+      <title>The ML Data Models</title>
 
       <para>The ML routines are all centered around a small number of core
       processing models. As a user of ML (rather than an implementer) the
@@ -561,7 +559,7 @@ OUTPUT(X3);
       Type definition.</para>
 
       <sect2 id="Numeric_Field">
-        <title id="Numeric_Field">Numeric field</title>
+        <title>Numeric field</title>
 
         <para>The principle type that undergirds most of the ML processing is
         the Numeric Field. This is a general representation of an arbitrary
@@ -814,15 +812,14 @@ o1</programlisting></para>
       </sect2>
 
       <sect2 id="Coding_ML_Data_Models" role="nobrk">
-        <title id="Coding_ML_Data_Models">Coding with the ML data
-        models</title>
+        <title>Coding with the ML data models</title>
 
         <para>The ML data models are extremely flexible to work with; but
         using them is a little different from traditional ECL programming.
         This section aims to detail some of the possibilities.</para>
 
         <sect3 id="Column_Splitting">
-          <title id="Column_Splitting">Column splitting</title>
+          <title>Column splitting</title>
 
           <para>Some of the ML routines expect to be handed two datasets which
           may be, for example, a dataset of independent variables and another
@@ -843,7 +840,7 @@ Bayes
         </sect3>
 
         <sect3 id="Genuine_Nulls">
-          <title id="Genuine_Nulls">Genuine nulls</title>
+          <title>Genuine nulls</title>
 
           <para>Implementing a genuine null can be done by simply removing
           certain fields with certain values from the datastream. For example,
@@ -852,7 +849,7 @@ Bayes
         </sect3>
 
         <sect3 id="Sampling">
-          <title id="Sampling">Sampling</title>
+          <title>Sampling</title>
 
           <para>By far the easiest way to split a single data file into
           samples is to use the SAMPLE and ENTH verbs upon the datafile PRIOR
@@ -1410,7 +1407,7 @@ LogisticModule.ClassifyC(X,Model);
     </sect1>
 
     <sect1 id="Cluster_Walkthrough">
-      <title id="Cluster_Walkthrough">Cluster Walk-through</title>
+      <title>Cluster Walk-through</title>
 
       <para><emphasis role="bold">Modules: Cluster, Doc</emphasis></para>
 
@@ -1593,7 +1590,7 @@ MyKMeans.Allegiance(10,5);  // The centroid to which entity #10 is closest after
       </sect2>
 
       <sect2 id="AggloN">
-        <title id="AggloN">AggloN</title>
+        <title>AggloN</title>
 
         <para>With Agglomerative, or Hierarchical, clustering there is no need
         for a centroid set. This method takes a bottom-up approach whereby it
@@ -1731,7 +1728,7 @@ Cor.Kendall;
     </sect1>
 
     <sect1 id="Discretize_Walkthrough">
-      <title id="Discretize_Walkthrough">Discretize Walk-through</title>
+      <title>Discretize Walk-through</title>
 
       <para><emphasis role="bold">Modules: Discretize</emphasis></para>
 
@@ -1807,7 +1804,7 @@ done;
 </programlisting></para>
 
       <sect2 id="ByRounding">
-        <title id="ByRounding">ByRounding</title>
+        <title>ByRounding</title>
 
         <para>The ByRounding method exists to convert a real number to an
         integer by ‘rounding it’. At its simplest this means that every real
@@ -1843,7 +1840,7 @@ done;
       </sect2>
 
       <sect2 id="ByBucketing">
-        <title id="ByBucketing">ByBucketing</title>
+        <title>ByBucketing</title>
 
         <para>ByBucketing is mathematically similar to ByRounding but with
         rather more ease of use. There is a slight performance hit and rather
@@ -1855,7 +1852,7 @@ done;
       </sect2>
 
       <sect2 id="ByTiling">
-        <title id="ByTiling">ByTiling</title>
+        <title>ByTiling</title>
 
         <para>Both of the previous methods divide the banding evenly across
         the range of the original variable. However, while the range has been
@@ -1879,7 +1876,7 @@ done;
     </sect1>
 
     <sect1 id="Docs_Walkthrough">
-      <title id="Docs_Walkthrough">Docs Walk-through</title>
+      <title>Docs Walk-through</title>
 
       <para><emphasis role="bold">Modules: Docs</emphasis></para>
 
@@ -1901,7 +1898,7 @@ done;
       industry-standard functions such as Support and Confidence.</para>
 
       <sect2 id="Tokenize">
-        <title id="Tokenize">Tokenize</title>
+        <title>Tokenize</title>
 
         <para>The Tokenize module breaks a set of raw text into its lexical
         elements. From there, it can produce a dictionary of those elements
@@ -2972,7 +2969,7 @@ z := Mat.PCA(X).ZComp;
       β1).</para>
 
       <sect2 id="Polynomial">
-        <title id="Polynomial">Polynomial</title>
+        <title>Polynomial</title>
 
         <para>The Polynomial regression expresses (ie models) relationship
         between dependent variable Y and a single independent variable X with
@@ -3024,7 +3021,7 @@ P.RSquared
       </sect2>
 
       <sect2 id="OLS">
-        <title id="OLS">OLS</title>
+        <title>OLS</title>
 
         <para>The Ordinary Least Squares (OLS) regression is a linear
         regression model that calculates parameters β using the method of
@@ -4010,7 +4007,7 @@ ML.Associate(ForAssoc,2).AprioriN(40);
         </informaltable></para>
 
       <sect2 id="KMeans">
-        <title id="Cluster_Kmeans">KMeans</title>
+        <title>KMeans</title>
 
         <para>The KMeans module performs K-Means clustering on a static
         primary data set and a pre-determined set of centroids.</para>
@@ -4729,9 +4726,9 @@ variance(b,value)
       matrix implementation, ML.Regression.Sparse, and a dense matrix
       implementation, ML.Regression.Dense. Both of these are an implementation
       of Ordinary Least Squares regression using either LU or Cholesky
-      factorization. </para>
+      factorization.</para>
 
-      <para>The regression attributes are: </para>
+      <para>The regression attributes are:</para>
 
       <para><informaltable>
           <?dbfo keep-together="always"?>
@@ -4751,7 +4748,7 @@ variance(b,value)
 
             <tbody>
               <row>
-                <entry>Regression.Sparse.OLS_Cholesky </entry>
+                <entry>Regression.Sparse.OLS_Cholesky</entry>
 
                 <entry>Cholesky factorization of a sparse matrix for OLS
                 regression.</entry>
@@ -4765,7 +4762,7 @@ variance(b,value)
               </row>
 
               <row>
-                <entry>Regression.Dense.OLS_Cholesky </entry>
+                <entry>Regression.Dense.OLS_Cholesky</entry>
 
                 <entry>Cholesky of a dense matrix using the PB BLAS routines
                 for OLS regression.</entry>
@@ -4782,7 +4779,7 @@ variance(b,value)
                 <entry>Regress_Poly_X</entry>
 
                 <entry>Performs a polynomial regression for a single
-                independent variable with a single dependent target. </entry>
+                independent variable with a single dependent target.</entry>
               </row>
             </tbody>
           </tgroup>
@@ -5625,7 +5622,7 @@ Mat.Trans(d);
 </programlisting></para>
     </sect1>
 
-    <sect1>
+    <sect1 id="Routines_DenseMatrix">
       <title>The Dense Matrix Library (DMat)</title>
 
       <para>This module provides the following routines:</para>
@@ -5702,7 +5699,7 @@ Mat.Trans(d);
       module.</para>
     </sect1>
 
-    <sect1>
+    <sect1 id="Routines_BLAS">
       <title>Parallel Block BLAS for ECL</title>
 
       <para>The ML Libraries provide an implementation of selected BLAS
@@ -5710,15 +5707,15 @@ Mat.Trans(d);
       operations work on double precision floating point numbers. The
       functions provided are: matrix and matrix multiply and sum; scalar and
       matrix multiply and sum; scale vector; symmetric rank update; triangular
-      matrix solver; Cholesky factorization; and LU factorization. </para>
+      matrix solver; Cholesky factorization; and LU factorization.</para>
 
       <para>To use the Parallel Block BLAS routines, the user must decide on
       the partitioning for the matrices. The PBblas.Matrix_Map attribute is
       used to communicate the matrix and partition dimensions to the BLAS
       attributes. It is the responsibility of the user to employ compatible
-      partitioning schemes. </para>
+      partitioning schemes.</para>
 
-      <para>The PBblas module provides the following routines: </para>
+      <para>The PBblas module provides the following routines:</para>
 
       <informaltable>
         <?dbfo keep-together="always"?>
@@ -5770,7 +5767,7 @@ Mat.Trans(d);
             <row>
               <entry>PB_dbvrk</entry>
 
-              <entry>Matrix update with a block vector. </entry>
+              <entry>Matrix update with a block vector.</entry>
             </row>
 
             <row>
@@ -5784,7 +5781,7 @@ Mat.Trans(d);
             <row>
               <entry>PB_dgetrf</entry>
 
-              <entry>LU Factorization. </entry>
+              <entry>LU Factorization.</entry>
             </row>
 
             <row>
@@ -5828,7 +5825,7 @@ Mat.Trans(d);
         <para>The ML Libraries can use the BLAS libraries to speed up certain
         matrix operations. You may install BLAS (Basic Linear Algebra System)
         or ATLAS, or some other package containing a BLAS. The developer
-        version should be installed. </para>
+        version should be installed.</para>
 
         <para>The Attributes that employ BLAS require the cblas.h header file
         and the cblas library. These files must be located in directories
@@ -5836,7 +5833,7 @@ Mat.Trans(d);
         systems, you may need to use a symbolic link. For example, in CentOS
         the header file is installed in a usual place but the library is
         installed in /usr/lib64 which is not where the linker looks by
-        default. </para>
+        default.</para>
       </sect2>
     </sect1>
   </chapter>
