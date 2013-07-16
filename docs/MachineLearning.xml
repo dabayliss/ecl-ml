@@ -1062,8 +1062,7 @@ Asso.Rules(R)
       <title id="Classification_Walkthrough">Classification
       walk-through</title>
 
-      <para><emphasis role="bold">Modules: Classify, Regression,
-      Doc</emphasis></para>
+      <para><emphasis role="bold">Modules: Classify</emphasis></para>
 
       <para>ML.Classify tackles the problem: “given I know these facts about
       an object; can I predict some other value or attribute of that object.”
@@ -1271,57 +1270,142 @@ Results;
         relationship between a dependent variable Y and one or more
         independent variables Xi.</para>
 
-        <para>The ML.Regression module currently provides two models, OLS and
-        Poly, where the relationship is expressed as linear and polynomial
-        function respectively.</para>
+        <para>The most common form of regression model is the Ordinary Linear
+        Regression (OLR) which fits a line through a set of data
+        points.</para>
 
-        <para>When dependent variable Y is binary, ie when Y takes either 0 or
-        1 values, neither linear nor polynomial function can model the
-        relationship between X and Y correctly. In that case, the relationship
-        can be modeled using a logistic function, also known as sigmoid
-        function, which is an S-shaped curve with values from (0,1).</para>
+        <para>While the linear regression model is simple and very applicable
+        to many cases, it is not adequate for some purposes. For example, if
+        dependent variable Y is binary, i.e. if Y takes either 0 or 1, then a
+        linear model, which has no bounds on what values the dependent
+        variable Y can take, cannot represent the relationship between X and Y
+        correctly. In that case, the relationship can be modeled using a
+        logistic function, also known as sigmoid function, which is an
+        S-shaped curve with values from (0,1). Since dependent variable Y can
+        take only two values, 0 or 1, the Logistic Regression model predicts
+        two outcomes, 0 or 1, and it can be used as a tool for
+        classification.</para>
 
-        <para>Since dependent variable Y can take only two values, 0 or 1, the
-        Logistic Regression model predicts two outcomes 0 or 1, and it can be
-        used as a tool for classification.</para>
+        <para>For example, given the following data set:<informaltable>
+            <tgroup cols="2">
+              <colspec align="left" colwidth="80pt" />
+
+              <colspec align="left" colwidth="80pt" />
+
+              <thead>
+                <row>
+                  <entry align="left">X</entry>
+
+                  <entry align="left">Y</entry>
+                </row>
+              </thead>
+
+              <tbody>
+                <row>
+                  <entry align="left">1</entry>
+
+                  <entry>0</entry>
+                </row>
+
+                <row>
+                  <entry align="left">2</entry>
+
+                  <entry>0</entry>
+                </row>
+
+                <row>
+                  <entry align="left">3</entry>
+
+                  <entry>0</entry>
+                </row>
+
+                <row>
+                  <entry align="left">4</entry>
+
+                  <entry>0</entry>
+                </row>
+
+                <row>
+                  <entry align="left">5</entry>
+
+                  <entry>1</entry>
+                </row>
+
+                <row>
+                  <entry align="left">6</entry>
+
+                  <entry>0</entry>
+                </row>
+
+                <row>
+                  <entry align="left">7</entry>
+
+                  <entry>1</entry>
+                </row>
+
+                <row>
+                  <entry align="left">8</entry>
+
+                  <entry>1</entry>
+                </row>
+
+                <row>
+                  <entry align="left">9</entry>
+
+                  <entry>1</entry>
+                </row>
+
+                <row>
+                  <entry align="left">10</entry>
+
+                  <entry>1</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </informaltable></para>
+
+        <para>The Logistic Regression produces the model below:</para>
+
+        <para><graphic fileref="images/ML021.jpg" /></para>
+
+        <para>This model is then used as a classifier which assigns class 0 to
+        every point xi where yi&lt;0.5, and class 1 for every xi where
+        yi&gt;=0.5.</para>
+
+        <para>In the following example we have a dataset equivalent to the
+        dataset used to create the Logistic Regression model depicted
+        above.</para>
 
         <para><programlisting><?dbfo keep-together="always"?>IMPORT ML;
 
-value_record:= RECORD
-    unsigned   rid;
-    real       age;
-    real       height;
-    integer1   sex; // 0 = female, 1 = male
+value_record := RECORD
+                UNSIGNED rid;
+                REAL length;
+                INTEGER1 class; 
 END;
 
-d := DATASET([{1,35,149,0},{2,11,138,0},{3,12,148,1},{4,16,156,0},
-            {5,32,152,0},{6,16,157,0},{7,14,165,0},{8,8,152,1},
-            {9,35,177,0},{10,33,158,1},{11,40,166,0},{12,28,165,0},
-            {13,23,160,0},{14,52,178,1},{15,46,169,0},{16,29,173,1},
-            {17,30,172,0},{18,21,163,0},{19,21,164,0},{20,20,189,1},
-            {21,34,182,1},{22,43,184,1},{23,35,174,1},{24,39,177,1},
-            {25,43,183,1},{26,37,175,1},{27,32,173,1},{28,24,173,1},
-            {29,20,162,0},{30,25,180,1},{31,22,173,1},{32,25,171,1}]
-            ,value_record);
+d := DATASET([{1,1,0}, {2,2,0}, {3,3,0}, {4,4,0}, {5,5,1},
+              {6,6,0}, {7,7,1}, {8,8,1}, {9,9,1}, {10,10,1}]
+             ,value_record);
 
-ML.ToField(d,flds);
-logistic := ML.Classify.Logistic(flds(Number=2),flds(Number=3));
-logistic.Beta;
-logistic.modelY;
-</programlisting>In this example we have a dataset containing age, height in
-        centimeters and sex of 32 people, and we would like to create a
-        logistic model that will make it possible to predict a person's sex
-        given a person's height. The logistic model is built using the height
-        column as the independent variable, and using the sex column as the
-        dependent variable. The logistic.Beta calculates parameters of the
-        model using the iteratively-reweighted least squares (IRLS) algorithm:
-        β= (β0, β1), and those parameters can be plugged into the model
-        function Y = 1 ./ (1+exp(-X*β)) to predict the sex of a person X with
-        the specified height. If the model-calculated value Y is greater than
-        0.5, then the sex of the person X is predicted to be male, otherwise
-        the sex is predicted to be female. The logistic.modelY returns the
-        model-calculated (ie predicted) sex for all the heights provided by
-        the independent variable X.</para>
+ML.ToField(d,o);
+Y := O(Number=2);  // pull out class
+X := O(Number=1); // pull out lenghts
+                                                                                                                
+dY := ML.Discretize.ByRounding(Y);  
+LogisticModule := ML.Classify.Logistic(,,10);
+Model := LogisticModule.LearnC(X,dY);
+LogisticModule.ClassifyC(X,Model);
+
+</programlisting>The classifier produces the following result:<graphic
+        fileref="images/ML022.jpg" /></para>
+
+        <para>As expected, the independent variable values 5 and 6 have been
+        mis-classified compared to the training set, but the confidence in
+        those classification results is low. As depicted in the logistic
+        regression figure above, mis-classification happens because the model
+        function value for x=5 is less than 0.5 and it is greater than 0.5 for
+        x=6.</para>
       </sect2>
     </sect1>
 
@@ -3465,11 +3549,6 @@ ML.Associate(ForAssoc,2).AprioriN(40);
             </listitem>
 
             <listitem>
-              <para><emphasis role="bold"><emphasis>Enter the number of
-              </emphasis>Support Nodes</emphasis> (optional).</para>
-            </listitem>
-
-            <listitem>
               <para>Enter the <emphasis role="bold">Snapshot ID</emphasis> for
               the example data as <emphasis
               role="bold">snap-7766d116</emphasis>.</para>
@@ -4646,7 +4725,13 @@ variance(b,value)
     <sect1 id="Regression">
       <title id="Regression_Module">Regression (ML.Regression)</title>
 
-      <para>The Regression module provides the following routines:</para>
+      <para>The Regression module has 2 implementations. There is a sparse
+      matrix implementation, ML.Regression.Sparse, and a dense matrix
+      implementation, ML.Regression.Dense. Both of these are an implementation
+      of Ordinary Least Squares regression using either LU or Cholesky
+      factorization. </para>
+
+      <para>The regression attributes are: </para>
 
       <para><informaltable>
           <?dbfo keep-together="always"?>
@@ -4666,20 +4751,38 @@ variance(b,value)
 
             <tbody>
               <row>
-                <entry>OLS</entry>
+                <entry>Regression.Sparse.OLS_Cholesky </entry>
 
-                <entry>Takes a set of independent and dependent variables and
-                exports a module which publishes an ordinary least squares
-                linear regression of the independent variables to produce the
-                dependent ones (it can perform multiple regressions at
-                once).</entry>
+                <entry>Cholesky factorization of a sparse matrix for OLS
+                regression.</entry>
               </row>
 
               <row>
-                <entry>Poly</entry>
+                <entry>Regression.Sparse.OLS_LU</entry>
+
+                <entry>LU factorization of a sparse matrix for OLS
+                regression.</entry>
+              </row>
+
+              <row>
+                <entry>Regression.Dense.OLS_Cholesky </entry>
+
+                <entry>Cholesky of a dense matrix using the PB BLAS routines
+                for OLS regression.</entry>
+              </row>
+
+              <row>
+                <entry>Regression.Dense.OLS_LU</entry>
+
+                <entry>LU factorization of a dense matrix using PB BLAS
+                routines for an OLS regression.</entry>
+              </row>
+
+              <row>
+                <entry>Regress_Poly_X</entry>
 
                 <entry>Performs a polynomial regression for a single
-                independent variable with a single dependent target.</entry>
+                independent variable with a single dependent target. </entry>
               </row>
             </tbody>
           </tgroup>
@@ -5270,13 +5373,19 @@ o2;
       <listitem>
         <para>The Utility module</para>
       </listitem>
-    </itemizedlist>
 
-    <para><itemizedlist>
-        <listitem>
-          <para>The Matrix module</para>
-        </listitem>
-      </itemizedlist></para>
+      <listitem>
+        <para>The Matrix Library (Mat)</para>
+      </listitem>
+
+      <listitem>
+        <para>The Dense Matrix Library (DMat)</para>
+      </listitem>
+
+      <listitem>
+        <para>Parallel Block BLAS for ECL</para>
+      </listitem>
+    </itemizedlist>
 
     <sect1 id="Utility">
       <title id="Routines_Utility">Utility</title>
@@ -5514,6 +5623,221 @@ Mat.Sub( Mat.Scale(d,10.0), d );
 Mat.Mul(d,d);
 Mat.Trans(d);
 </programlisting></para>
+    </sect1>
+
+    <sect1>
+      <title>The Dense Matrix Library (DMat)</title>
+
+      <para>This module provides the following routines:</para>
+
+      <informaltable>
+        <?dbfo keep-together="always"?>
+
+        <tgroup cols="2">
+          <colspec align="left" colwidth="110pt" />
+
+          <colspec align="left" colwidth="490pt" />
+
+          <thead>
+            <row>
+              <entry align="left">Routine</entry>
+
+              <entry align="left">Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>Add</entry>
+
+              <entry>Sums two matrices.</entry>
+            </row>
+
+            <row>
+              <entry>Converted</entry>
+
+              <entry>Module for several different conversions.</entry>
+            </row>
+
+            <row>
+              <entry>Decomp</entry>
+
+              <entry>Decompose a matrix.</entry>
+            </row>
+
+            <row>
+              <entry>Identity</entry>
+
+              <entry>Create an identity matrix.</entry>
+            </row>
+
+            <row>
+              <entry>Mul</entry>
+
+              <entry>Multiply two matrices.</entry>
+            </row>
+
+            <row>
+              <entry>Scale</entry>
+
+              <entry>Multiplies a matrix by a scalar.</entry>
+            </row>
+
+            <row>
+              <entry>Sub</entry>
+
+              <entry>Subtracts two matrices.</entry>
+            </row>
+
+            <row>
+              <entry>Trans</entry>
+
+              <entry>Matrix transpose</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+
+      <para>These routines are intended to be similar to the Mat
+      module.</para>
+    </sect1>
+
+    <sect1>
+      <title>Parallel Block BLAS for ECL</title>
+
+      <para>The ML Libraries provide an implementation of selected BLAS
+      operations for use in a Parallel Block matrix application. The BLAS
+      operations work on double precision floating point numbers. The
+      functions provided are: matrix and matrix multiply and sum; scalar and
+      matrix multiply and sum; scale vector; symmetric rank update; triangular
+      matrix solver; Cholesky factorization; and LU factorization. </para>
+
+      <para>To use the Parallel Block BLAS routines, the user must decide on
+      the partitioning for the matrices. The PBblas.Matrix_Map attribute is
+      used to communicate the matrix and partition dimensions to the BLAS
+      attributes. It is the responsibility of the user to employ compatible
+      partitioning schemes. </para>
+
+      <para>The PBblas module provides the following routines: </para>
+
+      <informaltable>
+        <?dbfo keep-together="always"?>
+
+        <tgroup cols="2">
+          <colspec align="left" colwidth="110pt" />
+
+          <colspec align="left" colwidth="490pt" />
+
+          <thead>
+            <row>
+              <entry align="left">Routine</entry>
+
+              <entry align="left">Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>MakeR8Set</entry>
+
+              <entry>Packs a dataset of cells for a partition into a set of
+              double precision numbers.</entry>
+            </row>
+
+            <row>
+              <entry>Matrix_Map</entry>
+
+              <entry>Specifies the dimensions of a matrix and the dimensions
+              of the partitions.</entry>
+            </row>
+
+            <row>
+              <entry>PB_daxpy</entry>
+
+              <entry>Multiplies vector X by a scalar and sums vector
+              Y.</entry>
+            </row>
+
+            <row>
+              <entry>PB_dbvmm</entry>
+
+              <entry>Efficient matrix multiply when the result is a single
+              partition. Multiplies the product of matrices A and B with a
+              scalar alpha, and then sums with matrix C multiplied by a scalar
+              beta.</entry>
+            </row>
+
+            <row>
+              <entry>PB_dbvrk</entry>
+
+              <entry>Matrix update with a block vector. </entry>
+            </row>
+
+            <row>
+              <entry>PB_dgemm</entry>
+
+              <entry>General purpose matrix multiply. Multiplies a the product
+              of matrices A and B with a scalar alpha, and then sums with
+              matrix C multiplied by a scalar beta.</entry>
+            </row>
+
+            <row>
+              <entry>PB_dgetrf</entry>
+
+              <entry>LU Factorization. </entry>
+            </row>
+
+            <row>
+              <entry>PB_dpotrf</entry>
+
+              <entry>Cholesky factorization.</entry>
+            </row>
+
+            <row>
+              <entry>PB_dscal</entry>
+
+              <entry>Scalar multiply.</entry>
+            </row>
+
+            <row>
+              <entry>PB_dtran</entry>
+
+              <entry>Matrix transpose.</entry>
+            </row>
+
+            <row>
+              <entry>PB_dtrsm</entry>
+
+              <entry>Solves either Ax = B or xA = B.</entry>
+            </row>
+
+            <row>
+              <entry>PB_Extract_Tri</entry>
+
+              <entry>Extracts the upper or lower triangular. Useful for
+              extracting the L and U matrices from the composite matrix
+              created by the LU factorization.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+
+      <sect2>
+        <title>Installation notes</title>
+
+        <para>The ML Libraries can use the BLAS libraries to speed up certain
+        matrix operations. You may install BLAS (Basic Linear Algebra System)
+        or ATLAS, or some other package containing a BLAS. The developer
+        version should be installed. </para>
+
+        <para>The Attributes that employ BLAS require the cblas.h header file
+        and the cblas library. These files must be located in directories
+        specified in default search paths for headers and libraries. In some
+        systems, you may need to use a symbolic link. For example, in CentOS
+        the header file is installed in a usual place but the library is
+        installed in /usr/lib64 which is not where the linker looks by
+        default. </para>
+      </sect2>
     </sect1>
   </chapter>
 </book>
