@@ -1460,7 +1460,7 @@ ML.ToField(dEntityMatrix,dEntities);
       library named “dEntities”.</para>
 
       <sect2 id="kmeans">
-        <title id="KMeans">KMeans</title>
+        <title>KMeans</title>
 
         <para>With k-means clustering the user creates a second set of
         entities called centroids, with coordinates in the same space as the
@@ -3002,7 +3002,7 @@ d := DATASET([{1,50000,1.00},{2,500000,2.29}, {3,5000000,16.15},
                {4,25000000,80.2},{5,50000000,163},{6,100000000,316},
                {7,10,0.83},{8,1500000,5.63}],R);
 ML.ToField(d,flds);
-P := ML.Regression.Poly(flds(number=1),flds(number=2));
+P := ML.Regress_Poly_X(flds(number=1),flds(number=2));
 P.Beta;
 P.RSquared
 </programlisting>The Polynomial regression is configured by default to
@@ -3014,7 +3014,7 @@ P.RSquared
         between X and Y, the code above would need to be changed as
         follows:</para>
 
-        <para><programlisting>P := ML.Regression.Poly(flds(number=1),flds(number=2), 2); </programlisting></para>
+        <para><programlisting>P := ML.Regress_Poly_X(flds(number=1),flds(number=2), 2); </programlisting></para>
 
         <para>The third parameter ‘2’ has to be used to override the default
         value ‘6’.</para>
@@ -3047,7 +3047,7 @@ ML.ToField(d,o);
 
 X := O(Number =1); // Pull out the age
 Y := O(Number =2); // Pull out the height
-Reg := ML.Regression.OLS(X,Y);
+Reg := ML.Regression.Sparse.OLS_LU(X,Y);
 B := Reg.Beta();
 B;                         
 Reg.RSquared;
@@ -3093,10 +3093,7 @@ Reg.Anova;
 
         <para>The OLS regression can be configured to calculate parameters β
         using either the LU matrix decomposition or Cholesky matrix
-        decomposition. Cholesky matrix decomposition is used as a default if
-        no parameters are passed into the beta function. This is how the
-        example above has been coded. The default matrix decomposition can be
-        changed to the LU decomposition as follows: <programlisting>B := Reg.Beta(Reg.MDM.LU);</programlisting></para>
+        decomposition. </para>
       </sect2>
     </sect1>
 
