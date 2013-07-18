@@ -3093,7 +3093,7 @@ Reg.Anova;
 
         <para>The OLS regression can be configured to calculate parameters β
         using either the LU matrix decomposition or Cholesky matrix
-        decomposition. </para>
+        decomposition.</para>
       </sect2>
     </sect1>
 
@@ -4731,9 +4731,9 @@ variance(b,value)
           <?dbfo keep-together="always"?>
 
           <tgroup cols="2">
-            <colspec align="left" colwidth="80pt" />
+            <colspec align="left" colwidth="200pt" />
 
-            <colspec align="left" colwidth="510pt" />
+            <colspec align="left" colwidth="420pt" />
 
             <thead>
               <row>
