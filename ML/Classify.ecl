@@ -709,7 +709,7 @@ Configuration Input
 				SELF.conf   := 0;		// store percentaje of voting over total number of trees
 				SELF.closest_conf:= 0;	// added to fit in l_result, not used so far
 			END;
-			gClass:= JOIN(splitData, leafs, LEFT.new_node_id = RIGHT.node_id AND LEFT.group_id = RIGHT.group_id, final_class(LEFT, RIGHT), LOOKUP, LOCAL);
+			gClass:= JOIN(splitData, leafs, LEFT.new_node_id = RIGHT.node_id AND LEFT.group_id = RIGHT.group_id, final_class(LEFT, RIGHT), LOOKUP);
 			accClass:= TABLE(gClass, {id, number, value, cnt:= COUNT(GROUP)}, id, number, value, LOCAL);
 			sClass := SORT(accClass, id, -cnt, LOCAL);
 			finalClass:=DEDUP(sClass, id, LOCAL);

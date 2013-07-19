@@ -378,7 +378,7 @@ EXPORT Trees := MODULE
 		END;
 
 		ind1 := JOIN(ind0, dep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
-		res := LOOP(ind1, Depth, PartitionGiniImpurityBased(ROWS(LEFT), COUNTER));
+		res := LOOP(ind1, Depth, PartitionGiniImpurityBased(ROWS(LEFT), COUNTER, Purity));
 		nodes := PROJECT(res(id=0),TRANSFORM(SplitF, SELF.new_node_id := LEFT.value, SELF.value := LEFT.depend, SELF := LEFT)); // The split points used to partition each node i
 		mode_r := RECORD
 			res.node_id;
