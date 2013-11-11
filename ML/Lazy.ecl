@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 IMPORT * FROM $;
 /*
 Instance-based learning
@@ -28,7 +28,7 @@ EXPORT Lazy:= MODULE
   END; // End of General KNN Classifier
   
   // Particular KNN Classifier => using KDTree Nearest Neighbors Search
-  EXPORT KNN_KDTree(CONST Types.t_count NN_count=5, Trees.t_level Depth=10,Trees.t_level MedianDepth=0):= MODULE(KNN(NN_count))
+  EXPORT KNN_KDTree(CONST Types.t_count NN_count=5, Trees.t_level Depth=10,Trees.t_level MedianDepth=15):= MODULE(KNN(NN_count))
     KNNSearch:= ML.NearestNeighborsSearch.KDTreeNNSearch(NN_count, Depth, MedianDepth);
     EXPORT ClassifyC(DATASET(Types.NumericField) indepData , DATASET(Types.DiscreteField) depData ,DATASET(Types.NumericField) queryPointsData):= FUNCTION
       Neighbors:= KNNSearch.SearchC(indepData , queryPointsData);

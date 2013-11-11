@@ -1,4 +1,4 @@
-﻿IMPORT ML;
+IMPORT ML;
 IMPORT * FROM $;
 EXPORT NearestNeighborsSearch:= MODULE
     EXPORT leafData := RECORD
@@ -25,7 +25,7 @@ EXPORT NearestNeighborsSearch:= MODULE
     SHARED query_point := RECORD
       Types.t_RecordID id;                    // id of query point
       Types.t_FieldNumber p_number:=    0;    // qp attribute
-      Types.t_FieldReal p_value:=       0;    // qp atribute’s value
+      Types.t_FieldReal p_value:=       0;    // qp atribute�s value
       Types.t_RecordID node_id;               // id of the current node in the search
       Types.t_FieldNumber split_number:=0;    // attribute used to split
       Types.t_FieldReal split_value:=  -1;    // split value
@@ -38,9 +38,9 @@ EXPORT NearestNeighborsSearch:= MODULE
       BOOLEAN BOB:=           FALSE;        // Bound Overlap Ball flag
       BOOLEAN isTerminal:=    FALSE;        // isTerminal flag
     END;
-    SHARED KNNeighbors(DATASET(Types.NumericField) queryPointsData, DATASET(Trees.Node) KDTFullTree, DATASET(Trees.Node) KDTPartitioned, DATASET(Trees.sNode) KDTBoundaries) := FUNCTION
-        root:= KDTFullTree(node_id =1);
-        queryPoints(DATASET(Types.NumericField) qp_ids):= FUNCTION
+    EXPORT KNNeighbors(DATASET(Types.NumericField) queryPointsData, DATASET(Trees.Node) KDTFullTree, DATASET(Trees.Node) KDTPartitioned, DATASET(Trees.sNode) KDTBoundaries) := FUNCTION
+      root:= KDTFullTree(node_id =1);
+      queryPoints(DATASET(Types.NumericField) qp_ids):= FUNCTION
         seed:= DATASET([{0,0,99999999}], NN);
         rootnum:= MIN(root, number);
         rootval:= MIN(root, value);
@@ -174,7 +174,8 @@ EXPORT NearestNeighborsSearch:= MODULE
       END;
       qpoints:= queryPoints(queryPointsData(number = 1));
       // Keep processing query points until get Ball within Bounds state
-      res:= LOOP(qpoints, LEFT.BWB=FALSE, loopbody(ROWS(LEFT)));
+      //res:= LOOP(qpoints, LEFT.bwb=FALSE, EXISTS(ROWS(LEFT)), loopbody(ROWS(LEFT)));
+      res:= LOOP(qpoints, LEFT.bwb=FALSE, loopbody(ROWS(LEFT)));
       RETURN NORMALIZE(res, LEFT.NearNeighs, TRANSFORM(RIGHT));
     END;
     EXPORT SearchC(DATASET(Types.NumericField) indepData , DATASET(Types.NumericField) queryPointsData):= FUNCTION
