@@ -718,35 +718,104 @@ Configuration Input
    Depth      max tree level
 */
   EXPORT RandomForest(t_Count treeNum, t_Count fsNum, REAL Purity=1.0, INTEGER1 Depth=32):= MODULE
+    SHARED compREC:= RECORD
+      Types.t_FieldNumber classifier;  // The classifier in question (value of 'number' on outcome data)
+      Types.t_Discrete  c_actual;      // The value of c provided
+      Types.t_Discrete  c_modeled;
+      Types.t_FieldReal score;
+      Types.t_count     tp_cnt:=0;
+      Types.t_count     fn_cnt:=0;
+      Types.t_count     fp_cnt:=0;
+      Types.t_count     tn_cnt:=0;
+    END;
     EXPORT model_Map :=	DATASET([{'id','ID'},{'node_id','1'},{'level','2'},{'number','3'},{'value','4'},{'new_node_id','5'},{'group_id',6}], {STRING orig_name; STRING assigned_name;});
     EXPORT STRING model_fields := 'node_id,level,number,value,new_node_id,group_id';	// need to use field map to call FromField later
     EXPORT LearnD(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep) := FUNCTION
-      nodes := Trees.SplitFeatureSampleGI(Indep, Dep, treeNum, fsNum, Purity, Depth);
+      nodes := Ensemble.SplitFeatureSampleGI(Indep, Dep, treeNum, fsNum, Purity, Depth);
       AppendID(nodes, id, model);
       ToField(model, out_model, id, model_fields);
       RETURN out_model;
     END;
     EXPORT Model(DATASET(Types.NumericField) mod) := FUNCTION
-      ML.FromField(mod, Trees.gSplitF, o, model_Map);
+      ML.FromField(mod, Ensemble.gSplitF, o, model_Map);
       RETURN o;
     END;
-    EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
-      ML.FromField(mod, Trees.gSplitF, nodes, model_Map);	// need to use model_Map previously build when Learning (ToField)
+    // The function returns instance's class probability distribution for each class value
+    // based upon independent values (Indep) and the ensemble model (mod).
+    EXPORT ClassProbabilityDistributionD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+      ML.FromField(mod, Ensemble.gSplitF, nodes, model_Map);	// need to use model_Map previously build when Learning (ToField)
       leafs := nodes(new_node_id = 0);	// from final nodes
-      splitData_raw:= Trees.gSplitInstances(nodes, Indep);
+      splitData_raw:= Ensemble.gSplitInstances(nodes, Indep);
       splitData:= DISTRIBUTE(splitData_raw, id);
-      l_result final_class(RECORDOF(splitData) l, RECORDOF(leafs) r ):= TRANSFORM
-        SELF.id     := l.id;
-        SELF.number := 1;
-        SELF.value  := r.value;
-        SELF.conf   := 0;		// store percentaje of voting over total number of trees
-        SELF.closest_conf:= 0;	// added to fit in l_result, not used so far
-      END;
-      gClass:= JOIN(splitData, leafs, LEFT.new_node_id = RIGHT.node_id AND LEFT.group_id = RIGHT.group_id, final_class(LEFT, RIGHT), LOOKUP);
+      gClass:= JOIN(splitData, leafs, LEFT.new_node_id = RIGHT.node_id AND LEFT.group_id = RIGHT.group_id,
+                TRANSFORM(Types.DiscreteField, SELF.id:= LEFT.id, SELF.number := 1, SELF.value:= RIGHT.value), LOOKUP);
       accClass:= TABLE(gClass, {id, number, value, cnt:= COUNT(GROUP)}, id, number, value, LOCAL);
-      sClass := SORT(accClass, id, -cnt, LOCAL);
+      tClass := TABLE(accClass, {id, number, tot:= SUM(GROUP, cnt)}, id, number, LOCAL);
+      sClass:= JOIN(accClass, tClass, LEFT.number=RIGHT.number AND LEFT.id=RIGHT.id, LOCAL);
+      RETURN PROJECT(sClass, TRANSFORM(l_result, SELF.conf:= LEFT.cnt/LEFT.tot, SELF:= LEFT, SELF:=[]), LOCAL);
+    END;
+    // Classification function for discrete independent values and model
+    EXPORT ClassifyD(DATASET(Types.DiscreteField) Indep,DATASET(Types.NumericField) mod) := FUNCTION
+      // get class probabilities for each instance
+      dClass:= ClassProbabilityDistributionD(Indep, mod);
+      // select the class with greatest probability for each instance
+      sClass := SORT(dClass, id, -conf, LOCAL);
       finalClass:=DEDUP(sClass, id, LOCAL);
-      RETURN PROJECT(finalClass, TRANSFORM(l_result, SELF.conf:= LEFT.cnt/treeNum, SELF:= LEFT, SELF:=[]), LOCAL);
+      RETURN PROJECT(finalClass, TRANSFORM(l_result, SELF:= LEFT, SELF:=[]), LOCAL);
+    END;
+    // The function calculate the Area Under the ROC curve based on:
+    // - classProbDistclass : probability distribution for each instance
+    // - positiveClass      : the class of interest
+    // - Dep                : instance's class value
+    // The function returns all points of the ROC curve for graphic purposes:
+    // label: threshold, point: (threshold's false negative rate, threshold's true positive rate).
+    // The area under the ROC curve is returned in the AUC field of the last record.
+    // Note: threshold = 100 means classifying all instances as negative, it is not necessarily part of the curve
+    EXPORT AUC_ROC(DATASET(l_result) classProbDist, Types.t_Discrete positiveClass, DATASET(Types.DiscreteField) Dep) := FUNCTION
+      classOfInterest := DISTRIBUTE(classProbDist(value = positiveClass), id);
+      DepData         := DISTRIBUTE(Dep, id);
+      compared:= JOIN(classOfInterest, DepData,LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,
+            TRANSFORM(compREC, SELF.classifier:= LEFT.number, SELF.c_actual:=RIGHT.value, SELF.c_modeled:=LEFT.value, SELF.score:=LEFT.conf+1), LOCAL);
+      coi_sorted:= SORT(compared, -score);
+      coi_tot:= TABLE(coi_sorted, {classifier, c_modeled, totPos:= COUNT(GROUP, c_actual = c_modeled), totNeg:= COUNT(GROUP, c_actual<>c_modeled)}, classifier, c_modeled);
+      totPos:=MIN(coi_tot, totPos);
+      totNeg:=MIN(coi_tot, totNeg);
+      // Count and accumulate number of TP, FP, TN and FN instances for each threshold (score)
+      compREC cntNegPos(compREC l, compREC r) := TRANSFORM
+        SELF.tp_cnt:=  l.tp_cnt + IF(r.c_actual=r.c_modeled, 1, 0);
+        SELF.fp_cnt:=  l.fp_cnt + IF(r.c_actual=r.c_modeled, 0, 1);
+        SELF.tn_cnt:=  totNeg - l.fp_cnt - IF(r.c_actual=r.c_modeled, 0, 1);
+        SELF.fn_cnt:=  totPos - l.tp_cnt - IF(r.c_actual=r.c_modeled, 1, 0);
+        SELF:= r;
+      END;
+      newClass:= DATASET([{1,0,0,101, 0,totPos,0,totNeg}], compREC) + ITERATE(coi_sorted, cntNegPos(LEFT, RIGHT));
+      acc_newClass:= SORT(newClass, score, -tp_cnt, tn_cnt);
+      dacc_NC:= DEDUP(acc_newClass, classifier, score, LEFT);
+      curvePoint:= RECORD
+        Types.t_Count       id;
+        Types.t_FieldNumber classifier;
+        Types.t_FieldReal   thresho;
+        Types.t_FieldReal   fpr;
+        Types.t_FieldReal   tpr;
+        Types.t_FieldReal   deltaPos:=0;
+        Types.t_FieldReal   deltaNeg:=0;
+        Types.t_FieldReal   cumNeg:=0;
+        Types.t_FieldReal   AUC:=0;
+      END;
+      // Transform all into ROC curve points
+      rocPoints:= PROJECT(dacc_NC, TRANSFORM(curvePoint, SELF.id:=COUNTER, SELF.thresho:=LEFT.score-1,
+                              SELF.fpr:= LEFT.fp_cnt/totNeg, SELF.tpr:= LEFT.tp_cnt/totPos, SELF:=LEFT));
+      // Calculate the area under the curve (cumulative iteration)
+      curvePoint rocArea(curvePoint l, curvePoint r) := TRANSFORM
+        deltaPos  := if(l.tpr > r.tpr, l.tpr - r.tpr, 0.0);
+        deltaNeg  := if( l.fpr > r.fpr, l.fpr - r.fpr, 0.0);
+        SELF.deltaPos := deltaPos;
+        SELF.deltaNeg := deltaNeg;
+        SELF.AUC      := l.AUC + deltaPos * (l.cumNeg + 0.5* deltaNeg);
+        SELF.cumNeg   := l.cumNeg + deltaNeg;
+        SELF:= r;
+      END;
+      RETURN ITERATE(rocPoints, rocArea(LEFT, RIGHT));
     END;
   END;
   // RandomTree module
