@@ -718,16 +718,6 @@ Configuration Input
    Depth      max tree level
 */
   EXPORT RandomForest(t_Count treeNum, t_Count fsNum, REAL Purity=1.0, INTEGER1 Depth=32):= MODULE
-    SHARED compREC:= RECORD
-      Types.t_FieldNumber classifier;  // The classifier in question (value of 'number' on outcome data)
-      Types.t_Discrete  c_actual;      // The value of c provided
-      Types.t_Discrete  c_modeled;
-      Types.t_FieldReal score;
-      Types.t_count     tp_cnt:=0;
-      Types.t_count     fn_cnt:=0;
-      Types.t_count     fp_cnt:=0;
-      Types.t_count     tn_cnt:=0;
-    END;
     EXPORT model_Map :=	DATASET([{'id','ID'},{'node_id','1'},{'level','2'},{'number','3'},{'value','4'},{'new_node_id','5'},{'group_id',6}], {STRING orig_name; STRING assigned_name;});
     EXPORT STRING model_fields := 'node_id,level,number,value,new_node_id,group_id';	// need to use field map to call FromField later
     EXPORT LearnD(DATASET(Types.DiscreteField) Indep, DATASET(Types.DiscreteField) Dep) := FUNCTION
@@ -772,25 +762,43 @@ Configuration Input
     // The area under the ROC curve is returned in the AUC field of the last record.
     // Note: threshold = 100 means classifying all instances as negative, it is not necessarily part of the curve
     EXPORT AUC_ROC(DATASET(l_result) classProbDist, Types.t_Discrete positiveClass, DATASET(Types.DiscreteField) Dep) := FUNCTION
-      classOfInterest := DISTRIBUTE(classProbDist(value = positiveClass), id);
-      DepData         := DISTRIBUTE(Dep, id);
-      compared:= JOIN(classOfInterest, DepData,LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,
-            TRANSFORM(compREC, SELF.classifier:= LEFT.number, SELF.c_actual:=RIGHT.value, SELF.c_modeled:=LEFT.value, SELF.score:=LEFT.conf+1), LOCAL);
-      coi_sorted:= SORT(compared, -score);
-      coi_tot:= TABLE(coi_sorted, {classifier, c_modeled, totPos:= COUNT(GROUP, c_actual = c_modeled), totNeg:= COUNT(GROUP, c_actual<>c_modeled)}, classifier, c_modeled);
-      totPos:=MIN(coi_tot, totPos);
-      totNeg:=MIN(coi_tot, totNeg);
+      SHARED cntREC:= RECORD
+        Types.t_FieldNumber classifier;  // The classifier in question (value of 'number' on outcome data)
+        Types.t_Discrete  c_actual;      // The value of c provided
+        Types.t_FieldReal score :=-1;
+        Types.t_count     tp_cnt:=0;
+        Types.t_count     fn_cnt:=0;
+        Types.t_count     fp_cnt:=0;
+        Types.t_count     tn_cnt:=0;
+      END;
+      SHARED compREC:= RECORD(cntREC)
+        Types.t_Discrete  c_modeled;
+      END;
+      classOfInterest := classProbDist(value = positiveClass);
+      compared:= JOIN(classOfInterest, Dep, LEFT.id=RIGHT.id AND LEFT.number=RIGHT.number,
+                              TRANSFORM(compREC, SELF.classifier:= LEFT.number, SELF.c_actual:=RIGHT.value,
+                              SELF.c_modeled:=LEFT.value, SELF.score:=LEFT.conf), HASH);
+      sortComp:= SORT(compared, score);
+      coi_acc:= TABLE(sortComp, {classifier, score, cntPos:= COUNT(GROUP, c_actual = c_modeled),
+                                    cntNeg:= COUNT(GROUP, c_actual<>c_modeled)}, classifier, score, LOCAL);
+      coi_tot:= TABLE(coi_acc, {classifier, totPos:= SUM(GROUP, cntPos), totNeg:= SUM(GROUP, cntNeg)}, classifier, FEW);
+      totPos:=EVALUATE(coi_tot[1], totPos);
+      totNeg:=EVALUATE(coi_tot[1], totNeg);
       // Count and accumulate number of TP, FP, TN and FN instances for each threshold (score)
-      compREC cntNegPos(compREC l, compREC r) := TRANSFORM
-        SELF.tp_cnt:=  l.tp_cnt + IF(r.c_actual=r.c_modeled, 1, 0);
-        SELF.fp_cnt:=  l.fp_cnt + IF(r.c_actual=r.c_modeled, 0, 1);
-        SELF.tn_cnt:=  totNeg - l.fp_cnt - IF(r.c_actual=r.c_modeled, 0, 1);
-        SELF.fn_cnt:=  totPos - l.tp_cnt - IF(r.c_actual=r.c_modeled, 1, 0);
+      acc_sorted:= PROJECT(coi_acc, TRANSFORM(cntREC, SELF.c_actual:= positiveClass, SELF.fn_cnt:= LEFT.cntPos,
+                                    SELF.tn_cnt:= LEFT.cntNeg, SELF:= LEFT), LOCAL);
+      cntREC accNegPos(cntREC l, cntREC r) := TRANSFORM
+        deltaPos:= l.fn_cnt + r.fn_cnt;
+        deltaNeg:= l.tn_cnt + r.tn_cnt;
+        SELF.score:= r.score;
+        SELF.tp_cnt:=  totPos - deltaPos;
+        SELF.fn_cnt:=  deltaPos;
+        SELF.fp_cnt:=  totNeg - deltaNeg;
+        SELF.tn_cnt:= deltaNeg;
         SELF:= r;
       END;
-      newClass:= DATASET([{1,0,0,101, 0,totPos,0,totNeg}], compREC) + ITERATE(coi_sorted, cntNegPos(LEFT, RIGHT));
-      acc_newClass:= SORT(newClass, score, -tp_cnt, tn_cnt);
-      dacc_NC:= DEDUP(acc_newClass, classifier, score, LEFT);
+      cntNegPos:= ITERATE(acc_sorted, accNegPos(LEFT, RIGHT));
+      accnew := DATASET([{1,positiveClass,-1,totPos,0,totNeg,0}], cntREC) + cntNegPos;
       curvePoint:= RECORD
         Types.t_Count       id;
         Types.t_FieldNumber classifier;
@@ -803,8 +811,8 @@ Configuration Input
         Types.t_FieldReal   AUC:=0;
       END;
       // Transform all into ROC curve points
-      rocPoints:= PROJECT(dacc_NC, TRANSFORM(curvePoint, SELF.id:=COUNTER, SELF.thresho:=LEFT.score-1,
-                              SELF.fpr:= LEFT.fp_cnt/totNeg, SELF.tpr:= LEFT.tp_cnt/totPos, SELF:=LEFT));
+      rocPoints:= PROJECT(accnew, TRANSFORM(curvePoint, SELF.id:=COUNTER, SELF.thresho:=LEFT.score,
+                                  SELF.fpr:= LEFT.fp_cnt/totNeg, SELF.tpr:= LEFT.tp_cnt/totPos, SELF:=LEFT));
       // Calculate the area under the curve (cumulative iteration)
       curvePoint rocArea(curvePoint l, curvePoint r) := TRANSFORM
         deltaPos  := if(l.tpr > r.tpr, l.tpr - r.tpr, 0.0);

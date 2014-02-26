@@ -106,7 +106,7 @@ EXPORT Ensemble := MODULE
             AND LEFT.number=RIGHT.number AND LEFT.value = RIGHT.value,
             TRANSFORM(r, SELF.Prop := LEFT.Cnt/RIGHT.Tcnt, SELF := LEFT), HASH);
     gini_per := TABLE(prop, {group_id, node_id, number, value, tcnt := SUM(GROUP,Cnt),val := SUM(GROUP,Prop*Prop)}, group_id, node_id, number, value, LOCAL);
-    gini     := TABLE(gini_per, {group_id, node_id, number, gini_t := SUM(GROUP,tcnt*val)/SUM(GROUP,tcnt)}, group_id, node_id, number, FEW, LOCAL);
+    gini     := TABLE(gini_per, {group_id, node_id, number, gini_t := SUM(GROUP,tcnt*val)/SUM(GROUP,tcnt)}, group_id, node_id, number, LOCAL);
     splt     := DEDUP(SORT(gini, group_id, node_id, -gini_t, LOCAL), group_id, node_id, LOCAL);
     node_cand0 := JOIN(aggc, splt, LEFT.group_id = RIGHT.group_id AND LEFT.node_id = RIGHT.node_id AND LEFT.number = RIGHT.number, TRANSFORM(LEFT), LOOKUP, LOCAL);
     node_cand  := PROJECT(node_cand0, TRANSFORM({node_cand0, t_node new_nodeid}, SELF.new_nodeid := node_base + COUNTER, SELF := LEFT));
@@ -148,8 +148,15 @@ EXPORT Ensemble := MODULE
     ind1 := JOIN(ind0, groupDep, LEFT.id = RIGHT.id, init(LEFT,RIGHT)); // If we were prepared to force DEP into memory then ,LOOKUP would go quicker
     // generating best feature_selection-gini_impurity splits, loopfilter level = COUNTER let pass only the nodes to be splitted for any current level
     res := LOOP(ind1, LEFT.level=COUNTER, COUNTER < depth , RndFeatSelPartitionGIBased(ROWS(LEFT), treeNum, fsNum, totFeat, COUNTER, Purity));
-    splits := PROJECT(res(id=0, number>0),TRANSFORM(gSplitF, SELF.new_node_id := LEFT.value, SELF.value := LEFT.depend, SELF := LEFT));    // node splits
-    leafs1 := PROJECT(res(id=0, number=0),TRANSFORM(gSplitF, SELF.number:=0, SELF.value:= LEFT.depend, SELF.new_node_id:=0, SELF:= LEFT)); // leafs nodes
+    // Turning LOOP results into splits and leaf nodes
+    gSplitF toNewNode(gNodeInstDisc NodeInst) := TRANSFORM
+      SELF.new_node_id  := IF(NodeInst.number>0, NodeInst.value, 0);
+      SELF.number       := IF(NodeInst.number>0, NodeInst.number, 0);
+      SELF.value        := NodeInst.depend;
+      SELF:= NodeInst;
+    END;
+    new_nodes:= PROJECT(res(id=0), toNewNode(LEFT));    // node splits and leaf nodes
+    // Taking care of instances (id>0) that reached maximum level and did not turn into a leaf yet
     mode_r := RECORD
       res.group_id;
       res.node_id;
@@ -157,11 +164,11 @@ EXPORT Ensemble := MODULE
       res.depend;
       Cnt := COUNT(GROUP);
     END;
-    // Taking care instances (id>0) that reached maximum level and did not turn into a leaf yet
     depCnt      := TABLE(res(id>0, number=1),mode_r, group_id, node_id, level, depend, FEW);
     depCntSort  := SORT(depCnt, group_id, node_id, cnt); // if more than one dependent value for node_id
     depCntDedup := DEDUP(depCntSort, group_id, node_id);     // the class value with more counts is selected
-    leafs2:= PROJECT(depCntDedup, TRANSFORM(gSplitF, SELF.number:=0, SELF.value:= LEFT.depend, SELF.new_node_id:=0, SELF:= LEFT));
-    RETURN splits + leafs1+ leafs2;
+    maxlevel_leafs:= PROJECT(depCntDedup, TRANSFORM(gSplitF, SELF.number:=0, SELF.value:= LEFT.depend,
+                                          SELF.new_node_id:=0, SELF:= LEFT));
+    RETURN new_nodes + maxlevel_leafs;
   END;
 END;

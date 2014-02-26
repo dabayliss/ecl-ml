@@ -163,6 +163,7 @@ irisDS := DATASET([
 OUTPUT(irisDS, NAMED('irisDS'), ALL);
 AppendID(irisDS, id, iris_data);
 ML.ToField(iris_Data, full_ds);
+OUTPUT(full_ds, NAMED('full_ds'), ALL);
 indepData:= full_ds(number<5);
 depData:= ML.Discretize.ByRounding(full_ds(number=5));
 minNumObj:= 2;    maxLevel := 100;
@@ -174,10 +175,10 @@ OUTPUT(SORT(tmodel, -node_id, -new_node_id), ALL, NAMED('TreeModel'));
 
 //Classification Phase
 results1:= trainer1.ClassifyC(indepData, tmod);
-OUTPUT(results1, NAMED('ClassificationResults'));
+OUTPUT(results1, NAMED('ClassificationResults'), ALL);
 OUTPUT(TABLE(results1, {closest_conf, cnt:= COUNT(GROUP)}, closest_conf), NAMED('FinalNodeAssig1'));
 results11:= Classify.Compare(PROJECT(depData, TRANSFORM(Types.DiscreteField,SELF.number:=1, SELF:=LEFT)), results1);
-OUTPUT(SORT(results11.CrossAssignments, c_actual, c_modeled), NAMED('CrossAssig1'));
+OUTPUT(SORT(results11.CrossAssignments, c_actual, c_modeled), NAMED('CrossAssig1'), ALL);
 OUTPUT(results11.RecallByClass, NAMED('RecallByClass1'));
 OUTPUT(results11.PrecisionByClass, NAMED('PrecisionByClass1'));
 OUTPUT(results11.Accuracy, NAMED('Accur1'));
