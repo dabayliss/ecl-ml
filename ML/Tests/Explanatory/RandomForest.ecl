@@ -1,7 +1,7 @@
 ﻿IMPORT * FROM ML;
 IMPORT ML.Tests.Explanatory as TE;
 
-
+/*
 weatherRecord := RECORD
 	Types.t_RecordID id;
 	Types.t_FieldNumber outlook;
@@ -29,10 +29,9 @@ weatherRecord);
 OUTPUT(weather_Data, NAMED('weather_Data'));
 indep_Data:= TABLE(weather_Data,{id, outlook, temperature, humidity, windy});
 dep_Data:= TABLE(weather_Data,{id, play});
-/*
+*/
 indep_data:= TABLE(TE.MonkDS.Train_Data,{id, a1, a2, a3, a4, a5, a6});
 dep_data:= TABLE(TE.MonkDS.Train_Data,{id, class});
-*/
 
 ToField(indep_data, pr_indep);
 indepData := ML.Discretize.ByRounding(pr_indep);
@@ -44,7 +43,7 @@ depData := ML.Discretize.ByRounding(pr_dep);
 OUTPUT(indepData, NAMED('indepData'), ALL);
 OUTPUT(depData, NAMED('depData'), ALL);
 
-learner := Classify.RandomForest(10, 2, 1.0, 10); // generating a random forest of 25 trees selecting 3 features for splits using impurity:=1.0 and max depth:= 10
+learner := Classify.RandomForest(25, 3, 1.0, 10); // generating a random forest of 25 trees selecting 3 features for splits using impurity:=1.0 and max depth:= 10
 result := learner.learnd(IndepData, DepData); // model to use when classifying
 OUTPUT(result,NAMED('learnd_output'), ALL); // group_id represent number of tree
 
