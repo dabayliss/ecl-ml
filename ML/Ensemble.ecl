@@ -75,7 +75,8 @@ EXPORT Ensemble := MODULE
     leafs := mod(new_node_id = 0);	// from final nodes
     join0 := JOIN(Indep, splits, LEFT.number = RIGHT.number AND LEFT.value = RIGHT.value, LOOKUP, MANY);
     sort0 := SORT(join0, group_id, id, level, number, node_id, new_node_id);
-    dedup0:= DEDUP(sort0, LEFT.group_id = RIGHT.group_id AND LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
+    group0:= GROUP(sort0, group_id, id);
+    dedup0:= DEDUP(group0, LEFT.group_id = RIGHT.group_id AND LEFT.id = RIGHT.id AND LEFT.new_node_id != RIGHT.node_id, KEEP 1, LEFT);
     dedup1:= DEDUP(dedup0, LEFT.group_id = RIGHT.group_id AND LEFT.id = RIGHT.id AND LEFT.new_node_id = RIGHT.node_id, KEEP 1, RIGHT);
     RETURN dedup1;
   END;
